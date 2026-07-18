@@ -1,0 +1,7 @@
+{
+  "$schema": "./lockstep.schema.json",
+  "area": "socket-gemini-nano",
+  "description": "lockstep manifest for socket-gemini-nano.",
+  "upstreams": {},
+  "rows": []
+}

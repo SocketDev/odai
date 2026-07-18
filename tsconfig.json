@@ -1,0 +1,20 @@
+{
+  "extends": "./.config/fleet/tsconfig.base.json",
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "declaration": true,
+    "declarationMap": false,
+    "module": "commonjs",
+    "moduleResolution": "bundler",
+    "noEmit": false,
+    "noEmitOnError": false,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "skipLibCheck": true,
+    "sourceMap": false,
+    "types": ["node"],
+    "verbatimModuleSyntax": false
+  },
+  "include": ["src/**/*.mts"],
+  "exclude": [".cache", "coverage", "dist", "node_modules", "test"]
+}
