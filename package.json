@@ -98,6 +98,7 @@
     "oxfmt": "catalog:",
     "oxlint": "catalog:",
     "playwright-core": "catalog:",
+    "portless": "catalog:",
     "regjsparser": "catalog:",
     "rolldown": "catalog:",
     "semver": "catalog:",

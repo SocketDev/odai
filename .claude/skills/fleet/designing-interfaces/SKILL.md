@@ -467,3 +467,9 @@ destructive action, then state when access ends. The best flows give a clear ret
 
 Before presenting research, implementing the direction, or doing final visual QA, read
 [delivery-and-craft.md](references/delivery-and-craft.md).
+
+For UI labels, errors, empty states, confirmations, and recovery copy, read
+[interface-copy.md](references/interface-copy.md).
+
+For final tuning dials like clarify, distill, harden, onboard, bolder, quieter, and delight,
+read [refinement-modes.md](references/refinement-modes.md).

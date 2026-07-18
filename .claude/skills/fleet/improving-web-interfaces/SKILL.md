@@ -14,13 +14,18 @@ has locked the visual direction. It is not a second design authority.
 2. Preserve the locked tokens, hierarchy, and component roles; improve one user-facing
    path at a time. Make a design more decisive through hierarchy, proportion, density, and
    copy before adding colors, effects, or new components.
+   For copy, density, onboarding, or tone tuning, read
+   [interface-copy.md](../designing-interfaces/references/interface-copy.md) and
+   [refinement-modes.md](../designing-interfaces/references/refinement-modes.md).
 3. When the existing system cannot express the intended direction, name the precise token
    or component addition and get approval before expanding the system.
 4. Use motion only to explain state, spatial change, or feedback. Respect reduced motion.
 5. Check keyboard use, focus visibility, semantics, and contrast before visual polish.
 6. Build loading, error, empty, permission, and read-only states alongside the primary path;
    preserve user input on recoverable failure and leave room for localized text.
-7. Render the result and compare it to the reference lock using
+7. Give every action and recovery state specific, user-facing copy. Name destructive outcomes,
+   explain errors in plain language, and make the next action clear.
+8. Render the result and compare it to the reference lock using
    [rendering-chromium-to-png](../rendering-chromium-to-png/SKILL.md).
 
 ## Boundaries

@@ -14,8 +14,9 @@ redesign a product without the [Designing Interfaces](../designing-interfaces/SK
    [rendering-chromium-to-png](../rendering-chromium-to-png/SKILL.md).
 2. For a material UI change, get a fresh-context critique when an independent reviewer is
    available. Keep its evidence separate from the implementation rationale.
-3. Review semantics, keyboard flow, focus, overflow, contrast, responsive states, and
-   production states using [review-checklist.md](references/review-checklist.md).
+3. Review semantics, keyboard flow, focus, overflow, contrast, responsive states, production
+   states, and user-facing copy using [review-checklist.md](references/review-checklist.md)
+   and [interface-copy.md](../designing-interfaces/references/interface-copy.md).
 4. Re-render after each material correction. Report the remaining risks with evidence.
 
 ## Design Cluster

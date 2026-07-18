@@ -15,10 +15,13 @@ when interaction, layout, navigation, or rendering integration is the risk.
 2. Write focused Vitest coverage for deterministic component/state behavior.
 3. Use the repository’s browser-test setup for real navigation, keyboard behavior,
    responsive state, and browser APIs. Do not create a competing runner.
-4. Capture rendered output through
+4. For a locally served page, start the repository's existing development command through the
+   package.json script that launches it through `portless`. Test the generated HTTPS `.localhost`
+   URL; do not hard-code a port or create another server path.
+5. Capture rendered output through
    [rendering-chromium-to-png](../rendering-chromium-to-png/SKILL.md) when visual
    correctness is material.
-5. Run the canonical repository test and coverage commands before handoff.
+6. Run the canonical repository test and coverage commands before handoff.
 
 ## Boundaries
 

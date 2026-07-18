@@ -1,6 +1,6 @@
 ---
 name: updating
-description: Run repo maintenance: dependency updates, lockstep drift, submodules, security alerts, coverage, and settings audits.
+description: Run repo maintenance: updates, lockstep, submodules, security, coverage, audits.
 user-invocable: true
 allowed-tools: Workflow, Skill, Read, Edit, Grep, Glob, Bash(pnpm run:*), Bash(pnpm test:*), Bash(pnpm install:*), Bash(git:*), Bash(claude --version)
 model: claude-haiku-4-5
