@@ -19,6 +19,7 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.mts",
+      "import": "./dist/index.esm.js",
       "default": "./dist/index.js"
     },
     "./node": {
