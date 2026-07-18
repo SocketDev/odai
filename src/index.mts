@@ -6,6 +6,11 @@
 
 import { probeAvailability } from './availability.mts'
 import { createGeminiNanoModel } from './model.mts'
+import {
+  installLanguageModelSimulator,
+  LanguageModelSessionSimulator,
+  LanguageModelSimulator,
+} from './simulator.mts'
 import { dedupeDependencies } from './tasks/dedupe.mts'
 import { reasonAboutLockfile } from './tasks/lockfile.mts'
 import { generateCodePatch } from './tasks/patch.mts'
@@ -14,6 +19,9 @@ export {
   createGeminiNanoModel,
   dedupeDependencies,
   generateCodePatch,
+  installLanguageModelSimulator,
+  LanguageModelSimulator,
+  LanguageModelSessionSimulator,
   probeAvailability,
   reasonAboutLockfile,
 }

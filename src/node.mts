@@ -5,6 +5,11 @@
  */
 
 import { promptStructured } from './json.mts'
+import {
+  installLanguageModelSimulator,
+  LanguageModelSessionSimulator,
+  LanguageModelSimulator,
+} from './simulator.mts'
 import { dedupeDependencies } from './tasks/dedupe.mts'
 import { reasonAboutLockfile } from './tasks/lockfile.mts'
 import { generateCodePatch } from './tasks/patch.mts'
@@ -57,4 +62,11 @@ export function createMockSession(options: MockSessionOptions): SessionLike {
   }
 }
 
-export { dedupeDependencies, generateCodePatch, reasonAboutLockfile }
+export {
+  dedupeDependencies,
+  generateCodePatch,
+  installLanguageModelSimulator,
+  LanguageModelSimulator,
+  LanguageModelSessionSimulator,
+  reasonAboutLockfile,
+}
