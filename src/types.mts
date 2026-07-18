@@ -28,12 +28,11 @@ export interface SessionLike {
 }
 
 /**
- * A factory that can create sessions. The browser's `LanguageModel` global and
- * `window.ai.languageModel` both conform to this shape.
+ * A factory that can create sessions. The browser's stable `LanguageModel`
+ * global conforms to this shape.
  */
 export interface LanguageModelLike {
-  availability?(): Promise<string> | { availability: string }
-  capabilities?(): Promise<{ available: string }> | { available: string }
+  availability(): Promise<string> | { availability: string }
   create(options?: object): Promise<SessionLike>
 }
 
@@ -71,6 +70,6 @@ export interface TaskResult<T> {
 
 export interface LanguageModelState {
   cloneCapable: boolean
-  namespace: 'modern' | 'legacy' | 'none'
+  namespace: 'modern' | 'none'
   session: SessionLike
 }

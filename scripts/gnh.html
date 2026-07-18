@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Gemini Nano Hints (gnh) evaluator</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        max-width: 72ch;
+        margin: 2rem auto;
+        padding: 0 1rem;
+      }
+      pre {
+        background: #f4f4f4;
+        padding: 1rem;
+        overflow-x: auto;
+      }
+      button {
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+      }
+      #status {
+        margin: 1rem 0;
+        font-weight: bold;
+      }
+      .pass {
+        color: #1a7f37;
+      }
+      .fail {
+        color: #cf222e;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Gemini Nano Hints (gnh) evaluator</h1>
+    <p>
+      This page runs the gnh scenario battery against Chrome's stable
+      <code>LanguageModel</code> API. Requires Chrome 138+ with on-device AI
+      enabled and the model downloaded.
+    </p>
+    <button id="run" disabled>Run evaluation</button>
+    <div id="status">Checking API availability…</div>
+    <pre id="output"></pre>
+
+    <script type="module">
+      import { createGeminiNanoModel } from '../dist/index.esm.js'
+      import { runEval, formatReport } from '../dist/gnh/index.js'
+
+      const runButton = document.getElementById('run')
+      const status = document.getElementById('status')
+      const output = document.getElementById('output')
+
+      async function checkAvailability() {
+        if (typeof LanguageModel === 'undefined') {
+          status.textContent =
+            'LanguageModel API is not available. Enable chrome://flags/#prompt-api-for-gemini-nano and reload.'
+          return false
+        }
+        const state = await LanguageModel.availability()
+        if (state !== 'available' && state !== 'readily') {
+          status.textContent = `Model status: ${state}. Download the on-device model first.`
+          return false
+        }
+        status.textContent = 'Model available. Ready to run.'
+        return true
+      }
+
+      const available = await checkAvailability()
+      runButton.disabled = !available
+
+      runButton.addEventListener('click', async () => {
+        output.textContent = ''
+        status.textContent = 'Creating session…'
+        try {
+          const model = await createGeminiNanoModel({
+            systemPrompt:
+              'You are a helpful, concise supply-chain security assistant. Output only the requested JSON or patch.',
+            temperature: 0,
+            topK: 1,
+          })
+          status.textContent = 'Running scenarios…'
+          const report = await runEval({ model })
+          output.textContent = formatReport(report)
+          status.textContent = `Done: ${report.passed}/${report.total} passed`
+        } catch (error) {
+          status.textContent = 'Error'
+          output.textContent = String(error)
+        }
+      })
+    </script>
+  </body>
+</html>

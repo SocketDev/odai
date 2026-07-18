@@ -46,6 +46,35 @@ const nodeConfig: RolldownOptions = {
   platform: 'node',
 }
 
-const configs: readonly RolldownOptions[] = [browserConfig, nodeConfig]
+const gnhConfig: RolldownOptions = {
+  ...baseConfig,
+  external: [],
+  input: path.join(srcPath, 'gnh/index.mts'),
+  output: {
+    ...baseConfig.output,
+    entryFileNames: 'gnh/index.js',
+    format: 'esm',
+  },
+  platform: 'browser',
+}
+
+const browserEsmConfig: RolldownOptions = {
+  ...baseConfig,
+  external: [],
+  input: path.join(srcPath, 'index.mts'),
+  output: {
+    ...baseConfig.output,
+    entryFileNames: 'index.esm.js',
+    format: 'esm',
+  },
+  platform: 'browser',
+}
+
+const configs: readonly RolldownOptions[] = [
+  browserConfig,
+  nodeConfig,
+  gnhConfig,
+  browserEsmConfig,
+]
 
 export default configs

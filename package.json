@@ -25,6 +25,10 @@
       "types": "./dist/node.d.mts",
       "default": "./dist/node.js"
     },
+    "./gnh": {
+      "types": "./dist/gnh/index.d.mts",
+      "default": "./dist/gnh/index.js"
+    },
     "./package.json": "./package.json"
   },
   "publishConfig": {
@@ -41,6 +45,7 @@
     "prepare": "node scripts/fleet/install-git-hooks.mts && node scripts/fleet/prepare.mts",
     "security": "node scripts/fleet/security.mts",
     "test": "node scripts/fleet/test.mts",
+    "gnh": "node --experimental-strip-types src/gnh/run.mts --mock",
     "type": "tsgo --noEmit -p .config/fleet/tsconfig.check.json",
     "update": "node scripts/fleet/update.mts",
     "check:paths": "node scripts/fleet/check/paths-are-canonical.mts",

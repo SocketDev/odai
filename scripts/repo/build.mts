@@ -50,7 +50,11 @@ async function main(): Promise<void> {
   await removeInternalDeclarations(distPath)
 }
 
-const PUBLIC_DECLARATION_FILES = new Set(['index.d.mts', 'node.d.mts'])
+const PUBLIC_DECLARATION_FILES = new Set([
+  'gnh/index.d.mts',
+  'index.d.mts',
+  'node.d.mts',
+])
 
 async function removeInternalDeclarations(dir: string): Promise<void> {
   const entries = await readdir(dir, { recursive: true, withFileTypes: true })

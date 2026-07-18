@@ -4,19 +4,16 @@ import { createLanguageModel } from '../src/session.mts'
 
 describe('session', () => {
   let originalLanguageModel: unknown
-  let originalWindow: unknown
 
   beforeEach(() => {
     originalLanguageModel = (
       globalThis as { LanguageModel?: unknown | undefined }
     ).LanguageModel
-    originalWindow = (globalThis as { window?: unknown | undefined }).window
   })
 
   afterEach(() => {
     ;(globalThis as { LanguageModel?: unknown | undefined }).LanguageModel =
       originalLanguageModel
-    ;(globalThis as { window?: unknown | undefined }).window = originalWindow
   })
 
   it('creates a modern session with full options', async () => {
@@ -61,7 +58,6 @@ describe('session', () => {
   it('throws when no api is present', async () => {
     ;(globalThis as { LanguageModel?: unknown | undefined }).LanguageModel =
       undefined
-    ;(globalThis as { window?: unknown | undefined }).window = undefined
     await expect(createLanguageModel()).rejects.toThrow('Chrome AI not found')
   })
 })

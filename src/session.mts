@@ -1,9 +1,11 @@
 /**
  * @file Create a warm Prompt API session with the gotcha-handling fallback
- *   ladder. Two namespaces are probed, options are stripped on TypeError, and
- *   the returned base session is meant to be cloned per request.
+ *   ladder. Only the stable `LanguageModel` global is used; options are
+ *   stripped on TypeError, and the returned base session is meant to be cloned
+ *   per request.
  */
 
+import { getLanguageModel } from './availability.mts'
 import type {
   LanguageModelLike,
   LanguageModelState,
@@ -40,27 +42,16 @@ export function buildCreateOptions(
 export async function createLanguageModel(
   options: CreateSessionOptions = {},
 ): Promise<LanguageModelState> {
-  const modern = getModernLanguageModel()
-  if (modern !== undefined) {
-    const session = await createWithFallback(modern, options)
-    return {
-      cloneCapable: typeof session.clone === 'function',
-      namespace: 'modern',
-      session,
-    }
+  const model = getLanguageModel()
+  if (model === undefined) {
+    throw new Error('Chrome AI not found')
   }
-
-  const legacy = getLegacyLanguageModel()
-  if (legacy !== undefined) {
-    const session = await createWithFallback(legacy, options)
-    return {
-      cloneCapable: false,
-      namespace: 'legacy',
-      session,
-    }
+  const session = await createWithFallback(model, options)
+  return {
+    cloneCapable: typeof session.clone === 'function',
+    namespace: 'modern',
+    session,
   }
-
-  throw new Error('Chrome AI not found')
 }
 
 export async function createWithFallback(
@@ -88,23 +79,10 @@ export async function createWithFallback(
     }
   }
 
-  const legacy: CreateSessionOptions = {
+  const systemOnly: CreateSessionOptions = {
     systemPrompt: opts.systemPrompt,
   }
-  return await model.create(legacy)
-}
-
-export function getLegacyLanguageModel(): LanguageModelLike | undefined {
-  const globalWindow = globalThis as {
-    ai?: { languageModel?: LanguageModelLike | undefined } | undefined
-  }
-  if (
-    globalWindow.ai !== undefined &&
-    globalWindow.ai.languageModel !== undefined
-  ) {
-    return globalWindow.ai.languageModel
-  }
-  return undefined
+  return await model.create(systemOnly)
 }
 
 export interface CreateSessionOptions {
@@ -112,13 +90,6 @@ export interface CreateSessionOptions {
   systemPrompt?: string | undefined
   temperature?: number | undefined
   topK?: number | undefined
-}
-
-export function getModernLanguageModel(): LanguageModelLike | undefined {
-  if (typeof LanguageModel !== 'undefined') {
-    return LanguageModel as LanguageModelLike
-  }
-  return undefined
 }
 
 export function isUnsupportedError(error: unknown): boolean {
