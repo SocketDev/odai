@@ -98,6 +98,17 @@ export const FLEET_SKILL_CATALOG: Readonly<Record<string, SkillDefinition>> = {
 /**
  * Cross-family routes that must remain visible as direct SKILL.md links.
  */
+/**
+ * Fleet skills that operate ON the wheelhouse (not on a member's own code) and
+ * reference wheelhouse-only machinery such as `scripts/repo/*`. They live in
+ * the wheelhouse's own `.claude/skills/fleet/` but are intentionally omitted
+ * from member repos by the cascade. The skill-system coherence check honors
+ * this list so members don't fail for a skill they are not supposed to carry.
+ */
+export const WHEELHOUSE_ONLY_SKILLS: readonly string[] = [
+  'onboarding-fleet-member',
+]
+
 export const SKILL_HANDOFFS: Readonly<Record<string, readonly string[]>> = {
   'agent-ci': ['greening-ci-local', 'greening-ci'],
   'authoring-spec': ['grilling-plan', 'decomposing-tickets', 'building-tdd'],

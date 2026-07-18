@@ -14,6 +14,17 @@ Use the narrowest relevant checks; do not turn a small UI repair into an unsolic
 - Text wraps without clipping; controls retain usable targets and spacing.
 - Repeated surfaces communicate grouping rather than adding card-on-card noise.
 
+## Production States
+
+- Long, empty, localized, and bidirectional text preserve hierarchy without clipping or
+  fixed-width controls; format dates, numbers, and currency for the active locale.
+- Loading, error, empty, offline, permission, and read-only states explain what happened
+  and give the user a specific next action where recovery is possible.
+- Submissions prevent accidental duplicates, preserve input after a recoverable failure,
+  and surface conflicts or stale data without hiding user work.
+- Large result sets remain usable through pagination, virtualization, filtering, or another
+  task-appropriate boundary.
+
 ## Visual and Motion Quality
 
 - Typography and color roles match the Refero lock or existing system.

@@ -20,7 +20,6 @@ The fleet runs on `chore(wheelhouse): cascade template@<sha>` commits. Every whe
 
 Tool-version bumps (pnpm, zizmor, sfw, …) route through the wheelhouse-owned
 <!-- socket-lint: allow cross-repo -->
-
 pipeline (`node scripts/repo/pipeline.mts`, run FROM the wheelhouse: bump →
 reconcile → CI-green gate → propagate); this skill then carries the resulting
 template change fleet-wide like any other.

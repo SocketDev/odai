@@ -15,7 +15,7 @@ redesign a product without the [Designing Interfaces](../designing-interfaces/SK
 2. For a material UI change, get a fresh-context critique when an independent reviewer is
    available. Keep its evidence separate from the implementation rationale.
 3. Review semantics, keyboard flow, focus, overflow, contrast, responsive states, and
-   visible hierarchy using [review-checklist.md](references/review-checklist.md).
+   production states using [review-checklist.md](references/review-checklist.md).
 4. Re-render after each material correction. Report the remaining risks with evidence.
 
 ## Design Cluster

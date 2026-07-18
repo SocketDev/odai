@@ -331,13 +331,17 @@ overrides:
 importers:
 
   .:
+    dependencies:
+      '@sinclair/typebox':
+        specifier: 'catalog:'
+        version: 0.34.50
+      '@types/dom-chromium-ai':
+        specifier: 0.0.17
+        version: 0.0.17
     devDependencies:
       '@redwoodjs/agent-ci':
         specifier: 'catalog:'
         version: 0.17.1
-      '@sinclair/typebox':
-        specifier: 'catalog:'
-        version: 0.34.50
       '@socketregistry/packageurl-js':
         specifier: 1.4.2
         version: 1.4.2
@@ -356,9 +360,6 @@ importers:
       '@socketsecurity/sdk-stable':
         specifier: 'catalog:'
         version: '@socketsecurity/sdk@4.0.1'
-      '@types/dom-chromium-ai':
-        specifier: 0.0.17
-        version: 0.0.17
       '@types/mdast':
         specifier: 'catalog:'
         version: 4.0.4
@@ -718,16 +719,6 @@ importers:
         version: 26.1.1
 
   .claude/hooks/fleet/compound-lessons-nudge:
-    devDependencies:
-      '@types/node':
-        specifier: 'catalog:'
-        version: 26.1.1
-
-  .claude/hooks/fleet/concurrent-cargo-build-guard:
-    dependencies:
-      shell-quote:
-        specifier: 'catalog:'
-        version: 1.10.0
     devDependencies:
       '@types/node':
         specifier: 'catalog:'

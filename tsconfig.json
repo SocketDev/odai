@@ -12,7 +12,7 @@
     "rootDir": "./src",
     "skipLibCheck": true,
     "sourceMap": false,
-    "types": ["node"],
+    "types": ["node", "dom-chromium-ai"],
     "verbatimModuleSyntax": false
   },
   "include": ["src/**/*.mts"],

@@ -18,7 +18,9 @@ has locked the visual direction. It is not a second design authority.
    or component addition and get approval before expanding the system.
 4. Use motion only to explain state, spatial change, or feedback. Respect reduced motion.
 5. Check keyboard use, focus visibility, semantics, and contrast before visual polish.
-6. Render the result and compare it to the reference lock using
+6. Build loading, error, empty, permission, and read-only states alongside the primary path;
+   preserve user input on recoverable failure and leave room for localized text.
+7. Render the result and compare it to the reference lock using
    [rendering-chromium-to-png](../rendering-chromium-to-png/SKILL.md).
 
 ## Boundaries

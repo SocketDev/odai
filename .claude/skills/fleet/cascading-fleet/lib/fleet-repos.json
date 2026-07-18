@@ -7,6 +7,12 @@
       "publishes": "custom"
     },
     {
+      "name": "node-smol",
+      "description": "Customized Node.js distribution with Socket native integrations",
+      "optIns": ["squash-history"],
+      "publishes": "binary"
+    },
+    {
       "name": "socket-cli",
       "description": "Command-line interface for socket.dev security analysis"
     },
