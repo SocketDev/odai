@@ -102,3 +102,11 @@ npm-debug.log
 pnpm-debug.log
 *.tgz
 # </fleet-canonical>
+
+# ─── vitiate coverage-guided fuzz lane (`pnpm run test:fuzz`) caches ───
+# `.swc/` is the SWC instrument plugin's WASM cache; `.vitiate/` holds the
+# regenerable corpus + run results. Both are rebuilt on every fuzz run — never
+# commit them. (A crash-repro artifact worth keeping as a regression guard
+# would be re-included here explicitly; none exist yet.)
+/.swc/
+/.vitiate/

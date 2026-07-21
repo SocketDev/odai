@@ -16,6 +16,7 @@ catalog:
   '@ultrathink/acorn.wasm': npm:@ultrathink/acorn-wasm@0.0.1
   '@vitest/coverage-v8': 4.1.10
   '@vitest/ui': 4.1.10
+  '@vitiate/core': 0.3.1
   'c8': 11.0.0
   'chrome-devtools-mcp': 1.5.0
   'compromise': 14.15.1
@@ -39,6 +40,7 @@ catalog:
   'typescript': 7.0.2
   'vite': 8.1.0
   'vitest': 4.1.10
+  'vitiate': 0.3.1
 
 overrides:
   # Fleet-canonical overrides (managed by socket-wheelhouse sync; do not edit).
@@ -113,6 +115,7 @@ minimumReleaseAgeExclude:
   - 'portless@0.15.4'
 
 allowBuilds:
+  '@swc/core': true
   cpu-features: false
   protobufjs: false
   puppeteer: false

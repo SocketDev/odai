@@ -46,6 +46,7 @@
     "prepare": "node scripts/fleet/install-git-hooks.mts && node scripts/fleet/prepare.mts",
     "security": "node scripts/fleet/security.mts",
     "test": "node scripts/fleet/test.mts",
+    "test:fuzz": "node scripts/repo/fuzz.mts",
     "gnh": "node --experimental-strip-types src/gnh/run.mts",
     "type": "tsgo --noEmit -p .config/fleet/tsconfig.check.json",
     "update": "node scripts/fleet/update.mts",
@@ -88,6 +89,7 @@
     "@types/shell-quote": "catalog:",
     "@vitest/coverage-v8": "catalog:",
     "@vitest/ui": "catalog:",
+    "@vitiate/core": "catalog:",
     "c8": "catalog:",
     "chrome-devtools-mcp": "catalog:",
     "fast-check": "catalog:",
@@ -107,7 +109,8 @@
     "shell-quote": "catalog:",
     "taze": "catalog:",
     "typescript": "catalog:",
-    "vitest": "catalog:"
+    "vitest": "catalog:",
+    "vitiate": "catalog:"
   },
   "devEngines": {
     "packageManager": {
