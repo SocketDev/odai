@@ -1,4 +1,14 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { createServer } from 'node:net'
+
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+} from 'vitest'
 
 import {
   backendNames,
@@ -6,11 +16,44 @@ import {
   defaultProbeOrder,
   selectBackend,
 } from '../../src/backends/registry.mts'
+import { LOCAI_LLAMA_URL_ENV_VAR } from '../../src/backends/llama-server.mts'
 import { LanguageModelSimulator } from '../../src/simulator.mts'
 import type { LocaiBackend } from '../../src/backends/types.mts'
 
+/**
+ * Reserve an ephemeral port and release it, so the llama-server probe hits a
+ * port that is closed no matter what runs on this machine.
+ */
+async function reserveClosedPort(): Promise<number> {
+  return await new Promise((resolve, reject) => {
+    const server = createServer()
+    server.once('error', reject)
+    server.listen(0, '127.0.0.1', () => {
+      const address = server.address()
+      const port =
+        typeof address === 'object' && address !== null ? address.port : 0
+      server.close(() => resolve(port))
+    })
+  })
+}
+
 describe('backend registry', () => {
   let originalLanguageModel: unknown
+  let originalLlamaUrl: string | undefined
+
+  beforeAll(async () => {
+    originalLlamaUrl = process.env[LOCAI_LLAMA_URL_ENV_VAR]
+    const closedPort = await reserveClosedPort()
+    process.env[LOCAI_LLAMA_URL_ENV_VAR] = `http://127.0.0.1:${closedPort}`
+  })
+
+  afterAll(() => {
+    if (originalLlamaUrl === undefined) {
+      delete process.env[LOCAI_LLAMA_URL_ENV_VAR]
+    } else {
+      process.env[LOCAI_LLAMA_URL_ENV_VAR] = originalLlamaUrl
+    }
+  })
 
   beforeEach(() => {
     originalLanguageModel = (
@@ -45,7 +88,7 @@ describe('backend registry', () => {
     expect(nano.reason).toContain('LanguageModel global')
     const llama = await createBackend('llama-server').availability()
     expect(llama.available).toBe(false)
-    expect(llama.reason).toContain('next phase')
+    expect(llama.reason).toContain('not reachable')
     const apple = await createBackend('apple-fm').availability()
     expect(apple.available).toBe(false)
     expect(apple.reason).toContain('deviceNotEligible')
@@ -89,7 +132,7 @@ describe('backend registry', () => {
   it('throws with the reason when LOCAI_BACKEND names an unavailable backend', async () => {
     await expect(
       selectBackend({ env: { LOCAI_BACKEND: 'llama-server' } }),
-    ).rejects.toThrow(/llama-server.*next phase/s)
+    ).rejects.toThrow(/llama-server.*not reachable/s)
   })
 
   it('rejects an unknown LOCAI_BACKEND value listing valid names', async () => {

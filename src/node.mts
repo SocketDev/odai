@@ -7,7 +7,12 @@
 
 import { createAppleFmBackend } from './backends/apple-fm.mts'
 import { createGeminiNanoHeadlessBackend } from './backends/gemini-nano-headless.mts'
-import { createLlamaServerBackend } from './backends/llama-server.mts'
+import {
+  createLlamaServerBackend,
+  DEFAULT_LLAMA_URL,
+  LOCAI_LLAMA_MODEL_ENV_VAR,
+  LOCAI_LLAMA_URL_ENV_VAR,
+} from './backends/llama-server.mts'
 import {
   backendNames,
   createBackend,
@@ -86,16 +91,20 @@ export {
   createLocaiModel,
   createSimulatorBackend,
   dedupeDependencies,
+  DEFAULT_LLAMA_URL,
   defaultProbeOrder,
   generateCodePatch,
   installLanguageModelSimulator,
   LanguageModelSimulator,
   LanguageModelSessionSimulator,
   LOCAI_BACKEND_ENV_VAR,
+  LOCAI_LLAMA_MODEL_ENV_VAR,
+  LOCAI_LLAMA_URL_ENV_VAR,
   reasonAboutLockfile,
   selectBackend,
 }
 
+export type { LlamaServerBackendOptions } from './backends/llama-server.mts'
 export type { SelectBackendOptions } from './backends/registry.mts'
 export type {
   BackendAvailability,
