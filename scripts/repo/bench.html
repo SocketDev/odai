@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Gemini Nano Hints (gnh) evaluator</title>
+    <title>locai bench evaluator</title>
     <style>
       body {
         font-family: system-ui, sans-serif;
@@ -33,9 +33,9 @@
     </style>
   </head>
   <body>
-    <h1>Gemini Nano Hints (gnh) evaluator</h1>
+    <h1>locai bench evaluator</h1>
     <p>
-      This page runs the gnh scenario battery against Chrome's stable
+      This page runs the bench scenario battery against Chrome's stable
       <code>LanguageModel</code> API. Requires Chrome 138+ with on-device AI
       enabled and the model downloaded.
     </p>
@@ -45,7 +45,7 @@
 
     <script type="module">
       import { createGeminiNanoModel } from '../dist/index.esm.js'
-      import { runEval, formatReport } from '../dist/gnh/index.js'
+      import { runEval, formatReport } from '../dist/bench/index.js'
 
       const runButton = document.getElementById('run')
       const status = document.getElementById('status')
