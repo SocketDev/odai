@@ -3,7 +3,7 @@
  *   untrusted-input JSON boundary. A small on-device model emits free-form text
  *   and this module repairs / extracts JSON from it, so every byte here is
  *   attacker-influenced. Complements the fast-check property tests in
- *   json.fuzz.test.mts: fast-check checks correctness on CONSTRUCTED values;
+ *   json-fuzz.test.mts: fast-check checks correctness on CONSTRUCTED values;
  *   vitiate feeds SWC-coverage-guided mutated BYTES to reach deep parser paths
  *   a spec-based test never hits, with the prototypePollution detector watching
  *   for a `__proto__` leak through normalizeKeys. Run via `pnpm run
