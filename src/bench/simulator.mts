@@ -1,6 +1,7 @@
 /**
- * @file Pre-built LanguageModel simulator rules for the gnh scenario battery.
- *   Lets the evaluator run end-to-end in Node or node-smol without Chrome.
+ * @file Pre-built LanguageModel simulator rules for the bench scenario
+ *   battery. Lets the evaluator run end-to-end in Node or node-smol without
+ *   Chrome.
  */
 
 import {
@@ -15,7 +16,7 @@ import {
 } from './fixtures.mts'
 import type { ResponseRule } from '../simulator.mts'
 
-export function createGnhResponseRules(): ResponseRule[] {
+export function createBenchResponseRules(): ResponseRule[] {
   return [
     {
       response: JSON.stringify({

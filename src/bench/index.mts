@@ -1,8 +1,8 @@
 /**
- * @file Gemini Nano Hints (gnh) evaluator. Runs a battery of small, real-world
- *   scenarios against a GeminiNanoModel and reports pass/fail scores plus raw
- *   outputs. Designed to answer: "how well does on-device Nano actually work
- *   for these tasks?"
+ * @file Bench evaluator. Runs a battery of small, real-world scenarios
+ *   against a GeminiNanoModel and reports pass/fail scores plus raw outputs.
+ *   Designed to answer: "how well does an on-device model actually work for
+ *   these tasks?"
  */
 
 import type { GeminiNanoModel } from '../model.mts'
@@ -26,9 +26,7 @@ export interface EvalReport {
 
 export function formatReport(report: EvalReport): string {
   const lines: string[] = []
-  lines.push(
-    `Gemini Nano Hints evaluation: ${report.passed}/${report.total} passed`,
-  )
+  lines.push(`locai bench: ${report.passed}/${report.total} passed`)
   lines.push('')
   for (const result of report.results) {
     const icon = result.ok ? '[PASS]' : '[FAIL]'

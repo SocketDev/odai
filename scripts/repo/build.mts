@@ -51,7 +51,7 @@ async function main(): Promise<void> {
 }
 
 const PUBLIC_DECLARATION_FILES = new Set([
-  'gnh/index.d.mts',
+  'bench/index.d.mts',
   'index.d.mts',
   'node.d.mts',
 ])

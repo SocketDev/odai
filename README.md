@@ -1,34 +1,42 @@
-# @socketsecurity/gemini-nano
+# @socketsecurity/locai
 
-<a href="https://badge.socket.dev/npm/package/@socketsecurity/gemini-nano"><img src="https://badge.socket.dev/npm/package/@socketsecurity/gemini-nano" alt="Socket Badge" height="20"></a>
+<a href="https://badge.socket.dev/npm/package/@socketsecurity/locai"><img src="https://badge.socket.dev/npm/package/@socketsecurity/locai" alt="Socket Badge" height="20"></a>
 <img src="assets/repo/badges/coverage.svg" width="97" height="20" alt="Coverage" />
 
 [![Follow @SocketSecurity](assets/fleet/badge-follow-x.svg)](https://twitter.com/SocketSecurity)
 [![Follow @socket.dev on Bluesky](assets/fleet/badge-follow-bluesky.svg)](https://bsky.app/profile/socket.dev)
 
-On-device Gemini Nano Prompt API library for browser and Node.
+locai — pronounced like the trickster; it lives in your machine and does your chores.
 
 ## Why this repo exists
 
-`@socketsecurity/gemini-nano` provides a small, type-safe wrapper around the
-browser's built-in Gemini Nano Prompt API and a Node-compatible shim for
-testing and tooling. It exists so Socket code can feature-detect, prompt, and
-parse Nano responses without scattering DOM-specific checks across consumers.
+`@socketsecurity/locai` is a local, on-device AI library for browser and Node.
+It wraps the browser's built-in Gemini Nano Prompt API behind a type-safe,
+backend-agnostic seam, hardens small-model JSON output, and ships `bench` — an
+evaluation harness that scores any backend on real Socket workloads. It exists
+so Socket code can feature-detect, prompt, and parse on-device model responses
+without scattering DOM-specific checks across consumers.
 
 ## Install
 
 ```sh
-pnpm install @socketsecurity/gemini-nano
+pnpm install @socketsecurity/locai
 ```
 
 ## Usage
 
 ```js
-import { createGeminiNano } from '@socketsecurity/gemini-nano'
+import { createGeminiNano } from '@socketsecurity/locai'
 
 const nano = await createGeminiNano()
 const response = await nano.prompt('Summarize this page in one sentence.')
 console.log(response)
+```
+
+Run the `bench` evaluation harness against the built-in simulator:
+
+```sh
+pnpm run bench
 ```
 
 ## Development

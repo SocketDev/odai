@@ -5,8 +5,8 @@ import {
   LanguageModelSimulator,
 } from '../src/simulator.mts'
 import { createGeminiNanoModel } from '../src/model.mts'
-import { runEval } from '../src/gnh/index.mts'
-import { createGnhResponseRules } from '../src/gnh/simulator.mts'
+import { runEval } from '../src/bench/index.mts'
+import { createBenchResponseRules } from '../src/bench/simulator.mts'
 
 describe('LanguageModelSimulator', () => {
   it('installs a global LanguageModel and returns available', async () => {
@@ -19,10 +19,10 @@ describe('LanguageModelSimulator', () => {
     expect(result.raw).toBe('{"ok":true}')
   })
 
-  it('runs the gnh battery with scenario-specific responses', async () => {
+  it('runs the bench battery with scenario-specific responses', async () => {
     const simulator = new LanguageModelSimulator({
       fallback: '{"summary":"fallback"}',
-      rules: createGnhResponseRules(),
+      rules: createBenchResponseRules(),
     })
     ;(globalThis as { LanguageModel?: object | undefined }).LanguageModel =
       simulator

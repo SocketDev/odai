@@ -1,5 +1,5 @@
 /**
- * @file Scenario definitions for the Gemini Nano Hints evaluator. Each scenario
+ * @file Scenario definitions for the bench evaluator. Each scenario
  *   pairs a real-world fixture with a task function and lightweight assertions.
  */
 

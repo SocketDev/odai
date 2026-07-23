@@ -1,5 +1,5 @@
 /**
- * @file Real-world fixtures for the Gemini Nano Hints evaluator. Keep inputs
+ * @file Real-world fixtures for the bench evaluator. Keep inputs
  *   small enough to fit in a 4 GB on-device context window while still being
  *   representative of the Socket product surface.
  */

@@ -1,7 +1,7 @@
 /**
- * @file CLI entry for the Gemini Nano Hints evaluator. Usage: node
- *   src/gnh/run.mts # run with Node LanguageModel simulator node
- *   src/gnh/run.mts --mock # run with single-response deterministic mock The
+ * @file CLI entry for the bench evaluator. Usage: node
+ *   src/bench/run.mts # run with Node LanguageModel simulator node
+ *   src/bench/run.mts --mock # run with single-response deterministic mock The
  *   simulator mode lets the evaluator run in Node or node-smol without Chrome.
  *   Real evaluation requires a browser page with access to the stable
  *   `LanguageModel` API.
@@ -13,7 +13,7 @@ import { createGeminiNanoModel } from '../model.mts'
 import { createMockModel } from '../node.mts'
 import { installLanguageModelSimulator } from '../simulator.mts'
 import { formatReport, runEval } from './index.mts'
-import { createGnhResponseRules } from './simulator.mts'
+import { createBenchResponseRules } from './simulator.mts'
 
 const logger = getDefaultLogger()
 
@@ -37,7 +37,7 @@ async function main(): Promise<void> {
   } else {
     installLanguageModelSimulator(globalThis, {
       fallback: '{"summary":"no matching simulator rule"}',
-      rules: createGnhResponseRules(),
+      rules: createBenchResponseRules(),
     })
     model = await createGeminiNanoModel({
       systemPrompt: 'You are a helpful supply-chain assistant.',

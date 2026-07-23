@@ -1,8 +1,8 @@
 {
-  "name": "@socketsecurity/gemini-nano",
+  "name": "@socketsecurity/locai",
   "version": "0.0.1",
   "private": false,
-  "description": "On-device Gemini Nano Prompt API library for browser and Node",
+  "description": "Local on-device AI library for browser and Node, with the bench evaluation harness",
   "homepage": "https://github.com/SocketDev/socket-gemini-nano",
   "license": "MIT",
   "repository": {
@@ -26,9 +26,9 @@
       "types": "./dist/node.d.mts",
       "default": "./dist/node.js"
     },
-    "./gnh": {
-      "types": "./dist/gnh/index.d.mts",
-      "default": "./dist/gnh/index.js"
+    "./bench": {
+      "types": "./dist/bench/index.d.mts",
+      "default": "./dist/bench/index.js"
     },
     "./package.json": "./package.json"
   },
@@ -47,7 +47,7 @@
     "security": "node scripts/fleet/security.mts",
     "test": "node scripts/fleet/test.mts",
     "test:fuzz": "node scripts/repo/fuzz.mts",
-    "gnh": "node --experimental-strip-types src/gnh/run.mts",
+    "bench": "node --experimental-strip-types src/bench/run.mts",
     "type": "tsgo --noEmit -p .config/fleet/tsconfig.check.json",
     "update": "node scripts/fleet/update.mts",
     "check:paths": "node scripts/fleet/check/paths-are-canonical.mts",
