@@ -1,10 +1,23 @@
 /**
- * @file Node entry point. The Prompt API is browser-only, so this entry exports
- *   a deterministic mock session and all task helpers. Tests and CLI tools can
- *   run without Chrome; only the browser entry wires the real `LanguageModel`.
+ * @file Node entry point. Exports the backend registry, a deterministic mock
+ *   session, and all task helpers. Tests and CLI tools run without Chrome:
+ *   the simulator backend closes the probe order, so `createLocaiModel()`
+ *   always yields a working model here.
  */
 
+import { createAppleFmBackend } from './backends/apple-fm.mts'
+import { createGeminiNanoHeadlessBackend } from './backends/gemini-nano-headless.mts'
+import { createLlamaServerBackend } from './backends/llama-server.mts'
+import {
+  backendNames,
+  createBackend,
+  defaultProbeOrder,
+  LOCAI_BACKEND_ENV_VAR,
+  selectBackend,
+} from './backends/registry.mts'
+import { createSimulatorBackend } from './backends/simulator.mts'
 import { promptStructured } from './json.mts'
+import { createLocaiModel } from './model.mts'
 import {
   installLanguageModelSimulator,
   LanguageModelSessionSimulator,
@@ -32,9 +45,11 @@ export function createMockModel(response: string): GeminiNanoModel {
       return promptStructured(session, userContent, options)
     },
     async promptStreaming(
-      _userContent: string,
-      _options?: StreamOptions | undefined,
+      userContent: string,
+      options?: StreamOptions | undefined,
     ): Promise<{ raw: string }> {
+      void userContent
+      void options
       return { raw: response }
     },
     rawSession(): SessionLike {
@@ -63,10 +78,32 @@ export function createMockSession(options: MockSessionOptions): SessionLike {
 }
 
 export {
+  backendNames,
+  createAppleFmBackend,
+  createBackend,
+  createGeminiNanoHeadlessBackend,
+  createLlamaServerBackend,
+  createLocaiModel,
+  createSimulatorBackend,
   dedupeDependencies,
+  defaultProbeOrder,
   generateCodePatch,
   installLanguageModelSimulator,
   LanguageModelSimulator,
   LanguageModelSessionSimulator,
+  LOCAI_BACKEND_ENV_VAR,
   reasonAboutLockfile,
+  selectBackend,
 }
+
+export type { SelectBackendOptions } from './backends/registry.mts'
+export type {
+  BackendAvailability,
+  BackendName,
+  LocaiBackend,
+} from './backends/types.mts'
+export type {
+  CreateLocaiModelOptions,
+  GeminiNanoModel,
+  LocaiModel,
+} from './model.mts'

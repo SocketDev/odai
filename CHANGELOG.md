@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Backend registry with `createLocaiModel` and `selectBackend`: backends `simulator`, `gemini-nano-headless`, `llama-server` (declared, adapter pending), and `apple-fm` (declared, unavailable); selection precedence is explicit option, then `LOCAI_BACKEND` env var, then availability probe order.
 - Initial fleet onboarding scaffolding.
 
 ### Changed
