@@ -25,6 +25,11 @@ import {
 
 export interface ScenarioResult {
   assertion?: string | undefined
+  /**
+   * Wall-clock milliseconds the scenario's prompt round-trip took. Filled in
+   * by `runEval`; scenarios never set it themselves.
+   */
+  durationMs?: number | undefined
   name: string
   ok: boolean
   raw: string

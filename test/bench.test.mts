@@ -14,4 +14,14 @@ describe('bench evaluator', () => {
     expect(report.score).toBeGreaterThan(0)
     expect(formatReport(report)).toContain('passed')
   })
+
+  it('records a per-scenario prompt duration and prints it', async () => {
+    const model = createMockModel('{"summary":"ok"}')
+    const report = await runEval({ model })
+    for (const result of report.results) {
+      expect(result.durationMs).toBeTypeOf('number')
+      expect(result.durationMs).toBeGreaterThanOrEqual(0)
+    }
+    expect(formatReport(report)).toMatch(/\(\d+ms\)/)
+  })
 })

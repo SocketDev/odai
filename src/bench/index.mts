@@ -30,7 +30,9 @@ export function formatReport(report: EvalReport): string {
   lines.push('')
   for (const result of report.results) {
     const icon = result.ok ? '[PASS]' : '[FAIL]'
-    lines.push(`${icon} ${result.name}`)
+    const timing =
+      result.durationMs === undefined ? '' : ` (${result.durationMs}ms)`
+    lines.push(`${icon} ${result.name}${timing}`)
     lines.push(`  assertion: ${result.assertion}`)
     lines.push(`  raw: ${truncate(result.raw, 200)}`)
     lines.push('')
@@ -44,8 +46,10 @@ export async function runEval(options: EvalRunOptions): Promise<EvalReport> {
   const scenarios = opts.scenarios ?? allScenarios
   const results: ScenarioResult[] = []
   for (const scenario of scenarios) {
+    const startedAt = performance.now()
     const partial = await scenario.run(opts.model)
-    results.push({ ...partial, name: scenario.name })
+    const durationMs = Math.round(performance.now() - startedAt)
+    results.push({ ...partial, durationMs, name: scenario.name })
   }
   const passed = results.reduce((acc, r) => acc + (r.ok ? 1 : 0), 0)
   return {
