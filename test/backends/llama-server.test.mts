@@ -122,6 +122,45 @@ describe('llama-server backend', () => {
     expect(DEFAULT_LLAMA_URL).toBe('http://127.0.0.1:8080')
   })
 
+  it('accepts every loopback spelling at config time', () => {
+    for (const url of [
+      'http://127.0.0.1:8080',
+      'http://localhost:8080',
+      'http://[::1]:8080',
+      'https://localhost:11434/',
+    ]) {
+      expect(() => createLlamaServerBackend({ url })).not.toThrow()
+    }
+  })
+
+  it('refuses a non-loopback URL outright at config time', () => {
+    for (const url of [
+      'http://example.com:8080',
+      'https://api.openai.com/v1',
+      'http://192.168.1.10:8080',
+      'http://10.0.0.5:11434',
+      'http://llama.internal:8080',
+    ]) {
+      expect(() => createLlamaServerBackend({ url })).toThrow(
+        /not loopback.*locai is local-only/s,
+      )
+    }
+  })
+
+  it('refuses a non-loopback URL from the env var — no env escape', () => {
+    expect(() =>
+      createLlamaServerBackend({
+        env: { [LOCAI_LLAMA_URL_ENV_VAR]: 'http://models.example.dev:8080' },
+      }),
+    ).toThrow(/not loopback.*locai is local-only/s)
+  })
+
+  it('refuses an unparseable URL with the doctrine message', () => {
+    expect(() => createLlamaServerBackend({ url: 'not a url' })).toThrow(
+      /not a valid URL.*locai is local-only/s,
+    )
+  })
+
   it('reports available when /health answers 200', async () => {
     handle = await startMockServer()
     const backend = createLlamaServerBackend({ url: handle.url })
@@ -137,7 +176,7 @@ describe('llama-server backend', () => {
     const availability = await backend.availability()
     expect(availability.available).toBe(false)
     expect(availability.reason).toContain(`${url}/health`)
-    expect(availability.reason).toContain(LOCAI_LLAMA_URL_ENV_VAR)
+    expect(availability.reason).toContain('LOCAI_LLAMA_URL')
   })
 
   it('reports the HTTP status when /health answers non-2xx', async () => {
@@ -162,9 +201,8 @@ describe('llama-server backend', () => {
     await session.prompt([{ content: 'hello', role: 'user' }])
     const chat = handle.captured.at(-1)
     expect(chat?.url).toBe('/v1/chat/completions')
-    expect((chat?.body as { model?: string }).model).toBe(
-      'qwen2.5-coder-7b-instruct-q4_k_m',
-    )
+    const body = chat?.body as { model?: string | undefined } | undefined
+    expect(body?.model).toBe('qwen2.5-coder-7b-instruct-q4_k_m')
   })
 
   it('shapes chat requests with session options and message pass-through', async () => {
@@ -240,9 +278,10 @@ describe('llama-server backend', () => {
     })
     const result = await model.promptStreaming('hello')
     expect(result.raw).toBe('{"ok":true}')
-    expect((handle.captured.at(-1)?.body as { stream: boolean }).stream).toBe(
-      true,
-    )
+    const body = handle.captured.at(-1)?.body as
+      | { stream?: boolean | undefined }
+      | undefined
+    expect(body?.stream).toBe(true)
   })
 
   it('throws with status and body detail on a non-2xx completion', async () => {

@@ -1,11 +1,13 @@
 /**
  * @file Llama-server backend. Adapts any OpenAI-compatible
- *   `/v1/chat/completions` endpoint — llama.cpp's `llama-server`, ollama, and
- *   anything speaking the same protocol — to the session seam. Availability is
- *   a live `GET /health` probe. Structured output rides the existing prefill
- *   merge and JSON repair path: the trailing assistant prefill message goes
- *   over the wire as-is and `mergePrefill` reconciles both echo and
- *   continuation replies.
+ *   `/v1/chat/completions` endpoint — llama.cpp's `llama-server`, ollama,
+ *   Foundry Local, and anything speaking the same protocol — to the session
+ *   seam. Loopback only: the URL is validated at config time and a
+ *   non-loopback host throws, whether it arrives via the option or the env
+ *   var. Availability is a live `GET /health` probe. Structured output rides
+ *   the existing prefill merge and JSON repair path: the trailing assistant
+ *   prefill message goes over the wire as-is and `mergePrefill` reconciles
+ *   both echo and continuation replies.
  */
 
 import { errorMessage } from '@socketsecurity/lib/errors/message'
@@ -21,6 +23,12 @@ export const LOCAI_LLAMA_URL_ENV_VAR = 'LOCAI_LLAMA_URL'
 const DEFAULT_HEALTH_TIMEOUT_MS = 2000
 const DEFAULT_REQUEST_TIMEOUT_MS = 120_000
 const ERROR_DETAIL_MAX_LENGTH = 300
+
+/**
+ * The only hosts the adapter will speak to. URL hostname parsing lowercases
+ * names and keeps IPv6 brackets, so `[::1]` is the bracketed spelling.
+ */
+const LOOPBACK_HOSTNAMES = new Set(['[::1]', '127.0.0.1', 'localhost'])
 
 export interface LlamaServerBackendOptions {
   /**
@@ -43,7 +51,9 @@ export interface LlamaServerBackendOptions {
   requestTimeoutMs?: number | undefined
   /**
    * Server base URL. Falls back to the `LOCAI_LLAMA_URL` env var, then to
-   * `http://127.0.0.1:8080` — llama-server's default bind.
+   * `http://127.0.0.1:8080` — llama-server's default bind. Loopback only:
+   * a host other than `127.0.0.1`, `::1`, or `localhost` throws at config
+   * time, whichever source it came from.
    */
   url?: string | undefined
 }
@@ -69,6 +79,32 @@ export interface LlamaConfig {
 export interface SseEvent {
   delta: string | undefined
   done: boolean
+}
+
+/**
+ * Config-time loopback gate. The doctrine is enforced here, ahead of any
+ * network call, so a remote URL can never be probed or prompted — not even
+ * through the env var.
+ */
+export function assertLoopbackUrl(url: string): string {
+  let parsed: URL
+  try {
+    parsed = new URL(url)
+  } catch {
+    throw new Error(
+      `llama-server URL "${url}" is not a valid URL. locai is local-only — ` +
+        'no cloud, no remote endpoints, no keys; point ' +
+        `${LOCAI_LLAMA_URL_ENV_VAR} at 127.0.0.1, ::1, or localhost.`,
+    )
+  }
+  if (!LOOPBACK_HOSTNAMES.has(parsed.hostname)) {
+    throw new Error(
+      `llama-server URL "${url}" is not loopback. locai is local-only — ` +
+        'no cloud, no remote endpoints, no keys; the llama-server backend ' +
+        'only speaks to 127.0.0.1, ::1, or localhost.',
+    )
+  }
+  return url
 }
 
 export function buildRequestBody(
@@ -110,7 +146,9 @@ export function createLlamaServerBackend(
   const opts = { __proto__: null, ...options } as LlamaServerBackendOptions
   const env = opts.env ?? (typeof process === 'undefined' ? {} : process.env)
   const url = normalizeUrl(
-    opts.url ?? env[LOCAI_LLAMA_URL_ENV_VAR] ?? DEFAULT_LLAMA_URL,
+    assertLoopbackUrl(
+      opts.url ?? env[LOCAI_LLAMA_URL_ENV_VAR] ?? DEFAULT_LLAMA_URL,
+    ),
   )
   const config: LlamaConfig = {
     model: opts.model ?? env[LOCAI_LLAMA_MODEL_ENV_VAR],
