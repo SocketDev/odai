@@ -16,7 +16,9 @@ const srcPath = path.join(rootPath, 'src')
 const distPath = path.join(rootPath, 'dist')
 
 const baseConfig = {
-  external: ['@sinclair/typebox'],
+  // playwright-core is an optional peer dependency loaded lazily by the
+  // gemini-nano-headless bridge; bundling it drags in native fsevents.
+  external: ['@sinclair/typebox', 'playwright-core'],
   output: {
     dir: distPath,
     format: 'cjs' as const,
@@ -48,7 +50,7 @@ const nodeConfig: RolldownOptions = {
 
 const benchConfig: RolldownOptions = {
   ...baseConfig,
-  external: [],
+  external: ['playwright-core'],
   input: path.join(srcPath, 'bench/index.mts'),
   output: {
     ...baseConfig.output,
@@ -60,7 +62,7 @@ const benchConfig: RolldownOptions = {
 
 const browserEsmConfig: RolldownOptions = {
   ...baseConfig,
-  external: [],
+  external: ['playwright-core'],
   input: path.join(srcPath, 'index.mts'),
   output: {
     ...baseConfig.output,

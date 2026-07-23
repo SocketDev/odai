@@ -75,6 +75,14 @@
     "@sinclair/typebox": "catalog:",
     "@types/dom-chromium-ai": "0.0.17"
   },
+  "peerDependencies": {
+    "playwright-core": ">=1.49.0"
+  },
+  "peerDependenciesMeta": {
+    "playwright-core": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "@redwoodjs/agent-ci": "catalog:",
     "@socketregistry/packageurl-js": "catalog:",

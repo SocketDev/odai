@@ -14,6 +14,7 @@ import {
 } from 'vitest'
 
 import { LOCAI_APPLE_FM_SHIM_ENV_VAR } from '../../src/backends/apple-fm.mts'
+import { LOCAI_CHROME_ENV_VAR } from '../../src/backends/gemini-nano-headless.mts'
 import {
   backendNames,
   createBackend,
@@ -54,6 +55,7 @@ async function reserveClosedPort(): Promise<number> {
 
 describe('backend registry', () => {
   let originalAppleFmShim: string | undefined
+  let originalChrome: string | undefined
   let originalLanguageModel: unknown
   let originalLlamaUrl: string | undefined
 
@@ -66,6 +68,11 @@ describe('backend registry', () => {
     const mockShimPath = path.join(mockDir, 'apple-fm-mock-shim.mjs')
     await writeFile(mockShimPath, APPLE_FM_MOCK_SHIM_SOURCE)
     process.env[LOCAI_APPLE_FM_SHIM_ENV_VAR] = mockShimPath
+    // Point Chrome resolution at a path that cannot exist, so registry
+    // results don't depend on this machine having Chrome plus a downloaded
+    // Nano model.
+    originalChrome = process.env[LOCAI_CHROME_ENV_VAR]
+    process.env[LOCAI_CHROME_ENV_VAR] = path.join(mockDir, 'no-chrome-here')
   })
 
   afterAll(() => {
@@ -78,6 +85,11 @@ describe('backend registry', () => {
       delete process.env[LOCAI_APPLE_FM_SHIM_ENV_VAR]
     } else {
       process.env[LOCAI_APPLE_FM_SHIM_ENV_VAR] = originalAppleFmShim
+    }
+    if (originalChrome === undefined) {
+      delete process.env[LOCAI_CHROME_ENV_VAR]
+    } else {
+      process.env[LOCAI_CHROME_ENV_VAR] = originalChrome
     }
   })
 
@@ -111,7 +123,7 @@ describe('backend registry', () => {
     })
     const nano = await createBackend('gemini-nano-headless').availability()
     expect(nano.available).toBe(false)
-    expect(nano.reason).toContain('LanguageModel global')
+    expect(nano.reason).toContain('Google Chrome not found')
     const llama = await createBackend('llama-server').availability()
     expect(llama.available).toBe(false)
     expect(llama.reason).toContain('not reachable')

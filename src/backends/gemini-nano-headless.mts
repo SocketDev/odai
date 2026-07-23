@@ -1,35 +1,261 @@
 /**
- * @file Gemini Nano backend. Uses the runtime's `LanguageModel` global — real
- *   inside Chrome with the Prompt API enabled. The headless Chrome bridge that
- *   provisions that global from Node ships in the next phase; today this
- *   backend is available exactly where the global already is.
+ * @file Gemini Nano headless backend. Inside Chrome the runtime's
+ *   `LanguageModel` global is used directly. In Node the backend launches
+ *   REAL Google Chrome — Chromium builds lack `optimization_guide_internal`
+ *   and cannot run Nano — with `--headless=new` via playwright-core and
+ *   proxies the page's `LanguageModel` global across `page.evaluate`. Two
+ *   first-class provisioning modes: system-Chrome mode clones the machine's
+ *   already-downloaded model component into a locai-owned profile with
+ *   copy-on-write — zero weights download, the live Chrome profile is never
+ *   written — and CI mode downloads the component once into a cacheable
+ *   profile when downloads are explicitly allowed. Provisioning lives in
+ *   `gemini-nano-profile.mts`, the page proxy in `gemini-nano-page.mts`.
  */
 
 import { getLanguageModel, probeAvailability } from '../availability.mts'
+import {
+  createPageBoundFactory,
+  STREAM_BINDING_NAME,
+  waitForModelReady,
+} from './gemini-nano-page.mts'
+import {
+  chromeMissingReason,
+  ensureBridgeProfile,
+  findModelSource,
+  isNodeRuntime,
+  pathToFileUrl,
+  resolveBridgeConfig,
+} from './gemini-nano-profile.mts'
 import type { LanguageModelLike } from '../types.mts'
+import type {
+  Bridge,
+  ChromiumLauncherLike,
+  StreamPayload,
+  StreamQueue,
+} from './gemini-nano-page.mts'
 import type { BackendAvailability, LocaiBackend } from './types.mts'
 
-export const GEMINI_NANO_UNAVAILABLE_REASON =
-  'gemini-nano-headless needs a LanguageModel global that reports available; ' +
-  'this runtime has none. Run inside Chrome with the Prompt API enabled, or ' +
-  'select another backend.'
+export type {
+  BrowserContextLike,
+  ChromiumLauncherLike,
+  PageLike,
+} from './gemini-nano-page.mts'
+export {
+  LOCAI_CHROME_ENV_VAR,
+  LOCAI_NANO_ALLOW_DOWNLOAD_ENV_VAR,
+  LOCAI_NANO_USER_DATA_DIR_ENV_VAR,
+  MODEL_COMPONENT_DIR,
+} from './gemini-nano-profile.mts'
 
-export function createGeminiNanoHeadlessBackend(): LocaiBackend {
+/**
+ * Playwright defaults that break Nano and must not reach Chrome:
+ * `--disable-component-update` blocks local component adoption, and
+ * background networking / field-trial config are load-bearing for component
+ * plus model delivery.
+ */
+const IGNORED_DEFAULT_ARGS = [
+  '--disable-background-networking',
+  '--disable-component-update',
+  '--disable-field-trial-config',
+]
+
+/**
+ * Replacement for playwright's `--disable-features` switch, whose default
+ * list includes the Nano-killing `OptimizationHints`: Chrome honors the last
+ * occurrence, so appending this keeps the quiet-automation intent while
+ * dropping the kill.
+ */
+const LAUNCH_ARGS = [
+  '--disable-features=DialMediaRouteProvider,GlobalMediaControls,MediaRouter,Translate',
+]
+
+export const GEMINI_NANO_UNAVAILABLE_REASON =
+  'gemini-nano-headless needs a LanguageModel global that reports available, ' +
+  'or a Node runtime with Google Chrome to drive headlessly.'
+
+export interface GeminiNanoHeadlessOptions {
+  /**
+   * Allow the one-time in-CI model component download when no local model can
+   * be cloned. The `LOCAI_NANO_ALLOW_DOWNLOAD` env var (`1`/`true`) is the
+   * string form. Off by default: local runs must be zero-download.
+   */
+  allowDownload?: boolean | undefined
+  /**
+   * Google Chrome executable. Falls back to the `LOCAI_CHROME` env var, then
+   * per-OS well-known install paths. Must be real Chrome — Chromium builds
+   * cannot run Nano.
+   */
+  chromePath?: string | undefined
+  /**
+   * Env source, `process.env` by default. Injectable for tests.
+   */
+  env?: Record<string, string | undefined> | undefined
+  /**
+   * Playwright-shaped launcher, `playwright-core`'s `chromium` by default.
+   * Injectable for tests.
+   */
+  launcher?: ChromiumLauncherLike | undefined
+  /**
+   * How long to wait for the model to report `available` after launch.
+   * Defaults to 2 minutes, or 30 minutes when downloads are allowed.
+   */
+  readyTimeoutMs?: number | undefined
+  /**
+   * The system Chrome user-data dir to clone the downloaded model from.
+   * Defaults to the per-OS Google Chrome location. Only ever read.
+   */
+  systemChromeUserDataDir?: string | undefined
+  /**
+   * The locai-owned Chrome profile the bridge launches with. Falls back to
+   * the `LOCAI_NANO_USER_DATA_DIR` env var, then a per-user cache dir.
+   * Persistent on purpose: first activation registers the model component
+   * with one small keyless metadata exchange, and later launches work
+   * offline.
+   */
+  userDataDir?: string | undefined
+}
+
+export interface GeminiNanoHeadlessBackend extends LocaiBackend {
+  /**
+   * Close the headless Chrome bridge if one was launched.
+   */
+  close(): Promise<void>
+}
+
+export function createGeminiNanoHeadlessBackend(
+  options?: GeminiNanoHeadlessOptions | undefined,
+): GeminiNanoHeadlessBackend {
+  const opts = { __proto__: null, ...options } as GeminiNanoHeadlessOptions
+  let bridgePromise: Promise<Bridge> | undefined
   return {
     async availability(): Promise<BackendAvailability> {
       const probe = await probeAvailability()
       if (probe.available) {
         return { available: true }
       }
-      return { available: false, reason: GEMINI_NANO_UNAVAILABLE_REASON }
+      if (getLanguageModel() !== undefined) {
+        return {
+          available: false,
+          reason:
+            'the runtime LanguageModel global reports the model is not ' +
+            'available on this device.',
+        }
+      }
+      if (!isNodeRuntime()) {
+        return { available: false, reason: GEMINI_NANO_UNAVAILABLE_REASON }
+      }
+      const config = await resolveBridgeConfig(opts)
+      if (config.chromePath === undefined) {
+        return { available: false, reason: chromeMissingReason(config) }
+      }
+      const { reason } = await loadLauncher(opts)
+      if (reason !== undefined) {
+        return { available: false, reason }
+      }
+      const source = await findModelSource(config)
+      if (source.reason !== undefined) {
+        return { available: false, reason: source.reason }
+      }
+      return { available: true }
+    },
+    async close(): Promise<void> {
+      if (bridgePromise !== undefined) {
+        const pending = bridgePromise
+        bridgePromise = undefined
+        const bridge = await pending.catch(() => undefined)
+        await bridge?.close()
+      }
     },
     async languageModel(): Promise<LanguageModelLike> {
       const model = getLanguageModel()
-      if (model === undefined) {
+      if (model !== undefined) {
+        return model
+      }
+      if (!isNodeRuntime()) {
         throw new Error(GEMINI_NANO_UNAVAILABLE_REASON)
       }
-      return model
+      bridgePromise ??= startBridge(opts)
+      try {
+        return createPageBoundFactory(await bridgePromise)
+      } catch (error) {
+        bridgePromise = undefined
+        throw error
+      }
     },
     name: 'gemini-nano-headless',
+  }
+}
+
+export async function loadLauncher(
+  options: GeminiNanoHeadlessOptions,
+): Promise<{
+  launcher?: ChromiumLauncherLike | undefined
+  reason?: string | undefined
+}> {
+  const opts = { __proto__: null, ...options } as GeminiNanoHeadlessOptions
+  if (opts.launcher !== undefined) {
+    return { launcher: opts.launcher }
+  }
+  try {
+    const playwright = await import('playwright-core')
+    // Structural narrowing: playwright's Page/BrowserContext carry far more
+    // surface than the bridge drives.
+    return {
+      launcher: playwright.chromium as unknown as ChromiumLauncherLike,
+    }
+  } catch {
+    return {
+      reason:
+        'playwright-core is not installed; add it to drive headless Chrome ' +
+        'from Node.',
+    }
+  }
+}
+
+export async function startBridge(
+  options: GeminiNanoHeadlessOptions,
+): Promise<Bridge> {
+  const opts = { __proto__: null, ...options } as GeminiNanoHeadlessOptions
+  const config = await resolveBridgeConfig(opts)
+  if (config.chromePath === undefined) {
+    throw new Error(chromeMissingReason(config))
+  }
+  const { launcher, reason } = await loadLauncher(opts)
+  if (launcher === undefined) {
+    throw new Error(reason)
+  }
+  const source = await findModelSource(config)
+  if (source.reason !== undefined) {
+    throw new Error(source.reason)
+  }
+  const bridgePagePath = await ensureBridgeProfile(config, source)
+  const context = await launcher.launchPersistentContext(config.userDataDir, {
+    args: LAUNCH_ARGS,
+    executablePath: config.chromePath,
+    headless: true,
+    ignoreDefaultArgs: IGNORED_DEFAULT_ARGS,
+  })
+  const streams = new Map<number, StreamQueue>()
+  try {
+    const page = await context.newPage()
+    await page.exposeFunction(STREAM_BINDING_NAME, (payload: StreamPayload) => {
+      streams.get(payload.streamId)?.push(payload)
+    })
+    // file:// is a secure context; the Prompt API is not exposed on
+    // about:blank or data: URLs.
+    await page.goto(pathToFileUrl(bridgePagePath))
+    await waitForModelReady(page, {
+      allowDownload: config.allowDownload,
+      readyTimeoutMs: opts.readyTimeoutMs,
+      userDataDir: config.userDataDir,
+    })
+    return {
+      close: () => context.close(),
+      page,
+      streams,
+    }
+  } catch (error) {
+    await context.close().catch(() => undefined)
+    throw error
   }
 }
