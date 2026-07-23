@@ -11,6 +11,7 @@ import { createAppleFmBackend } from './apple-fm.mts'
 import { createGeminiNanoHeadlessBackend } from './gemini-nano-headless.mts'
 import { createLlamaServerBackend } from './llama-server.mts'
 import { createSimulatorBackend } from './simulator.mts'
+import { createWindowsPhiSilicaBackend } from './windows-phi-silica.mts'
 import type { BackendName, LocaiBackend } from './types.mts'
 
 export const LOCAI_BACKEND_ENV_VAR = 'LOCAI_BACKEND'
@@ -20,6 +21,7 @@ export const backendNames: readonly BackendName[] = [
   'gemini-nano-headless',
   'llama-server',
   'simulator',
+  'windows-phi-silica',
 ]
 
 /**
@@ -30,6 +32,7 @@ export const defaultProbeOrder: readonly BackendName[] = [
   'gemini-nano-headless',
   'llama-server',
   'apple-fm',
+  'windows-phi-silica',
   'simulator',
 ]
 
@@ -60,6 +63,8 @@ export function createBackend(name: BackendName): LocaiBackend {
       return createLlamaServerBackend()
     case 'simulator':
       return createSimulatorBackend()
+    case 'windows-phi-silica':
+      return createWindowsPhiSilicaBackend()
     default:
       throw new Error(
         `Unknown locai backend "${String(name)}"; expected ${joinOr([...backendNames])}.`,

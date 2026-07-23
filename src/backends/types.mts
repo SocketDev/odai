@@ -15,6 +15,7 @@ export type BackendName =
   | 'gemini-nano-headless'
   | 'llama-server'
   | 'simulator'
+  | 'windows-phi-silica'
 
 export interface BackendAvailability {
   available: boolean

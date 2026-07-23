@@ -106,12 +106,13 @@ describe('backend registry', () => {
       originalLanguageModel
   })
 
-  it('declares all four backends and probes real engines before the simulator', () => {
+  it('declares all five backends and probes real engines before the simulator', () => {
     expect([...backendNames].toSorted()).toEqual([
       'apple-fm',
       'gemini-nano-headless',
       'llama-server',
       'simulator',
+      'windows-phi-silica',
     ])
     expect(defaultProbeOrder[0]).toBe('gemini-nano-headless')
     expect(defaultProbeOrder[defaultProbeOrder.length - 1]).toBe('simulator')
@@ -130,6 +131,9 @@ describe('backend registry', () => {
     const apple = await createBackend('apple-fm').availability()
     expect(apple.available).toBe(false)
     expect(apple.reason).toContain('deviceNotEligible')
+    const phiSilica = await createBackend('windows-phi-silica').availability()
+    expect(phiSilica.available).toBe(false)
+    expect(phiSilica.reason).toContain('Phi Silica (Copilot+)')
   })
 
   it('prefers the explicit backend option over env and probe', async () => {

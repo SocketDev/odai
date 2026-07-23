@@ -24,6 +24,7 @@ import {
   selectBackend,
 } from './backends/registry.mts'
 import { createSimulatorBackend } from './backends/simulator.mts'
+import { createWindowsPhiSilicaBackend } from './backends/windows-phi-silica.mts'
 import { promptStructured } from './json.mts'
 import { createLocaiModel } from './model.mts'
 import {
@@ -93,6 +94,7 @@ export {
   createLlamaServerBackend,
   createLocaiModel,
   createSimulatorBackend,
+  createWindowsPhiSilicaBackend,
   dedupeDependencies,
   DEFAULT_LLAMA_URL,
   defaultProbeOrder,
@@ -111,6 +113,7 @@ export {
 export type { AppleFmBackendOptions } from './backends/apple-fm.mts'
 export type { LlamaServerBackendOptions } from './backends/llama-server.mts'
 export type { SelectBackendOptions } from './backends/registry.mts'
+export type { WindowsPhiSilicaBackendOptions } from './backends/windows-phi-silica.mts'
 export type {
   BackendAvailability,
   BackendName,
