@@ -10,6 +10,11 @@ locai — pronounced like the trickster; it lives in your machine and does your 
 
 ## Why this repo exists
 
+locai is local-only — the primary backend is Gemini Nano via installed Google
+Chrome on every platform; llama-server (loopback) is the local fallback; Apple
+FM and Phi Silica (Copilot+) are opportunistic per-OS extras. No cloud, no
+remote endpoints, no keys.
+
 `@socketsecurity/locai` is a local, on-device AI library for browser and Node.
 It wraps the browser's built-in Gemini Nano Prompt API behind a type-safe,
 backend-agnostic seam, hardens small-model JSON output, and ships `bench` — an
