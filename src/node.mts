@@ -5,7 +5,10 @@
  *   always yields a working model here.
  */
 
-import { createAppleFmBackend } from './backends/apple-fm.mts'
+import {
+  createAppleFmBackend,
+  LOCAI_APPLE_FM_SHIM_ENV_VAR,
+} from './backends/apple-fm.mts'
 import { createGeminiNanoHeadlessBackend } from './backends/gemini-nano-headless.mts'
 import {
   createLlamaServerBackend,
@@ -97,6 +100,7 @@ export {
   installLanguageModelSimulator,
   LanguageModelSimulator,
   LanguageModelSessionSimulator,
+  LOCAI_APPLE_FM_SHIM_ENV_VAR,
   LOCAI_BACKEND_ENV_VAR,
   LOCAI_LLAMA_MODEL_ENV_VAR,
   LOCAI_LLAMA_URL_ENV_VAR,
@@ -104,6 +108,7 @@ export {
   selectBackend,
 }
 
+export type { AppleFmBackendOptions } from './backends/apple-fm.mts'
 export type { LlamaServerBackendOptions } from './backends/llama-server.mts'
 export type { SelectBackendOptions } from './backends/registry.mts'
 export type {

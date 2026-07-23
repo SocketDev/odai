@@ -1,4 +1,7 @@
+import { mkdtemp, writeFile } from 'node:fs/promises'
 import { createServer } from 'node:net'
+import os from 'node:os'
+import path from 'node:path'
 
 import {
   afterAll,
@@ -10,6 +13,7 @@ import {
   it,
 } from 'vitest'
 
+import { LOCAI_APPLE_FM_SHIM_ENV_VAR } from '../../src/backends/apple-fm.mts'
 import {
   backendNames,
   createBackend,
@@ -19,6 +23,17 @@ import {
 import { LOCAI_LLAMA_URL_ENV_VAR } from '../../src/backends/llama-server.mts'
 import { LanguageModelSimulator } from '../../src/simulator.mts'
 import type { LocaiBackend } from '../../src/backends/types.mts'
+
+/**
+ * Mock apple-fm shim reporting deviceNotEligible, so registry results don't
+ * depend on this machine's macOS version or Apple Intelligence state.
+ */
+const APPLE_FM_MOCK_SHIM_SOURCE = `import readline from 'node:readline'
+const rl = readline.createInterface({ input: process.stdin })
+rl.on('line', () => {
+  process.stdout.write(JSON.stringify({ ok: true, availability: 'unavailable', reason: 'deviceNotEligible' }) + '\\n')
+})
+`
 
 /**
  * Reserve an ephemeral port and release it, so the llama-server probe hits a
@@ -38,6 +53,7 @@ async function reserveClosedPort(): Promise<number> {
 }
 
 describe('backend registry', () => {
+  let originalAppleFmShim: string | undefined
   let originalLanguageModel: unknown
   let originalLlamaUrl: string | undefined
 
@@ -45,6 +61,11 @@ describe('backend registry', () => {
     originalLlamaUrl = process.env[LOCAI_LLAMA_URL_ENV_VAR]
     const closedPort = await reserveClosedPort()
     process.env[LOCAI_LLAMA_URL_ENV_VAR] = `http://127.0.0.1:${closedPort}`
+    originalAppleFmShim = process.env[LOCAI_APPLE_FM_SHIM_ENV_VAR]
+    const mockDir = await mkdtemp(path.join(os.tmpdir(), 'locai-registry-'))
+    const mockShimPath = path.join(mockDir, 'apple-fm-mock-shim.mjs')
+    await writeFile(mockShimPath, APPLE_FM_MOCK_SHIM_SOURCE)
+    process.env[LOCAI_APPLE_FM_SHIM_ENV_VAR] = mockShimPath
   })
 
   afterAll(() => {
@@ -52,6 +73,11 @@ describe('backend registry', () => {
       delete process.env[LOCAI_LLAMA_URL_ENV_VAR]
     } else {
       process.env[LOCAI_LLAMA_URL_ENV_VAR] = originalLlamaUrl
+    }
+    if (originalAppleFmShim === undefined) {
+      delete process.env[LOCAI_APPLE_FM_SHIM_ENV_VAR]
+    } else {
+      process.env[LOCAI_APPLE_FM_SHIM_ENV_VAR] = originalAppleFmShim
     }
   })
 

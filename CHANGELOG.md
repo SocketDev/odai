@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Backend registry with `createLocaiModel` and `selectBackend`: backends `simulator`, `gemini-nano-headless`, `llama-server`, and `apple-fm` (declared, unavailable); selection precedence is explicit option, then `LOCAI_BACKEND` env var, then availability probe order.
 - `llama-server` backend adapter for any OpenAI-compatible `/v1/chat/completions` endpoint: live `GET /health` availability probe, `LOCAI_LLAMA_URL` (default `http://127.0.0.1:8080`) and `LOCAI_LLAMA_MODEL` config, SSE streaming, and prefill emulation through the existing JSON repair path.
+- `apple-fm` backend adapter for Apple Foundation Models on macOS 26+: a Swift stdio shim compiled from embedded source with `xcrun swiftc` on first use and cached in `node_modules/.cache/locai/`, honest availability reporting the framework's own reason — `deviceNotEligible`, `appleIntelligenceNotEnabled`, `modelNotReady` — and a `LOCAI_APPLE_FM_SHIM` override for prebuilt shims and tests. Single-shot prompting through the existing JSON repair path; streaming yields one chunk in v1.
 - Initial fleet onboarding scaffolding.
 
 ### Changed
