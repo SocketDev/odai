@@ -102,7 +102,7 @@ export async function requireAvailable(
   }
   throw new Error(
     `Backend "${backend.name}" (selected via ${source}) is unavailable: ` +
-      `${availability.reason ?? 'no reason given'}`,
+      (availability.reason ?? 'no reason given'),
   )
 }
 

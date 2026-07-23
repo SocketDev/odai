@@ -193,11 +193,8 @@ export function createLlamaServerBackend(
         async availability(): Promise<string> {
           return 'available'
         },
-        async create(createOptions?: object): Promise<SessionLike> {
-          return createLlamaSession(
-            config,
-            (createOptions ?? {}) as CreateOptions,
-          )
+        async create(createOptions?: object | undefined): Promise<SessionLike> {
+          return createLlamaSession(config, createOptions ?? {})
         },
       }
     },

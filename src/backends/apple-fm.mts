@@ -112,12 +112,12 @@ export function createAppleFmBackend(
           const result = await probeAppleFm(opts)
           return result.available ? 'available' : 'unavailable'
         },
-        async create(createOptions?: object): Promise<SessionLike> {
+        async create(createOptions?: object | undefined): Promise<SessionLike> {
           const shim = await loadShimModule()
           const command = await resolveShimCommand(opts, shim)
           const create = {
             __proto__: null,
-            ...(createOptions as CreateOptions | undefined),
+            ...createOptions,
           } as CreateOptions
           // topK is accepted and dropped — FoundationModels GenerationOptions
           // has no topK knob.

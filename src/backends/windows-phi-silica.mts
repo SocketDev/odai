@@ -27,7 +27,7 @@ export function createWindowsPhiSilicaBackend(
       return probeWindowsPhiSilica(opts)
     },
     async languageModel(): Promise<LanguageModelLike> {
-      const probe = await probeWindowsPhiSilica(opts)
+      const probe = probeWindowsPhiSilica(opts)
       throw new Error(
         `Phi Silica (Copilot+) has no session bridge yet: ${probe.reason ?? 'declared provider only'}`,
       )

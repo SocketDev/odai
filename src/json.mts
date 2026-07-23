@@ -16,7 +16,7 @@ import { errorMessage } from '@socketsecurity/lib/errors/message'
 export function buildPrefixedMessages(
   userContent: string,
   prefill: string,
-  systemPrompt?: string,
+  systemPrompt?: string | undefined,
 ): Message[] {
   const messages: Message[] = []
   if (systemPrompt !== undefined) {
@@ -57,6 +57,7 @@ export function mergePrefill(prefill: string, raw: string): string {
   return prefill + raw
 }
 
+// oxlint-disable-next-line typescript/no-unnecessary-type-parameters -- the generic return is the API contract: callers pick the normalized shape; returning unknown would push an unsafe cast to every call site.
 export function normalizeKeys<T>(
   value: unknown,
   synonymMap: Record<string, string[]>,

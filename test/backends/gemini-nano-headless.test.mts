@@ -46,7 +46,10 @@ function createFakeBrowser(languageModel: unknown): FakeBrowser {
           userDataDir,
         })
         const page: PageLike = {
-          async evaluate<T>(fn: unknown, arg?: unknown): Promise<T> {
+          async evaluate<T>(
+            fn: unknown,
+            arg?: unknown | undefined,
+          ): Promise<T> {
             const holder = globalThis as Record<string, unknown>
             const previousModel = holder['LanguageModel']
             const previousBindings = new Map<string, unknown>()
@@ -206,7 +209,7 @@ describe('gemini-nano-headless backend', () => {
     })
     await backend.languageModel()
     expect(fake.launches).toHaveLength(1)
-    const launch = fake.launches[0]!
+    const launch = fake.launches[0]
     expect(launch.userDataDir).toBe(fixture.userDataDir)
     expect(launch.userDataDir).not.toBe(fixture.systemDir)
     expect(launch.options['executablePath']).toBe(fixture.chromePath)

@@ -16,13 +16,15 @@ export interface DebounceOptions {
 export function createDebouncer<T>(
   fn: (signal: AbortSignal, requestId: string) => Promise<T>,
   options: DebounceOptions = {},
-): (requestId?: string) => DebouncedRequest<T> {
+): (requestId?: string | undefined) => DebouncedRequest<T> {
   const delayMs = options.delayMs ?? 900
   let activeController: AbortController | undefined
   let activeTimeout: ReturnType<typeof setTimeout> | undefined
   let counter = 0
 
-  return function schedule(requestId?: string): DebouncedRequest<T> {
+  return function schedule(
+    requestId?: string | undefined,
+  ): DebouncedRequest<T> {
     const id = requestId ?? String((counter += 1))
 
     if (activeController !== undefined) {

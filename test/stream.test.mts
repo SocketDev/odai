@@ -11,7 +11,7 @@ function createSession(chunks: string[]): SessionLike {
     promptStreaming(): AsyncIterable<string> {
       return (async function* generate(): AsyncGenerator<string> {
         for (let i = 0, { length } = chunks; i < length; i += 1) {
-          const chunk = chunks[i]!
+          const chunk = chunks[i]
           yield chunk
         }
       })()

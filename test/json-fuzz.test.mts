@@ -136,8 +136,8 @@ describe('json/findCanonicalKey (fuzz)', () => {
     .map(tokens => {
       const [canonical, ...synonyms] = tokens
       return {
-        canonical: canonical!,
-        map: { [canonical!]: synonyms },
+        canonical: canonical,
+        map: { [canonical]: synonyms },
         synonyms,
       }
     })
@@ -187,8 +187,8 @@ describe('json/normalizeKeys (fuzz)', () => {
       .uniqueArray(word, { maxLength: 2, minLength: 2 })
       .chain(([canonical, synonym]) =>
         braceFreeStr.map(value => ({
-          canonical: canonical!,
-          synonym: synonym!,
+          canonical: canonical,
+          synonym: synonym,
           value,
         })),
       )
@@ -280,14 +280,14 @@ describe('json/buildPrefixedMessages (fuzz)', () => {
           )
           const expectedLength = systemPrompt === undefined ? 2 : 3
           expect(messages).toHaveLength(expectedLength)
-          const last = messages[messages.length - 1]!
+          const last = messages[messages.length - 1]
           expect(last.role).toBe('assistant')
           expect(last.content).toBe(prefill)
           const userMsg = messages.find(m => m.role === 'user')!
           expect(userMsg.content).toBe(userContent)
           if (systemPrompt !== undefined) {
-            expect(messages[0]!.role).toBe('system')
-            expect(messages[0]!.content).toBe(systemPrompt)
+            expect(messages[0].role).toBe('system')
+            expect(messages[0].content).toBe(systemPrompt)
           }
         },
       ),
@@ -327,8 +327,8 @@ describe('json/parseJsonWithFallback (fuzz)', () => {
       .uniqueArray(word, { maxLength: 2, minLength: 2 })
       .chain(([canonical, synonym]) =>
         braceFreeStr.map(value => ({
-          canonical: canonical!,
-          synonym: synonym!,
+          canonical: canonical,
+          synonym: synonym,
           value,
         })),
       )

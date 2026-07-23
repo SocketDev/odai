@@ -130,10 +130,10 @@ export interface ConventionVerdict {
 export function classifyReleasePublishScript(
   scriptName: string,
   scriptBody: string,
-): ConventionVerdict | null {
+): ConventionVerdict | undefined {
   const body = scriptBody.trim()
   if (!body) {
-    return null
+    return undefined
   }
   // Remote-dispatch twins first — their filename is the more specific match, so
   // classify them before the local signatures (whose bare-orchestrator pattern
@@ -148,7 +148,7 @@ export function classifyReleasePublishScript(
   )
   // No target, or an ambiguous combined body → not this check's concern.
   if (matched.length !== 1) {
-    return null
+    return undefined
   }
   const { expectedName, target } = matched[0]!
   return { expectedName, ok: scriptName === expectedName, target }

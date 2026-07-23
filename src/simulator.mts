@@ -38,7 +38,7 @@ export class LanguageModelSimulator implements LanguageModelLike {
     return Promise.resolve('available')
   }
 
-  async create(_options?: object): Promise<SessionLike> {
+  async create(_options?: object | undefined): Promise<SessionLike> {
     return new LanguageModelSessionSimulator(this.#rules, this.#fallback)
   }
 }
@@ -59,7 +59,7 @@ export class LanguageModelSessionSimulator implements SessionLike {
   promptStreaming(messages: Message[]): AsyncIterable<string> {
     const response = this.#resolve(messages)
     return (async function* generate(): AsyncGenerator<string> {
-      yield await response
+      yield response
     })()
   }
 

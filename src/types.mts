@@ -33,7 +33,7 @@ export interface SessionLike {
  */
 export interface LanguageModelLike {
   availability(): Promise<string> | { availability: string }
-  create(options?: object): Promise<SessionLike>
+  create(options?: object | undefined): Promise<SessionLike>
 }
 
 export interface PromptOptions {

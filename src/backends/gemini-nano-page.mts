@@ -45,7 +45,7 @@ export interface PageErrorShape {
 }
 
 export interface PageLike {
-  evaluate<T>(fn: unknown, arg?: unknown): Promise<T>
+  evaluate<T>(fn: unknown, arg?: unknown | undefined): Promise<T>
   exposeFunction(
     name: string,
     callback: (arg: never) => unknown,
@@ -149,7 +149,7 @@ export function createPageBoundFactory(bridge: Bridge): LanguageModelLike {
     availability(): Promise<string> {
       return page.evaluate<string>(pageAvailability)
     },
-    async create(options?: object): Promise<SessionLike> {
+    async create(options?: object | undefined): Promise<SessionLike> {
       const sessionId = nextId++
       const result = await page.evaluate<{
         cloneCapable?: boolean | undefined

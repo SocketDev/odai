@@ -8,11 +8,11 @@ locai is local-only — the primary backend is Gemini Nano via installed Google 
 
 The llama-server adapter enforces the doctrine in code: it refuses any non-loopback URL at config time — `127.0.0.1`, `::1`, or `localhost` only, with no env escape.
 
-| role | macOS | Linux | Windows |
-| --- | --- | --- | --- |
-| primary | Gemini Nano via installed Google Chrome | Gemini Nano via installed Google Chrome | Gemini Nano via installed Google Chrome, through the per-OS adapter |
-| local fallback | llama-server, loopback | llama-server, loopback | llama-server, loopback — also serves Foundry Local via its OpenAI-compatible loopback endpoint |
-| opportunistic per-OS extra | Apple FM | — | Phi Silica (Copilot+), the declared `windows-phi-silica` provider |
+| role                       | macOS                                   | Linux                                   | Windows                                                                                        |
+| -------------------------- | --------------------------------------- | --------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| primary                    | Gemini Nano via installed Google Chrome | Gemini Nano via installed Google Chrome | Gemini Nano via installed Google Chrome, through the per-OS adapter                            |
+| local fallback             | llama-server, loopback                  | llama-server, loopback                  | llama-server, loopback — also serves Foundry Local via its OpenAI-compatible loopback endpoint |
+| opportunistic per-OS extra | Apple FM                                | —                                       | Phi Silica (Copilot+), the declared `windows-phi-silica` provider                              |
 
 ## Problem
 
@@ -86,7 +86,7 @@ CI drops `SKIP_AI_FIX=1` and instead exports `AI_FIX_BACKEND=local-oss`; locally
   - **boot + gate**: start `llama-server -m model.gguf --port 8080`, poll `GET /health` until 200, export `LOCAI_LLAMA_URL`, then run the bench canary before the patch leg.
 - **gemini-nano-headless**: two first-class modes, both keyless. Do not reach for Chromium in either — Chromium builds lack `optimization_guide_internal` and CANNOT run Nano; only real Google Chrome works.
   - **System-Chrome mode** (macs, dev machines): the bridge clones the machine's already-downloaded model component — `OptGuideOnDeviceModel`, `optimization_guide_model_store`, `OptGuideOnDeviceClassifierModel` — from the live Chrome profile into a locai-owned user-data-dir with copy-on-write (`cp -c` on APFS, `--reflink=auto` on Linux: instant, no extra disk), seeds the Local State activation prefs, and never writes into the live profile. Zero weights download. Honest caveat: first activation of a fresh bridge profile still needs network for one small keyless component-metadata exchange — behind a dead proxy the state sticks at `downloading`; after that first activation the same profile reaches `available` fully offline, verified both ways.
-  - **CI mode** (Linux runners): install Google Chrome stable keylessly (the `.deb` from `dl.google.com`, pinned version), run one fill job with `LOCAI_NANO_ALLOW_DOWNLOAD=1` and `LOCAI_NANO_USER_DATA_DIR` pointed at the cache path — the bridge kicks `LanguageModel.create()` to pull the ~4 GB component — then `actions/cache` the user-data-dir and restore it with downloads off everywhere else. Non-hermetic at fill time, and the weights must never land in a public image; a prebaked user-data-dir layer is possible only in a PRIVATE registry image. Chrome auto-updates the component, so the cached profile drifts on refill — acceptable for a scheduled eval workflow in this repo; not acceptable as the fleet CI backbone.
+  - **CI mode** (Linux runners): install Google Chrome stable keylessly — the pinned-version `.deb` from `dl.google.com` — then run one fill job with `LOCAI_NANO_ALLOW_DOWNLOAD=1` and `LOCAI_NANO_USER_DATA_DIR` pointed at the cache path — the bridge kicks `LanguageModel.create()` to pull the ~4 GB component — then `actions/cache` the user-data-dir and restore it with downloads off everywhere else. Non-hermetic at fill time, and the weights must never land in a public image; a prebaked user-data-dir layer is possible only in a PRIVATE registry image. Chrome auto-updates the component, so the cached profile drifts on refill — acceptable for a scheduled eval workflow in this repo; not acceptable as the fleet CI backbone.
 - **apple-fm**: no hosted-runner path — a self-hosted Apple silicon runner with Apple Intelligence enabled is the only CI home. Provisioning is one `xcode-select --install` for the Swift toolchain; the shim compiles from in-repo source at first probe and caches in `node_modules/.cache/locai/`, so there is no binary artifact to distribute or pin.
 
 ## Spike plan

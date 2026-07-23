@@ -122,8 +122,8 @@ export const alertSummaryScenario: Scenario = {
         'You are a concise security-assistant. Output valid JSON only.',
     })
     return scoreTaskResult(result, value => {
-      const sentences = value.sentences as string[]
-      const hasCritical = sentences.some(s => /critical/i.test(String(s)))
+      const sentences = value.sentences
+      const hasCritical = sentences.some(s => /critical/i.test(s))
       return {
         ok: hasCritical,
         assertion: hasCritical
@@ -149,7 +149,7 @@ export const askIntentScenario: Scenario = {
       systemPrompt: 'You are a command-router. Output valid JSON only.',
     })
     return scoreTaskResult(result, value => {
-      const command = value.command as string[]
+      const command = value.command
       const isFix = command[0] === 'fix'
       return {
         ok: isFix,
@@ -170,7 +170,7 @@ export const codePatchScenario: Scenario = {
       'use a template literal',
     )
     return scoreTaskResult(result, value => {
-      const patch = String(value.patch)
+      const patch = value.patch
       const hasTemplate = patch.includes('`Hello ${name}`')
       return {
         ok: hasTemplate,
@@ -193,7 +193,7 @@ export const dedupeCandidateScenario: Scenario = {
     return scoreTaskResult(result, value => {
       const suggestions = value.suggestions as Array<{ packages: string[] }>
       const mentionsChalk = suggestions.some(s =>
-        s.packages.some(p => /chalk/i.test(String(p))),
+        s.packages.some(p => /chalk/i.test(p)),
       )
       return {
         ok: mentionsChalk,
@@ -214,7 +214,7 @@ export const lockfileDuplicateScenario: Scenario = {
         package: string
         reason: string
       }>
-      const hasLodash = findings.some(f => /lodash/i.test(String(f.package)))
+      const hasLodash = findings.some(f => /lodash/i.test(f.package))
       return {
         ok: hasLodash,
         assertion: hasLodash
@@ -239,7 +239,7 @@ export const safeAlternativeScenario: Scenario = {
       systemPrompt: 'You are a dependency-advisor. Output valid JSON only.',
     })
     return scoreTaskResult(result, value => {
-      const alternative = String(value.alternative)
+      const alternative = value.alternative
       const isLodashEs = /lodash-es/i.test(alternative)
       return {
         ok: isLodashEs,
@@ -265,9 +265,9 @@ export const sbomAnomalyScenario: Scenario = {
       systemPrompt: 'You are a supply-chain analyst. Output valid JSON only.',
     })
     return scoreTaskResult(result, value => {
-      const anomalies = value.anomalies as string[]
+      const anomalies = value.anomalies
       const mentionsDuplicate = anomalies.some(a =>
-        /duplicate|multiple|two versions/i.test(String(a)),
+        /duplicate|multiple|two versions/i.test(a),
       )
       return {
         ok: mentionsDuplicate,

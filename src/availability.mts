@@ -47,7 +47,9 @@ export async function readAvailability(
   if (typeof model.availability !== 'function') {
     return undefined
   }
-  const result = await model.availability()
+  // Widen to unknown: the seam type promises a string, but this probe also
+  // guards runtimes that hand back exotic availability objects.
+  const result: unknown = await model.availability()
   if (typeof result === 'string') {
     return result
   }
