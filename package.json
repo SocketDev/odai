@@ -75,14 +75,6 @@
     "@sinclair/typebox": "catalog:",
     "@types/dom-chromium-ai": "0.0.17"
   },
-  "peerDependencies": {
-    "playwright-core": ">=1.49.0"
-  },
-  "peerDependenciesMeta": {
-    "playwright-core": {
-      "optional": true
-    }
-  },
   "devDependencies": {
     "@redwoodjs/agent-ci": "catalog:",
     "@socketregistry/packageurl-js": "catalog:",
@@ -109,6 +101,7 @@
     "nock": "catalog:",
     "oxfmt": "catalog:",
     "oxlint": "catalog:",
+    "oxlint-tsgolint": "catalog:",
     "playwright-core": "catalog:",
     "portless": "catalog:",
     "regjsparser": "catalog:",
@@ -119,6 +112,14 @@
     "typescript": "catalog:",
     "vitest": "catalog:",
     "vitiate": "catalog:"
+  },
+  "peerDependencies": {
+    "playwright-core": ">=1.49.0"
+  },
+  "peerDependenciesMeta": {
+    "playwright-core": {
+      "optional": true
+    }
   },
   "devEngines": {
     "packageManager": {
