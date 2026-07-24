@@ -67,6 +67,8 @@ export function createMockModel(response: string): GeminiNanoModel {
   }
 }
 
+// socket-lint: allow no-required-in-options-bag — published API shape; renaming
+// the exported interface or reshaping the bag is a breaking change.
 export interface MockSessionOptions {
   response: string
 }

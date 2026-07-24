@@ -60,6 +60,8 @@ export interface StreamPayload {
   streamId: number
 }
 
+// socket-lint: allow no-required-in-options-bag — published API shape; renaming
+// the exported interface or reshaping the bag is a breaking change.
 export interface WaitForModelReadyOptions {
   allowDownload: boolean
   readyTimeoutMs?: number | undefined

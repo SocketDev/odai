@@ -41,7 +41,7 @@ catalog:
   'rolldown': 1.1.4
   'semver': 7.8.5
   'shell-quote': 1.10.0
-  'taze': 19.14.1
+  'taze': 19.16.0
   'typescript': 7.0.2
   'vite': 8.1.0
   'vitest': 4.1.10
@@ -83,6 +83,15 @@ overrides:
   'wrap-ansi@>=8': '9.0.2'
   'yaml@2': '2.9.0'
 
+patchedDependencies:
+  # single-registry: routes taze version resolution through its own bundled
+  # direct-registry client for EVERY registry, instead of the fast-npm-meta
+  # hosted endpoint it uses when the registry is the npm default. That
+  # third-party hop leaks our dependency names and violates the fleet
+  # single-registry posture. TEMPORARY: remove if taze grows a supported flag
+  # to force direct-registry resolution.
+  taze@19.16.0: patches/taze@19.16.0.patch
+
 packages:
   - .claude/hooks/fleet/*
   - .config/fleet/oxlint-plugin
@@ -107,6 +116,15 @@ minimumReleaseAgeExclude:
   - 'sdxgen'
   - 'sfw'
   - 'socket'
+  # taze 19.16.0 — the dep updater itself; forced ahead of the soak by owner
+  # directive so the regenerated single-registry patch (patchedDependencies)
+  # tracks the current release. Exact-pinned so a future version re-soaks.
+  # published: 2026-07-22 | removable: 2026-07-29
+  - 'taze@19.16.0'
+  # verkit — new dev-only transitive of taze 19.16.0 (same owner directive);
+  # exact-pinned so future versions re-soak.
+  # published: 2026-07-19 | removable: 2026-07-26
+  - 'verkit@0.1.2'
   - 'stuie'
   # published: 2026-07-16 | removable: 2026-07-23
   - 'magic-string@1.0.0'

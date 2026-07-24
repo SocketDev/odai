@@ -51,6 +51,8 @@ export interface PromptOptions {
   topK?: number | undefined
 }
 
+// socket-lint: allow no-required-in-options-bag — published API shape; renaming
+// the exported interface or reshaping the bag is a breaking change.
 export interface StructuredPromptOptions<T> extends PromptOptions {
   prefill: string
   schema: SchemaLike<T>
