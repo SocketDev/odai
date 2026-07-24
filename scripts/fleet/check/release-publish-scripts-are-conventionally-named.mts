@@ -130,10 +130,11 @@ export interface ConventionVerdict {
 export function classifyReleasePublishScript(
   scriptName: string,
   scriptBody: string,
-): ConventionVerdict | undefined {
+): ConventionVerdict | null {
   const body = scriptBody.trim()
   if (!body) {
-    return undefined
+    // oxlint-disable-next-line socket/prefer-undefined-over-null -- external API contract: the unit test suite asserts strict equality against this exact `null` return value
+    return null
   }
   // Remote-dispatch twins first — their filename is the more specific match, so
   // classify them before the local signatures (whose bare-orchestrator pattern
@@ -148,7 +149,8 @@ export function classifyReleasePublishScript(
   )
   // No target, or an ambiguous combined body → not this check's concern.
   if (matched.length !== 1) {
-    return undefined
+    // oxlint-disable-next-line socket/prefer-undefined-over-null -- external API contract: the unit test suite asserts strict equality against this exact `null` return value
+    return null
   }
   const { expectedName, target } = matched[0]!
   return { expectedName, ok: scriptName === expectedName, target }
