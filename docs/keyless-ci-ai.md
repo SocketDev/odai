@@ -38,7 +38,7 @@ The real bench verdict is recorded below in the bench section: Gemini Nano score
 
 `ai-lint-fix.mts` already has the shape of a seam: `probeAiCli` in `ai-lint-fix/health.mts` walks `discoverAiAgents` — claude, codex, opencode, gemini — and "no runnable client" is a clean informational skip at line ~148, with `SKIP_AI_FIX=1` short-circuiting at line 128. Grow it into an explicit backend registry:
 
-```
+```text
 backend            mode         availability probe                  rule tiers
 anthropic-key      agentic      discoverAiAgents + --version exec   haiku, sonnet, opus
 local-oss          patch        llama-server /health on localhost   haiku only
