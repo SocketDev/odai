@@ -1,21 +1,21 @@
-# @socketsecurity/locai
+# @socketsecurity/odai
 
-<a href="https://badge.socket.dev/npm/package/@socketsecurity/locai"><img src="https://badge.socket.dev/npm/package/@socketsecurity/locai" alt="Socket Badge" height="20"></a>
+<a href="https://badge.socket.dev/npm/package/@socketsecurity/odai"><img src="https://badge.socket.dev/npm/package/@socketsecurity/odai" alt="Socket Badge" height="20"></a>
 <img src="assets/repo/badges/coverage.svg" width="97" height="20" alt="Coverage" />
 
 [![Follow @SocketSecurity](assets/fleet/badge-follow-x.svg)](https://twitter.com/SocketSecurity)
 [![Follow @socket.dev on Bluesky](assets/fleet/badge-follow-bluesky.svg)](https://bsky.app/profile/socket.dev)
 
-locai — pronounced like the trickster; it lives in your machine and does your chores.
+odai — pronounced like the trickster; it lives in your machine and does your chores.
 
 ## Why this repo exists
 
-locai is local-only — the primary backend is Gemini Nano via installed Google
+odai is local-only — the primary backend is Gemini Nano via installed Google
 Chrome on every platform; llama-server (loopback) is the local fallback; Apple
 FM and Phi Silica (Copilot+) are opportunistic per-OS extras. No cloud, no
 remote endpoints, no keys.
 
-`@socketsecurity/locai` is a local, on-device AI library for browser and Node.
+`@socketsecurity/odai` is a local, on-device AI library for browser and Node.
 It wraps the browser's built-in Gemini Nano Prompt API behind a type-safe,
 backend-agnostic seam, hardens small-model JSON output, and ships `bench` — an
 evaluation harness that scores any backend on real Socket workloads. It exists
@@ -25,43 +25,43 @@ without scattering DOM-specific checks across consumers.
 ## Install
 
 ```sh
-pnpm install @socketsecurity/locai
+pnpm install @socketsecurity/odai
 ```
 
 ## Usage
 
 ```js
-import { createLocaiModel } from '@socketsecurity/locai'
+import { createOdaiModel } from '@socketsecurity/odai'
 
-const model = await createLocaiModel()
+const model = await createOdaiModel()
 const { raw } = await model.promptStreaming(
   'Summarize this page in one sentence.',
 )
 console.log(raw)
 ```
 
-`createLocaiModel` picks a backend by precedence: the explicit `backend`
-option, then the `LOCAI_BACKEND` env var, then the availability probe order —
+`createOdaiModel` picks a backend by precedence: the explicit `backend`
+option, then the `ODAI_BACKEND` env var, then the availability probe order —
 `gemini-nano-headless`, `llama-server`, `apple-fm`, `windows-phi-silica`,
 `simulator`.
 
 ### CLI
 
-The package ships a `locai` bin for single-shot, keyless AI steps in scripts
+The package ships a `odai` bin for single-shot, keyless AI steps in scripts
 and CI. Input arrives on stdin or `--input`; the parsed result prints as one
 JSON line on stdout, diagnostics go to stderr.
 
 ```sh
-git diff | locai commit-msg
-printf 'Critical: 2\nHigh: 5\n' | locai triage
-locai summarize --input README.md
-locai patch --input src/greet.js --instruction "use a template literal"
-locai classify-deps --input narrowed-dep-diff.json
-locai backends
+git diff | odai commit-msg
+printf 'Critical: 2\nHigh: 5\n' | odai triage
+odai summarize --input README.md
+odai patch --input src/greet.js --instruction "use a template literal"
+odai classify-deps --input narrowed-dep-diff.json
+odai backends
 ```
 
 Every prompt runs under a hard budget — `--timeout <ms>` or the
-`LOCAI_TIMEOUT_MS` env var, default 120000 — so a wedged engine can never hang
+`ODAI_TIMEOUT_MS` env var, default 120000 — so a wedged engine can never hang
 a job. Exit codes are the CI contract:
 
 | code | meaning                                                         |
@@ -72,7 +72,7 @@ a job. Exit codes are the CI contract:
 | 69   | no backend available — treat as a clean skip in CI              |
 
 When nothing is provisioned the CLI prints the exact provisioning steps for
-each backend and exits 69; `locai backends` prints per-backend availability
+each backend and exits 69; `odai backends` prints per-backend availability
 JSON with the reason for every unavailable engine.
 
 ### Bench

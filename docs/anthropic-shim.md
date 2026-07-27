@@ -1,6 +1,6 @@
 # Anthropic Messages shim
 
-A loopback HTTP server that speaks the Anthropic Messages API over any locai
+A loopback HTTP server that speaks the Anthropic Messages API over any odai
 registry backend, so an Anthropic-speaking agent — Claude Code via
 `ANTHROPIC_BASE_URL` — runs against local inference with no API key.
 
@@ -11,7 +11,7 @@ node --experimental-strip-types src/shim/serve.mts --port 8402 --backend llama-s
 ```
 
 Backend selection follows the registry precedence: `--backend` wins, then
-`LOCAI_BACKEND`, then the availability probe. Point the client at the shim:
+`ODAI_BACKEND`, then the availability probe. Point the client at the shim:
 
 ```sh
 ANTHROPIC_BASE_URL=http://127.0.0.1:8402 ANTHROPIC_API_KEY=anything \
