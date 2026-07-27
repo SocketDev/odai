@@ -31,9 +31,12 @@ import {
   LanguageModelSessionSimulator,
   LanguageModelSimulator,
 } from './simulator.mts'
+import { suggestCommitMessage } from './tasks/commit.mts'
 import { dedupeDependencies } from './tasks/dedupe.mts'
 import { reasonAboutLockfile } from './tasks/lockfile.mts'
 import { generateCodePatch } from './tasks/patch.mts'
+import { summarizeText } from './tasks/summarize.mts'
+import { triageAlerts } from './tasks/triage.mts'
 
 export {
   backendNames,
@@ -59,6 +62,9 @@ export {
   probeAvailability,
   reasonAboutLockfile,
   selectBackend,
+  suggestCommitMessage,
+  summarizeText,
+  triageAlerts,
 }
 
 export type { AvailabilityResult } from './availability.mts'
@@ -78,9 +84,12 @@ export type {
 } from './model.mts'
 export type { CreateSessionOptions } from './session.mts'
 export type { StreamOptions } from './stream.mts'
+export type { CommitMessage } from './prompts/commit.mts'
 export type { CodePatch } from './prompts/patch.mts'
 export type { DedupeResult } from './prompts/dedupe.mts'
 export type { LockfileReasoning } from './prompts/lockfile.mts'
+export type { TextSummary } from './prompts/summarize.mts'
+export type { AlertTriage } from './prompts/triage.mts'
 export type {
   LanguageModelState,
   Message,

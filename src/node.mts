@@ -32,9 +32,12 @@ import {
   LanguageModelSessionSimulator,
   LanguageModelSimulator,
 } from './simulator.mts'
+import { suggestCommitMessage } from './tasks/commit.mts'
 import { dedupeDependencies } from './tasks/dedupe.mts'
 import { reasonAboutLockfile } from './tasks/lockfile.mts'
 import { generateCodePatch } from './tasks/patch.mts'
+import { summarizeText } from './tasks/summarize.mts'
+import { triageAlerts } from './tasks/triage.mts'
 import type { GeminiNanoModel } from './model.mts'
 import type {
   Message,
@@ -110,6 +113,9 @@ export {
   LOCAI_LLAMA_URL_ENV_VAR,
   reasonAboutLockfile,
   selectBackend,
+  suggestCommitMessage,
+  summarizeText,
+  triageAlerts,
 }
 
 export type { AppleFmBackendOptions } from './backends/apple-fm.mts'
@@ -126,3 +132,6 @@ export type {
   GeminiNanoModel,
   LocaiModel,
 } from './model.mts'
+export type { CommitMessage } from './prompts/commit.mts'
+export type { TextSummary } from './prompts/summarize.mts'
+export type { AlertTriage } from './prompts/triage.mts'
