@@ -1,16 +1,19 @@
 {
-  "name": "@socketsecurity/locai",
+  "name": "@socketsecurity/odai",
   "version": "0.0.1",
   "private": false,
   "description": "Local on-device AI library for browser and Node, with the bench evaluation harness",
-  "homepage": "https://github.com/SocketDev/socket-gemini-nano",
+  "homepage": "https://github.com/SocketDev/odai",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/SocketDev/socket-gemini-nano.git"
+    "url": "git+https://github.com/SocketDev/odai.git"
+  },
+  "bugs": {
+    "url": "https://github.com/SocketDev/odai/issues"
   },
   "bin": {
-    "locai": "./dist/cli.js"
+    "odai": "./dist/cli.js"
   },
   "files": [
     "dist/**/*",
