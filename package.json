@@ -4,13 +4,13 @@
   "private": false,
   "description": "Local on-device AI library for browser and Node, with the bench evaluation harness",
   "homepage": "https://github.com/SocketDev/odai",
+  "bugs": {
+    "url": "https://github.com/SocketDev/odai/issues"
+  },
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/SocketDev/odai.git"
-  },
-  "bugs": {
-    "url": "https://github.com/SocketDev/odai/issues"
   },
   "bin": {
     "odai": "./dist/cli.js"
