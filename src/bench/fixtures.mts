@@ -32,6 +32,19 @@ export const CODE_PATCH_INPUT = `function greet(name) {
   console.log("Hello " + name);
 }`
 
+export const CODE_REPAIR_INPUT = `import { deepEqual } from 'node:assert'
+import { join } from 'node:path'
+
+export function resolveConfigPath(root, name) {
+  if (name == '') {
+    return join(root, 'default.json')
+  }
+  return join(root, name)
+}`
+
+export const CODE_REPAIR_LINT_ERRORS = `resolve-config.js:1:10 error no-unused-vars: 'deepEqual' is imported but never used.
+resolve-config.js:5:12 error eqeqeq: Expected '===' and instead saw '=='.`
+
 export const SEVERITY_COUNTS = {
   critical: 2,
   high: 5,

@@ -16,6 +16,8 @@ import {
   ALTERNATIVE_PACKAGE_PROMPT,
   ASK_QUERIES,
   CODE_PATCH_INPUT,
+  CODE_REPAIR_INPUT,
+  CODE_REPAIR_LINT_ERRORS,
   LOCKFILE_DEDUPE_CANDIDATE,
   LOCKFILE_DUPLICATE_LODASH,
   MANIFEST_DEDUPE_CANDIDATE,
@@ -86,6 +88,13 @@ const AskIntentSchema = schemaLike(
     command: Type.Array(Type.String()),
     confidence: Type.Number(),
     intent: Type.String(),
+  }),
+)
+
+const CodeRepairSchema = schemaLike(
+  Type.Object({
+    explanation: Type.String(),
+    fixed: Type.String(),
   }),
 )
 
@@ -177,6 +186,50 @@ export const codePatchScenario: Scenario = {
         assertion: hasTemplate
           ? 'produced template-literal patch'
           : 'expected template-literal patch',
+      }
+    })
+  },
+}
+
+export const codeRepairScenario: Scenario = {
+  name: 'code-repair-lint-errors',
+  async run(model) {
+    const prompt = [
+      'Fix every reported lint error in this file.',
+      'Respond with compact JSON: { "fixed": string, "explanation": string }.',
+      '"fixed" is the complete corrected file with no other changes.',
+      'File: resolve-config.js',
+      CODE_REPAIR_INPUT,
+      'Lint errors:',
+      CODE_REPAIR_LINT_ERRORS,
+    ].join('\n')
+    const result = await model.promptStructured(prompt, {
+      prefill: '{"fixed":"',
+      schema: CodeRepairSchema,
+      systemPrompt: 'You are a code-repair assistant. Output valid JSON only.',
+    })
+    return scoreTaskResult(result, value => {
+      const fixed = value.fixed
+      const usesStrictEquality = /name\s*===\s*(""|'')/.test(fixed)
+      const removedUnusedImport = !fixed.includes('deepEqual')
+      const keptLogic =
+        fixed.includes('join(root, ') && fixed.includes('default.json')
+      const failures: string[] = []
+      if (!usesStrictEquality) {
+        failures.push('eqeqeq not fixed')
+      }
+      if (!removedUnusedImport) {
+        failures.push('unused deepEqual import not removed')
+      }
+      if (!keptLogic) {
+        failures.push('original join logic not preserved')
+      }
+      return {
+        ok: failures.length === 0,
+        assertion:
+          failures.length === 0
+            ? 'fixed file passes the lint re-check'
+            : `expected lint-clean repair: ${failures.join('; ')}`,
       }
     })
   },
@@ -283,6 +336,7 @@ export const allScenarios: Scenario[] = [
   alertSummaryScenario,
   askIntentScenario,
   codePatchScenario,
+  codeRepairScenario,
   dedupeCandidateScenario,
   lockfileDuplicateScenario,
   safeAlternativeScenario,

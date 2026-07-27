@@ -56,7 +56,7 @@ describe('createLocaiModel', () => {
       }),
     })
     const report = await runEval({ model })
-    expect(report.total).toBe(7)
+    expect(report.total).toBe(8)
     expect(report.score).toBe(1)
   })
 

@@ -8,6 +8,7 @@ import {
   ALTERNATIVE_PACKAGE_PROMPT,
   ASK_QUERIES,
   CODE_PATCH_INPUT,
+  CODE_REPAIR_INPUT,
   LOCKFILE_DEDUPE_CANDIDATE,
   LOCKFILE_DUPLICATE_LODASH,
   MANIFEST_DEDUPE_CANDIDATE,
@@ -56,6 +57,16 @@ export function createBenchResponseRules(): ResponseRule[] {
       when: text =>
         text.includes(CODE_PATCH_INPUT.slice(0, 30)) &&
         text.includes('template literal'),
+    },
+    {
+      response: JSON.stringify({
+        explanation:
+          'Removed the unused deepEqual import and replaced == with ===.',
+        fixed: `import { join } from 'node:path'\n\nexport function resolveConfigPath(root, name) {\n  if (name === '') {\n    return join(root, 'default.json')\n  }\n  return join(root, name)\n}`,
+      }),
+      when: text =>
+        text.includes(CODE_REPAIR_INPUT.slice(0, 40)) &&
+        text.includes('lint error'),
     },
     {
       response: JSON.stringify({

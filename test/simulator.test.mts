@@ -28,7 +28,7 @@ describe('LanguageModelSimulator', () => {
       simulator
     const model = await createGeminiNanoModel()
     const report = await runEval({ model })
-    expect(report.total).toBe(7)
+    expect(report.total).toBe(8)
     expect(report.score).toBe(1)
   })
 })
