@@ -57,6 +57,23 @@ export function mergePrefill(prefill: string, raw: string): string {
   return prefill + raw
 }
 
+/**
+ * Replace fullwidth and typographic JSON punctuation with the ASCII forms.
+ * Small on-device models emit `，`, `：`, and curly quotes mid-structure —
+ * observed live from Gemini Nano at temperature 0 — and strict JSON.parse
+ * rejects them. Only runs on the repair path, after a strict parse already
+ * failed, so a legitimate curly quote inside a string value can at worst
+ * leave the reply as unparseable as it started.
+ */
+export function normalizeJsonPunctuation(raw: string): string {
+  return raw
+    .replaceAll('\u{FF0C}', ',')
+    .replaceAll('\u{FF1A}', ':')
+    .replaceAll('\u{FF1B}', ';')
+    .replaceAll(/[\u{201C}\u{201D}]/gu, '"')
+    .replaceAll(/[\u{2018}\u{2019}]/gu, "'")
+}
+
 // oxlint-disable-next-line typescript/no-unnecessary-type-parameters -- the generic return is the API contract: callers pick the normalized shape; returning unknown would push an unsafe cast to every call site.
 export function normalizeKeys<T>(
   value: unknown,
@@ -95,8 +112,12 @@ export function parseJsonWithFallback<T>(
   try {
     parsed = JSON.parse(trimmed)
   } catch {
-    const repaired = repairJson(trimmed)
-    parsed = JSON.parse(repaired)
+    try {
+      parsed = JSON.parse(normalizeJsonPunctuation(trimmed))
+    } catch {
+      const repaired = repairJson(normalizeJsonPunctuation(trimmed))
+      parsed = JSON.parse(repaired)
+    }
   }
 
   const normalized =
