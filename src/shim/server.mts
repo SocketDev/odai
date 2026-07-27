@@ -131,7 +131,9 @@ export async function handleRequest(
     state.log(
       `  -> stop_reason=${message.stop_reason} output~` +
         `${message.usage.output_tokens}tok ` +
-        `${message.content[0]?.type === 'tool_use' ? `tool=${(message.content[0] as { name: string }).name}` : ''}`,
+        (message.content[0]?.type === 'tool_use'
+          ? `tool=${(message.content[0] as { name: string }).name}`
+          : ''),
     )
     if (parsed.stream === true) {
       response.writeHead(200, {
