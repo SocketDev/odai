@@ -4,6 +4,7 @@
     "allowImportingTsExtensions": true,
     "declaration": true,
     "emitDeclarationOnly": true,
+    "module": "esnext",
     "noEmit": false
   }
 }
