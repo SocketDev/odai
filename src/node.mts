@@ -37,6 +37,10 @@ import { createWindowsPhiSilicaBackend } from './backends/windows-phi-silica.mts
 import { promptStructured } from './json.mts'
 import { createOdaiModel } from './model.mts'
 import {
+  createLocalLanguageModelFactory,
+  isLanguageModelFactory,
+} from './provider.mts'
+import {
   installLanguageModelSimulator,
   LanguageModelSessionSimulator,
   LanguageModelSimulator,
@@ -108,6 +112,7 @@ export {
   createBackend,
   createGeminiNanoHeadlessBackend,
   createLlamaServerBackend,
+  createLocalLanguageModelFactory,
   createOdaiModel,
   createSimulatorBackend,
   createWindowsPhiSilicaBackend,
@@ -121,6 +126,7 @@ export {
   EXIT_USAGE,
   generateCodePatch,
   installLanguageModelSimulator,
+  isLanguageModelFactory,
   LanguageModelSimulator,
   LanguageModelSessionSimulator,
   ODAI_APPLE_FM_SHIM_ENV_VAR,
@@ -141,6 +147,10 @@ export type { CliArgs, CliCommand } from './cli/args.mts'
 export type { LineWriter, RunCliOptions } from './cli/run.mts'
 export type { LlamaServerBackendOptions } from './backends/llama-server.mts'
 export type { SelectBackendOptions } from './backends/registry.mts'
+export type {
+  LanguageModelAvailability,
+  LanguageModelFactory,
+} from './provider.mts'
 export type { WindowsPhiSilicaBackendOptions } from './backends/windows-phi-silica.mts'
 export type {
   BackendAvailability,

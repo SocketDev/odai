@@ -26,6 +26,10 @@ import {
 import { createSimulatorBackend } from './backends/simulator.mts'
 import { createWindowsPhiSilicaBackend } from './backends/windows-phi-silica.mts'
 import { createGeminiNanoModel, createOdaiModel } from './model.mts'
+import {
+  createLocalLanguageModelFactory,
+  isLanguageModelFactory,
+} from './provider.mts'
 import { classifyDependencyChange } from './tasks/classify-deps.mts'
 import {
   installLanguageModelSimulator,
@@ -47,6 +51,7 @@ export {
   createGeminiNanoHeadlessBackend,
   createGeminiNanoModel,
   createLlamaServerBackend,
+  createLocalLanguageModelFactory,
   createOdaiModel,
   createSimulatorBackend,
   createWindowsPhiSilicaBackend,
@@ -55,6 +60,7 @@ export {
   defaultProbeOrder,
   generateCodePatch,
   installLanguageModelSimulator,
+  isLanguageModelFactory,
   LanguageModelSimulator,
   LanguageModelSessionSimulator,
   ODAI_APPLE_FM_SHIM_ENV_VAR,
@@ -70,6 +76,10 @@ export {
 }
 
 export type { AvailabilityResult } from './availability.mts'
+export type {
+  LanguageModelAvailability,
+  LanguageModelFactory,
+} from './provider.mts'
 export type { AppleFmBackendOptions } from './backends/apple-fm.mts'
 export type { LlamaServerBackendOptions } from './backends/llama-server.mts'
 export type { SelectBackendOptions } from './backends/registry.mts'
