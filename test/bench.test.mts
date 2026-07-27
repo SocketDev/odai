@@ -24,4 +24,32 @@ describe('bench evaluator', () => {
     }
     expect(formatReport(report)).toMatch(/\(\d+ms\)/)
   })
+
+  it('omits the timing suffix when a result carries no duration', () => {
+    const printed = formatReport({
+      passed: 1,
+      results: [
+        {
+          assertion: 'ok',
+          durationMs: undefined,
+          name: 'no-timing',
+          ok: true,
+          raw: '{}',
+        },
+      ],
+      score: 1,
+      total: 1,
+    })
+    expect(printed).toContain('[PASS] no-timing')
+    expect(printed).not.toMatch(/no-timing \(/)
+  })
+
+  it('scores an empty scenario battery as zero', async () => {
+    const report = await runEval({
+      model: createMockModel('{}'),
+      scenarios: [],
+    })
+    expect(report.total).toBe(0)
+    expect(report.score).toBe(0)
+  })
 })

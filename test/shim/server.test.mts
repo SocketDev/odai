@@ -1,7 +1,15 @@
+import { Readable } from 'node:stream'
+
 import { afterEach, describe, expect, it } from 'vitest'
 
-import { startAnthropicShim } from '../../src/shim/server.mts'
+import {
+  parseMessagesRequest,
+  readBody,
+  ShimRequestError,
+  startAnthropicShim,
+} from '../../src/shim/server.mts'
 import type { AnthropicShimHandle } from '../../src/shim/server.mts'
+import type { IncomingMessage } from 'node:http'
 import type { OdaiBackend } from '../../src/backends/types.mts'
 import type { Message } from '../../src/types.mts'
 
@@ -261,5 +269,110 @@ describe('startAnthropicShim', () => {
     // surface; the assertion is on the bare Response status.
     const health = await fetch(`${handle.url}/health`)
     expect(health.status).toBe(200)
+  })
+
+  it('404s a non-POST route that is not /health', async () => {
+    handle = await startAnthropicShim({ backend: createScriptedBackend([]) })
+    // socket-lint: allow global-fetch -- exercising the shim's bare HTTP route
+    // table; the assertion is on the raw Response status.
+    const response = await fetch(`${handle.url}/v1/messages`)
+    expect(response.status).toBe(404)
+  })
+
+  it('reports a 500 api_error when the backend prompt throws', async () => {
+    const backend: OdaiBackend = {
+      async availability() {
+        return { available: true }
+      },
+      async languageModel() {
+        return {
+          availability: async () => 'available',
+          create: async () => ({
+            prompt: async () => {
+              throw new Error('engine wedged')
+            },
+            promptStreaming: () =>
+              (async function* generate(): AsyncGenerator<string> {})(),
+          }),
+        }
+      },
+      name: 'simulator',
+    }
+    handle = await startAnthropicShim({ backend })
+    // socket-lint: allow global-fetch -- exercising the shim's raw error path;
+    // the assertion is on the bare error Response shape.
+    const response = await fetch(`${handle.url}/v1/messages`, {
+      body: JSON.stringify({
+        messages: [{ content: 'hi', role: 'user' }],
+        model: 'm',
+      }),
+      headers: { 'content-type': 'application/json' },
+      method: 'POST',
+    })
+    expect(response.status).toBe(500)
+    const body = (await response.json()) as { error: { type: string } }
+    expect(body.error.type).toBe('api_error')
+  })
+
+  it('closes the backend when the handle closes', async () => {
+    let closed = false
+    const backend = {
+      ...createScriptedBackend([]),
+      async close(): Promise<void> {
+        closed = true
+      },
+    }
+    const local = await startAnthropicShim({ backend })
+    await local.close()
+    expect(closed).toBe(true)
+  })
+})
+
+describe('parseMessagesRequest', () => {
+  it('rejects a non-JSON body', () => {
+    expect(() => parseMessagesRequest('not json')).toThrow(/not valid JSON/)
+  })
+
+  it('rejects an empty or missing messages array', () => {
+    expect(() => parseMessagesRequest('{"model":"m","messages":[]}')).toThrow(
+      /non-empty array/,
+    )
+    expect(() => parseMessagesRequest('{"model":"m"}')).toThrow(
+      /non-empty array/,
+    )
+  })
+
+  it('rejects a missing or empty model', () => {
+    expect(() =>
+      parseMessagesRequest('{"messages":[{"role":"user","content":"x"}]}'),
+    ).toThrow(/model must be/)
+    expect(() =>
+      parseMessagesRequest(
+        '{"model":"","messages":[{"role":"user","content":"x"}]}',
+      ),
+    ).toThrow(/model must be/)
+  })
+
+  it('accepts a well-formed request', () => {
+    const parsed = parseMessagesRequest(
+      '{"model":"m","messages":[{"role":"user","content":"hi"}]}',
+    )
+    expect(parsed.model).toBe('m')
+  })
+})
+
+describe('readBody', () => {
+  it('concatenates request chunks into a string', async () => {
+    const request = Readable.from([
+      Buffer.from('{"a":'),
+      Buffer.from('1}'),
+    ]) as unknown as IncomingMessage
+    expect(await readBody(request)).toBe('{"a":1}')
+  })
+
+  it('rejects a body that exceeds the size limit', async () => {
+    const oversized = Buffer.alloc(33 * 1024 * 1024)
+    const request = Readable.from([oversized]) as unknown as IncomingMessage
+    await expect(readBody(request)).rejects.toBeInstanceOf(ShimRequestError)
   })
 })

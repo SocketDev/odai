@@ -7,8 +7,16 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import {
   checkAppleFmHost,
   createAppleFmBackend,
+  defaultCacheDir,
+  describeUnavailableReason,
+  loadShimModule,
+  ODAI_APPLE_FM_SHIM_ENV_VAR,
+  probeAppleFm,
+  readEnvShim,
+  resolveShimCommand,
   shimCommandFromPath,
 } from '../../src/backends/apple-fm.mts'
+import type { ShimModule } from '../../src/backends/apple-fm.mts'
 import { createOdaiModel } from '../../src/model.mts'
 import type { ShimCommand } from '../../src/backends/apple-fm-shim.mts'
 import type { Message, SessionLike } from '../../src/types.mts'
@@ -261,4 +269,114 @@ describe('apple-fm backend', () => {
       expect(observed).toMatch(/^available$|Apple/)
     },
   )
+
+  it('surfaces the shim error text when availability replies not ok', async () => {
+    const dir = await mkdtemp(path.join(os.tmpdir(), 'odai-apple-fm-notok-'))
+    const notOkShim = path.join(dir, 'notok-shim.mjs')
+    await writeFile(
+      notOkShim,
+      `import readline from 'node:readline'
+readline.createInterface({ input: process.stdin }).on('line', () => {
+  process.stdout.write(JSON.stringify({ ok: false, error: 'framework missing' }) + '\\n')
+})
+`,
+    )
+    const availability = await probeAppleFm({
+      shim: { args: [notOkShim], command: process.execPath },
+    })
+    expect(availability.available).toBe(false)
+    expect(availability.reason).toContain('framework missing')
+  })
+})
+
+describe('describeUnavailableReason', () => {
+  it('maps appleIntelligenceNotEnabled to enablement guidance', () => {
+    expect(describeUnavailableReason('appleIntelligenceNotEnabled')).toContain(
+      'System Settings',
+    )
+  })
+
+  it('maps deviceNotEligible to the VM explanation', () => {
+    expect(describeUnavailableReason('deviceNotEligible')).toContain('VMs')
+  })
+
+  it('maps modelNotReady to the downloading explanation', () => {
+    expect(describeUnavailableReason('modelNotReady')).toContain('downloading')
+  })
+
+  it('passes any other reason through verbatim', () => {
+    expect(describeUnavailableReason('somethingElse')).toBe(
+      'Apple Intelligence reports somethingElse.',
+    )
+  })
+})
+
+describe('defaultCacheDir', () => {
+  it('resolves the shim binary cache under the package cache dir', () => {
+    expect(defaultCacheDir()).toContain(
+      ['node_modules', '.cache', 'odai'].join('/'),
+    )
+  })
+})
+
+describe('readEnvShim', () => {
+  it('resolves a script path through the Node executable', () => {
+    expect(
+      readEnvShim({ [ODAI_APPLE_FM_SHIM_ENV_VAR]: '/tmp/shim.mjs' }),
+    ).toEqual({ args: ['/tmp/shim.mjs'], command: process.execPath })
+  })
+
+  it('returns a binary command directly', () => {
+    expect(
+      readEnvShim({ [ODAI_APPLE_FM_SHIM_ENV_VAR]: '/tmp/shim-bin' }),
+    ).toEqual({ args: [], command: '/tmp/shim-bin' })
+  })
+
+  it('returns undefined when the env var is unset', () => {
+    expect(readEnvShim({})).toBeUndefined()
+  })
+})
+
+describe('resolveShimCommand', () => {
+  const fakeShimModule = {
+    async ensureShimBinary(): Promise<string> {
+      return '/built/apple-fm-shim'
+    },
+  } as unknown as ShimModule
+
+  it('prefers an explicit shim command', async () => {
+    const command = { args: ['x'], command: '/explicit' }
+    expect(await resolveShimCommand({ shim: command }, fakeShimModule)).toBe(
+      command,
+    )
+  })
+
+  it('falls back to the env shim override', async () => {
+    const command = await resolveShimCommand(
+      { env: { [ODAI_APPLE_FM_SHIM_ENV_VAR]: '/tmp/env-shim.mjs' } },
+      fakeShimModule,
+    )
+    expect(command).toEqual({
+      args: ['/tmp/env-shim.mjs'],
+      command: process.execPath,
+    })
+  })
+
+  it('builds the shim binary when nothing is overridden', async () => {
+    const command = await resolveShimCommand(
+      { cacheDir: '/cache', env: {} },
+      fakeShimModule,
+    )
+    expect(command).toEqual({ args: [], command: '/built/apple-fm-shim' })
+  })
+})
+
+describe('loadShimModule', () => {
+  it('loads the Node shim module with its documented surface', async () => {
+    const shim = await loadShimModule()
+    expect(typeof shim.createShimSession).toBe('function')
+    expect(typeof shim.ensureShimBinary).toBe('function')
+    expect(typeof shim.spawnShim).toBe('function')
+    expect(typeof shim.currentHost).toBe('function')
+  })
 })

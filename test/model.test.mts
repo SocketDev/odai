@@ -3,7 +3,13 @@ import { describe, expect, it, vi } from 'vitest'
 import { createSimulatorBackend } from '../src/backends/simulator.mts'
 import { runEval } from '../src/bench/index.mts'
 import { createBenchResponseRules } from '../src/bench/simulator.mts'
-import { createOdaiModel } from '../src/model.mts'
+import {
+  cloneSession,
+  createModelFromState,
+  createOdaiModel,
+  destroySession,
+} from '../src/model.mts'
+import type { LanguageModelState } from '../src/model.mts'
 import type { OdaiBackend } from '../src/backends/types.mts'
 import type { SessionLike } from '../src/types.mts'
 
@@ -97,5 +103,90 @@ describe('createOdaiModel', () => {
     expect(create).toHaveBeenCalledTimes(2)
     const result = await model.promptStreaming('hello')
     expect(result.raw).toBe('{"ok":true}')
+  })
+
+  it('exposes the warm base session through rawSession', async () => {
+    const model = await createOdaiModel({
+      backend: createSimulatorBackend({ fallback: '{"ok":true}', rules: [] }),
+    })
+    expect(typeof model.rawSession().prompt).toBe('function')
+  })
+})
+
+describe('cloneSession', () => {
+  it('clones a clone-capable session', async () => {
+    const clone = { prompt: async () => 'cloned' } as SessionLike
+    const base: SessionLike = {
+      clone: () => clone,
+      async prompt() {
+        return 'base'
+      },
+    }
+    const state: LanguageModelState = {
+      cloneCapable: true,
+      namespace: 'modern',
+      session: base,
+    }
+    expect(await cloneSession(state)).toBe(clone)
+  })
+
+  it('returns the base session when cloning is not available', async () => {
+    const base: SessionLike = {
+      async prompt() {
+        return 'base'
+      },
+    }
+    const state: LanguageModelState = {
+      cloneCapable: false,
+      namespace: 'modern',
+      session: base,
+    }
+    expect(await cloneSession(state)).toBe(base)
+  })
+})
+
+describe('destroySession', () => {
+  it('calls destroy when present and is a no-op otherwise', () => {
+    let destroyed = false
+    destroySession({
+      destroy: () => {
+        destroyed = true
+      },
+      prompt: async () => 'x',
+    })
+    expect(destroyed).toBe(true)
+    expect(() => destroySession({ prompt: async () => 'x' })).not.toThrow()
+  })
+})
+
+describe('createModelFromState', () => {
+  it('destroys the per-request clone after a structured prompt', async () => {
+    let destroyed = 0
+    const session: SessionLike = {
+      clone: () => ({
+        destroy: () => {
+          destroyed += 1
+        },
+        prompt: async () => '{"ok":true}',
+      }),
+      async prompt() {
+        return '{"ok":true}'
+      },
+    }
+    const model = createModelFromState({
+      cloneCapable: true,
+      namespace: 'modern',
+      session,
+    })
+    const result = await model.promptStructured<{ ok: boolean }>('go', {
+      prefill: '{"ok":',
+      schema: {
+        parse(value: unknown): { ok: boolean } {
+          return value as { ok: boolean }
+        },
+      },
+    })
+    expect(result.ok).toBe(true)
+    expect(destroyed).toBe(1)
   })
 })

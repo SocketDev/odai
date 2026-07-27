@@ -6,9 +6,11 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import {
   createGeminiNanoHeadlessBackend,
+  loadLauncher,
   MODEL_COMPONENT_DIR,
   ODAI_CHROME_ENV_VAR,
   ODAI_NANO_ALLOW_DOWNLOAD_ENV_VAR,
+  startBridge,
 } from '../../src/backends/gemini-nano-headless.mts'
 import { createOdaiModel } from '../../src/model.mts'
 import { LanguageModelSimulator } from '../../src/simulator.mts'
@@ -362,6 +364,57 @@ describe('gemini-nano-headless backend', () => {
       name: 'TypeError',
     })
     await backend.close()
+  })
+
+  it('reports the on-device reason when the global is present but not available', async () => {
+    ;(globalThis as Record<string, unknown>)['LanguageModel'] = {
+      async availability(): Promise<string> {
+        return 'downloadable'
+      },
+    }
+    const backend = createGeminiNanoHeadlessBackend({ env: {} })
+    const availability = await backend.availability()
+    expect(availability.available).toBe(false)
+    expect(availability.reason).toContain('not')
+  })
+
+  it('returns the runtime LanguageModel global directly from languageModel', async () => {
+    const model = new LanguageModelSimulator()
+    ;(globalThis as Record<string, unknown>)['LanguageModel'] = model
+    const backend = createGeminiNanoHeadlessBackend({ env: {} })
+    expect(await backend.languageModel()).toBe(model)
+  })
+
+  it('resolves a real playwright launcher when none is injected', async () => {
+    const resolved = await loadLauncher({})
+    expect(resolved.reason).toBeUndefined()
+    expect(typeof resolved.launcher?.launchPersistentContext).toBe('function')
+  })
+
+  it('startBridge throws the Chrome-missing remedy when Chrome is absent', async () => {
+    const fixture = await createFixture()
+    await expect(
+      startBridge({
+        chromePath: '/definitely/not/chrome',
+        env: {},
+        launcher: createFakeBrowser(new LanguageModelSimulator()).launcher,
+        systemChromeUserDataDir: fixture.systemDir,
+        userDataDir: fixture.userDataDir,
+      }),
+    ).rejects.toThrow(/Google Chrome not found/)
+  })
+
+  it('startBridge throws the model-source reason when no component exists', async () => {
+    const fixture = await createFixture()
+    await expect(
+      startBridge({
+        chromePath: fixture.chromePath,
+        env: {},
+        launcher: createFakeBrowser(new LanguageModelSimulator()).launcher,
+        systemChromeUserDataDir: path.join(fixture.systemDir, 'missing'),
+        userDataDir: fixture.userDataDir,
+      }),
+    ).rejects.toThrow(/no Gemini Nano model component/)
   })
 
   it('fails with the wait reason when the model never becomes available', async () => {

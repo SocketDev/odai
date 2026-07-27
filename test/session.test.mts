@@ -1,6 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { createLanguageModel } from '../src/session.mts'
+import {
+  buildCreateOptions,
+  createLanguageModel,
+  createWithFallback,
+  isUnsupportedError,
+} from '../src/session.mts'
+import type { LanguageModelLike } from '../src/types.mts'
 
 describe('session', () => {
   let originalLanguageModel: unknown
@@ -59,5 +65,91 @@ describe('session', () => {
     ;(globalThis as { LanguageModel?: unknown | undefined }).LanguageModel =
       undefined
     await expect(createLanguageModel()).rejects.toThrow('Chrome AI not found')
+  })
+})
+
+describe('buildCreateOptions', () => {
+  it('prefers initialPrompts over systemPrompt', () => {
+    expect(
+      buildCreateOptions({
+        initialPrompts: [{ content: 'sys', role: 'system' }],
+        systemPrompt: 'ignored',
+        temperature: 0.4,
+        topK: 2,
+      }),
+    ).toEqual({
+      initialPrompts: [{ content: 'sys', role: 'system' }],
+      temperature: 0.4,
+      topK: 2,
+    })
+  })
+
+  it('uses systemPrompt when initialPrompts is empty', () => {
+    expect(
+      buildCreateOptions({ initialPrompts: [], systemPrompt: 'be terse' }),
+    ).toEqual({ systemPrompt: 'be terse' })
+  })
+
+  it('returns an empty bag when nothing is provided', () => {
+    expect(buildCreateOptions({})).toEqual({})
+  })
+})
+
+describe('createWithFallback', () => {
+  it('walks the full ladder down to the system-only options', async () => {
+    const create = vi
+      .fn()
+      .mockRejectedValueOnce(new TypeError('full unsupported'))
+      .mockRejectedValueOnce(new TypeError('initialPrompts unsupported'))
+      .mockResolvedValueOnce({ prompt: vi.fn() })
+    const model = { create } as unknown as LanguageModelLike
+    const session = await createWithFallback(model, {
+      initialPrompts: [{ content: 'sys', role: 'system' }],
+      systemPrompt: 'be terse',
+    })
+    expect(session).toBeDefined()
+    expect(create).toHaveBeenCalledTimes(3)
+    expect(create.mock.calls[2]?.[0]).toEqual({ systemPrompt: 'be terse' })
+  })
+
+  it('rethrows an error that is not an unsupported-option error', async () => {
+    const create = vi.fn().mockRejectedValue(new Error('network down'))
+    const model = { create } as unknown as LanguageModelLike
+    await expect(createWithFallback(model, {})).rejects.toThrow('network down')
+    expect(create).toHaveBeenCalledTimes(1)
+  })
+
+  it('rethrows when the reduced attempt fails for a non-option reason', async () => {
+    const create = vi
+      .fn()
+      .mockRejectedValueOnce(new TypeError('full unsupported'))
+      .mockRejectedValueOnce(new Error('disk full'))
+    const model = { create } as unknown as LanguageModelLike
+    await expect(
+      createWithFallback(model, {
+        initialPrompts: [{ content: 'sys', role: 'system' }],
+      }),
+    ).rejects.toThrow('disk full')
+    expect(create).toHaveBeenCalledTimes(2)
+  })
+})
+
+describe('isUnsupportedError', () => {
+  it('is true for TypeError and NotSupportedError names', () => {
+    expect(isUnsupportedError(new TypeError('x'))).toBe(true)
+    const named = new Error('x')
+    named.name = 'NotSupportedError'
+    expect(isUnsupportedError(named)).toBe(true)
+  })
+
+  it('is true when the message mentions not supported', () => {
+    expect(isUnsupportedError(new Error('topK is not supported here'))).toBe(
+      true,
+    )
+  })
+
+  it('is false for unrelated errors and non-errors', () => {
+    expect(isUnsupportedError(new Error('boom'))).toBe(false)
+    expect(isUnsupportedError('not an error')).toBe(false)
   })
 })

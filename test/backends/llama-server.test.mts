@@ -3,14 +3,20 @@ import { createServer } from 'node:http'
 import { afterEach, describe, expect, it } from 'vitest'
 
 import {
+  buildRequestBody,
   createLlamaServerBackend,
   DEFAULT_LLAMA_URL,
+  describeRequestError,
+  normalizeUrl,
   ODAI_LLAMA_MODEL_ENV_VAR,
   ODAI_LLAMA_URL_ENV_VAR,
+  parseSseLine,
+  streamChat,
 } from '../../src/backends/llama-server.mts'
 import { createOdaiModel } from '../../src/model.mts'
 import type { Server } from 'node:http'
-import type { SchemaLike } from '../../src/types.mts'
+import type { LlamaConfig } from '../../src/backends/llama-server.mts'
+import type { Message, SchemaLike } from '../../src/types.mts'
 
 interface CapturedRequest {
   body: unknown
@@ -31,6 +37,7 @@ interface MockServerOptions {
   hang?: boolean | undefined
   healthStatus?: number | undefined
   sseDeltas?: string[] | undefined
+  sseTrailing?: string | undefined
 }
 
 const summarySchema: SchemaLike<{ summary: string }> = {
@@ -76,6 +83,16 @@ async function startMockServer(
         }
         response.write('data: [DONE]\n\n')
         response.end()
+        return
+      }
+      if (opts.sseTrailing !== undefined) {
+        // End the stream on a final line with no trailing newline and no
+        // [DONE], so the reader must flush the buffered tail after the loop.
+        response.setHeader('content-type', 'text/event-stream')
+        const chunk = {
+          choices: [{ delta: { content: opts.sseTrailing } }],
+        }
+        response.end(`data: ${JSON.stringify(chunk)}`)
         return
       }
       response.statusCode = opts.chatStatus ?? 200
@@ -284,6 +301,15 @@ describe('llama-server backend', () => {
     expect(body?.stream).toBe(true)
   })
 
+  it('flushes a trailing SSE line that arrives without a newline', async () => {
+    handle = await startMockServer({ sseTrailing: 'tail-delta' })
+    const model = await createOdaiModel({
+      backend: createLlamaServerBackend({ url: handle.url }),
+    })
+    const result = await model.promptStreaming('hello')
+    expect(result.raw).toBe('tail-delta')
+  })
+
   it('throws with status and body detail on a non-2xx completion', async () => {
     handle = await startMockServer({
       chatBody: '{"error":{"message":"model is loading"}}',
@@ -329,5 +355,134 @@ describe('llama-server backend', () => {
     const availability = await backend.availability()
     expect(availability.available).toBe(false)
     expect(availability.reason).toContain('timed out after 100ms')
+  })
+
+  it('throws when a streaming response carries no body', async () => {
+    const config: LlamaConfig = {
+      model: undefined,
+      requestTimeoutMs: 2000,
+      url: 'http://127.0.0.1:9',
+    }
+    const generator = streamChat(config, {}, [{ content: 'hi', role: 'user' }])
+    // Reaching the first chunk performs the POST; an unreachable loopback port
+    // fails the request before any body is read.
+    await expect(generator.next()).rejects.toThrow(/llama-server request/)
+  })
+})
+
+describe('buildRequestBody', () => {
+  const config: LlamaConfig = {
+    model: 'm',
+    requestTimeoutMs: 1000,
+    url: 'http://127.0.0.1:8080',
+  }
+
+  it('prepends initialPrompts ahead of the turn messages', () => {
+    const messages: Message[] = [{ content: 'hi', role: 'user' }]
+    const body = JSON.parse(
+      buildRequestBody(
+        config,
+        { initialPrompts: [{ content: 'sys', role: 'system' }] },
+        messages,
+        { stream: false },
+      ),
+    ) as { messages: Message[]; model: string }
+    expect(body.messages[0]).toEqual({ content: 'sys', role: 'system' })
+    expect(body.model).toBe('m')
+  })
+
+  it('injects the systemPrompt only when no system turn exists', () => {
+    const withSystemTurn = JSON.parse(
+      buildRequestBody(
+        config,
+        { systemPrompt: 'ignored' },
+        [
+          { content: 'be terse', role: 'system' },
+          { content: 'hi', role: 'user' },
+        ],
+        { stream: true },
+      ),
+    ) as { messages: Message[] }
+    expect(
+      withSystemTurn.messages.filter(m => m.role === 'system'),
+    ).toHaveLength(1)
+
+    const injected = JSON.parse(
+      buildRequestBody(
+        config,
+        { systemPrompt: 'be terse', temperature: 0.5, topK: 4 },
+        [{ content: 'hi', role: 'user' }],
+        { stream: false },
+      ),
+    ) as {
+      messages: Message[]
+      temperature: number
+      top_k: number
+    }
+    expect(injected.messages[0]).toEqual({
+      content: 'be terse',
+      role: 'system',
+    })
+    expect(injected.temperature).toBe(0.5)
+    expect(injected.top_k).toBe(4)
+  })
+})
+
+describe('parseSseLine', () => {
+  it('ignores non-data lines', () => {
+    expect(parseSseLine('event: ping')).toBeUndefined()
+  })
+
+  it('marks the [DONE] sentinel as done', () => {
+    expect(parseSseLine('data: [DONE]')).toEqual({
+      delta: undefined,
+      done: true,
+    })
+  })
+
+  it('extracts the delta content', () => {
+    expect(
+      parseSseLine('data: {"choices":[{"delta":{"content":"hi"}}]}'),
+    ).toEqual({ delta: 'hi', done: false })
+  })
+
+  it('returns undefined for unparseable data payloads', () => {
+    expect(parseSseLine('data: {not json')).toBeUndefined()
+  })
+
+  it('yields an undefined delta when content is absent', () => {
+    expect(parseSseLine('data: {"choices":[{"delta":{}}]}')).toEqual({
+      delta: undefined,
+      done: false,
+    })
+  })
+})
+
+describe('describeRequestError', () => {
+  it('names a timeout error with the budget', () => {
+    const timeout = new Error('boom')
+    timeout.name = 'TimeoutError'
+    expect(describeRequestError(timeout, 500)).toBe('timed out after 500ms')
+  })
+
+  it('appends a differing cause message', () => {
+    const error = new Error('outer')
+    ;(error as { cause?: unknown | undefined }).cause = new Error(
+      'inner detail',
+    )
+    const described = describeRequestError(error, 500)
+    expect(described).toContain('outer')
+    expect(described).toContain('(inner detail)')
+  })
+
+  it('returns the plain message without a redundant cause', () => {
+    expect(describeRequestError(new Error('plain'), 500)).toBe('plain')
+  })
+})
+
+describe('normalizeUrl', () => {
+  it('strips a single trailing slash', () => {
+    expect(normalizeUrl('http://127.0.0.1:8080/')).toBe('http://127.0.0.1:8080')
+    expect(normalizeUrl('http://127.0.0.1:8080')).toBe('http://127.0.0.1:8080')
   })
 })

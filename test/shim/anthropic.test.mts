@@ -2,12 +2,15 @@ import { describe, expect, it } from 'vitest'
 
 import {
   buildToolProtocol,
+  closeUnbalancedJson,
   estimateTokens,
   extractToolCall,
   flattenContent,
   flattenSystem,
+  newId,
   replyToMessage,
   toBackendMessages,
+  unwrapToolCall,
 } from '../../src/shim/anthropic.mts'
 import type { AnthropicMessagesRequest } from '../../src/shim/anthropic.mts'
 
@@ -243,5 +246,104 @@ describe('buildToolProtocol', () => {
     expect(protocol).toContain('Tell the time.')
     expect(protocol).toContain('Input JSON schema: {}')
     expect(protocol).toContain('### Bash')
+  })
+})
+
+describe('flattenContent edge cases', () => {
+  it('returns empty string for a non-array, non-string content', () => {
+    expect(flattenContent(42)).toBe('')
+    expect(flattenContent({ not: 'a block array' })).toBe('')
+  })
+
+  it('skips unrecognized block types', () => {
+    expect(
+      flattenContent([{ type: 'thinking' }, { text: 'kept', type: 'text' }]),
+    ).toBe('kept')
+  })
+
+  it('defaults a tool_use block with no input to an empty object', () => {
+    expect(flattenContent([{ name: 'Bash', type: 'tool_use' }])).toBe(
+      '{"tool_call":{"input":{},"name":"Bash"}}',
+    )
+  })
+})
+
+describe('closeUnbalancedJson', () => {
+  it('returns undefined when there is no object start', () => {
+    expect(closeUnbalancedJson('no braces here')).toBeUndefined()
+  })
+
+  it('returns undefined for already-balanced JSON', () => {
+    expect(closeUnbalancedJson('{"a":1}')).toBeUndefined()
+  })
+
+  it('closes a nested object short one brace', () => {
+    expect(closeUnbalancedJson('{"a":{"b":1}')).toBe('{"a":{"b":1}}')
+  })
+
+  it('closes an object with an unterminated array', () => {
+    expect(closeUnbalancedJson('{"a":[1,2')).toBe('{"a":[1,2]}')
+  })
+
+  it('ignores braces inside strings and escapes', () => {
+    expect(closeUnbalancedJson('{"a":"has } and \\" quote"')).toBe(
+      '{"a":"has } and \\" quote"}',
+    )
+  })
+
+  it('returns undefined when a closer does not match its opener', () => {
+    expect(closeUnbalancedJson('{"a":[1}')).toBeUndefined()
+  })
+
+  it('returns undefined when the text ends inside a string', () => {
+    expect(closeUnbalancedJson('{"a":"open')).toBeUndefined()
+  })
+})
+
+describe('unwrapToolCall', () => {
+  it('returns undefined for null, arrays, and non-objects', () => {
+    // A JSON-parsed null models a backend reply that parses to JSON null.
+    expect(unwrapToolCall(JSON.parse('null'))).toBeUndefined()
+    expect(unwrapToolCall([1, 2])).toBeUndefined()
+    expect(unwrapToolCall('str')).toBeUndefined()
+  })
+
+  it('returns undefined when the inner tool_call is null', () => {
+    // A model can emit {"tool_call": null}; the parser must screen it out.
+    expect(unwrapToolCall({ tool_call: JSON.parse('null') })).toBeUndefined()
+  })
+
+  it('returns undefined when the name is missing or empty', () => {
+    expect(unwrapToolCall({ input: {} })).toBeUndefined()
+    expect(unwrapToolCall({ name: '' })).toBeUndefined()
+  })
+
+  it('coerces a non-object input to an empty object', () => {
+    expect(unwrapToolCall({ input: 'nope', name: 'Bash' })).toEqual({
+      input: {},
+      name: 'Bash',
+    })
+  })
+
+  it('returns undefined when the tool_call wrapper is not an object', () => {
+    expect(unwrapToolCall({ tool_call: 5 })).toBeUndefined()
+  })
+})
+
+describe('extractToolCall failure paths', () => {
+  it('returns undefined when nothing parses into an object', () => {
+    expect(extractToolCall('{ this is not json at all ', TOOL_NAMES)).toBe(
+      undefined,
+    )
+  })
+
+  it('returns undefined when every repair attempt leaves it unparseable', () => {
+    expect(extractToolCall('{{{', TOOL_NAMES)).toBeUndefined()
+  })
+})
+
+describe('newId', () => {
+  it('prefixes an id with the given namespace', () => {
+    expect(newId('toolu')).toMatch(/^toolu_[a-z0-9]+$/)
   })
 })
