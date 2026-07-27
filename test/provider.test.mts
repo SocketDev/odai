@@ -49,8 +49,8 @@ describe('createLocalLanguageModelFactory', () => {
 
   it('selects the backend once and reuses it across availability and create', async () => {
     const inner = createSimulatorBackend()
-    const availabilitySpy = vi.fn(inner.availability)
-    const languageModelSpy = vi.fn(inner.languageModel)
+    const availabilitySpy = vi.fn(() => inner.availability())
+    const languageModelSpy = vi.fn(() => inner.languageModel())
     const backend: OdaiBackend = {
       availability: availabilitySpy,
       languageModel: languageModelSpy,
