@@ -3,7 +3,7 @@
  *   until interrupted. Run it directly:
  *   `node --experimental-strip-types src/shim/serve.mts --port 8402`.
  *   Backend selection follows the registry: `--backend <name>` wins, then
- *   LOCAI_BACKEND, then the availability probe. Point an Anthropic client at
+ *   ODAI_BACKEND, then the availability probe. Point an Anthropic client at
  *   the printed URL with ANTHROPIC_BASE_URL and any non-empty placeholder
  *   key.
  */

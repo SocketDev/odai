@@ -6,11 +6,11 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import {
   createGeminiNanoHeadlessBackend,
-  LOCAI_CHROME_ENV_VAR,
-  LOCAI_NANO_ALLOW_DOWNLOAD_ENV_VAR,
   MODEL_COMPONENT_DIR,
+  ODAI_CHROME_ENV_VAR,
+  ODAI_NANO_ALLOW_DOWNLOAD_ENV_VAR,
 } from '../../src/backends/gemini-nano-headless.mts'
-import { createLocaiModel } from '../../src/model.mts'
+import { createOdaiModel } from '../../src/model.mts'
 import { LanguageModelSimulator } from '../../src/simulator.mts'
 import type {
   BrowserContextLike,
@@ -99,7 +99,7 @@ interface Fixture {
 }
 
 async function createFixture(): Promise<Fixture> {
-  const root = await mkdtemp(path.join(os.tmpdir(), 'locai-nano-test-'))
+  const root = await mkdtemp(path.join(os.tmpdir(), 'odai-nano-test-'))
   const chromePath = path.join(root, 'chrome')
   await writeFile(chromePath, '#!/bin/sh\n')
   const systemDir = path.join(root, 'system-chrome')
@@ -152,12 +152,12 @@ describe('gemini-nano-headless backend', () => {
 
   it('is unavailable with a Chrome remedy when no Chrome executable exists', async () => {
     const backend = createGeminiNanoHeadlessBackend({
-      env: { [LOCAI_CHROME_ENV_VAR]: '/definitely/not/chrome' },
+      env: { [ODAI_CHROME_ENV_VAR]: '/definitely/not/chrome' },
     })
     const availability = await backend.availability()
     expect(availability.available).toBe(false)
     expect(availability.reason).toContain('Google Chrome not found')
-    expect(availability.reason).toContain('LOCAI_CHROME')
+    expect(availability.reason).toContain('ODAI_CHROME')
     expect(availability.reason).toContain('Chromium builds do not work')
   })
 
@@ -172,7 +172,7 @@ describe('gemini-nano-headless backend', () => {
     const availability = await backend.availability()
     expect(availability.available).toBe(false)
     expect(availability.reason).toContain('OptGuideOnDeviceModel')
-    expect(availability.reason).toContain('LOCAI_NANO_ALLOW_DOWNLOAD')
+    expect(availability.reason).toContain('ODAI_NANO_ALLOW_DOWNLOAD')
   })
 
   it('is available in system-Chrome mode when the model can be cloned', async () => {
@@ -190,7 +190,7 @@ describe('gemini-nano-headless backend', () => {
     const fixture = await createFixture()
     const backend = createGeminiNanoHeadlessBackend({
       chromePath: fixture.chromePath,
-      env: { [LOCAI_NANO_ALLOW_DOWNLOAD_ENV_VAR]: '1' },
+      env: { [ODAI_NANO_ALLOW_DOWNLOAD_ENV_VAR]: '1' },
       systemChromeUserDataDir: path.join(fixture.systemDir, 'missing'),
       userDataDir: fixture.userDataDir,
     })
@@ -302,7 +302,7 @@ describe('gemini-nano-headless backend', () => {
     await backend.close()
   })
 
-  it('drives createLocaiModel end to end through the bridge', async () => {
+  it('drives createOdaiModel end to end through the bridge', async () => {
     const fixture = await createFixture()
     const fake = createFakeBrowser(
       new LanguageModelSimulator({
@@ -317,7 +317,7 @@ describe('gemini-nano-headless backend', () => {
       systemChromeUserDataDir: fixture.systemDir,
       userDataDir: fixture.userDataDir,
     })
-    const model = await createLocaiModel({ backend })
+    const model = await createOdaiModel({ backend })
     const result = await model.promptStructured<{ summary: string }>(
       'summarize',
       {
@@ -391,15 +391,15 @@ describe('gemini-nano-headless backend', () => {
   })
 })
 
-describe.runIf(process.env['LOCAI_E2E'] === '1')(
-  'gemini-nano-headless e2e (LOCAI_E2E=1)',
+describe.runIf(process.env['ODAI_E2E'] === '1')(
+  'gemini-nano-headless e2e (ODAI_E2E=1)',
   () => {
     it(
       'prompts real Gemini Nano through headless system Chrome',
       { timeout: 300_000 },
       async () => {
         const userDataDir = await mkdtemp(
-          path.join(os.tmpdir(), 'locai-nano-e2e-'),
+          path.join(os.tmpdir(), 'odai-nano-e2e-'),
         )
         const backend = createGeminiNanoHeadlessBackend({
           userDataDir: path.join(userDataDir, 'profile'),
@@ -407,11 +407,11 @@ describe.runIf(process.env['LOCAI_E2E'] === '1')(
         const availability = await backend.availability()
         expect(availability.available).toBe(true)
         try {
-          const model = await createLocaiModel({ backend })
+          const model = await createOdaiModel({ backend })
           const result = await model.promptStreaming(
-            'Reply with exactly: locai e2e live',
+            'Reply with exactly: odai e2e live',
           )
-          expect(result.raw.toLowerCase()).toContain('locai e2e live')
+          expect(result.raw.toLowerCase()).toContain('odai e2e live')
         } finally {
           await backend.close()
         }

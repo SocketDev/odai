@@ -9,7 +9,7 @@ import {
   createAppleFmBackend,
   shimCommandFromPath,
 } from '../../src/backends/apple-fm.mts'
-import { createLocaiModel } from '../../src/model.mts'
+import { createOdaiModel } from '../../src/model.mts'
 import type { ShimCommand } from '../../src/backends/apple-fm-shim.mts'
 import type { Message, SessionLike } from '../../src/types.mts'
 
@@ -79,7 +79,7 @@ const hostIsAppleSilicon =
 
 describe('apple-fm backend', () => {
   beforeAll(async () => {
-    const dir = await mkdtemp(path.join(os.tmpdir(), 'locai-apple-fm-'))
+    const dir = await mkdtemp(path.join(os.tmpdir(), 'odai-apple-fm-'))
     mockShimPath = path.join(dir, 'mock-shim.mjs')
     await writeFile(mockShimPath, MOCK_SHIM_SOURCE)
   })
@@ -136,10 +136,10 @@ describe('apple-fm backend', () => {
     expect(availability.reason).toContain('System Settings')
   })
 
-  it('honors the LOCAI_APPLE_FM_SHIM env override', async () => {
+  it('honors the ODAI_APPLE_FM_SHIM env override', async () => {
     const backend = createAppleFmBackend({
       env: {
-        LOCAI_APPLE_FM_SHIM: mockShimPath,
+        ODAI_APPLE_FM_SHIM: mockShimPath,
       },
     })
     const availability = await backend.availability()
@@ -159,7 +159,7 @@ describe('apple-fm backend', () => {
 
   it('reports a spawn failure as the unavailability reason', async () => {
     const backend = createAppleFmBackend({
-      shim: { args: [], command: '/nonexistent/locai-shim' },
+      shim: { args: [], command: '/nonexistent/odai-shim' },
     })
     const availability = await backend.availability()
     expect(availability.available).toBe(false)
@@ -167,7 +167,7 @@ describe('apple-fm backend', () => {
   })
 
   it('sends instructions and temperature to the shim and drops topK', async () => {
-    const model = await createLocaiModel({
+    const model = await createOdaiModel({
       backend: createAppleFmBackend({ shim: mockShim('echo') }),
       systemPrompt: 'You are terse.',
       temperature: 0.2,
@@ -199,7 +199,7 @@ describe('apple-fm backend', () => {
   })
 
   it('drives promptStructured through the JSON repair path', async () => {
-    const model = await createLocaiModel({
+    const model = await createOdaiModel({
       backend: createAppleFmBackend({ shim: mockShim('json') }),
     })
     const result = await model.promptStructured<{ summary: string }>(

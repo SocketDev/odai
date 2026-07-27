@@ -2,7 +2,7 @@
  * @file Apple Foundation Models backend. Bridges the macOS 26+
  *   FoundationModels framework through a tiny Swift stdio shim: the shim is
  *   compiled from embedded source on first use with `xcrun swiftc`, cached
- *   under node_modules/.cache/locai/, and spoken to over line-delimited JSON.
+ *   under node_modules/.cache/odai/, and spoken to over line-delimited JSON.
  *   Availability is probed honestly — macOS 26 or newer, Apple silicon, and
  *   Apple Intelligence enabled are all required, and the precise
  *   FoundationModels reason surfaces otherwise. Hosted macOS CI runners are
@@ -19,9 +19,9 @@ import type {
   ShimHandle,
   ShimSessionSpec,
 } from './apple-fm-shim.mts'
-import type { BackendAvailability, LocaiBackend } from './types.mts'
+import type { BackendAvailability, OdaiBackend } from './types.mts'
 
-export const LOCAI_APPLE_FM_SHIM_ENV_VAR = 'LOCAI_APPLE_FM_SHIM'
+export const ODAI_APPLE_FM_SHIM_ENV_VAR = 'ODAI_APPLE_FM_SHIM'
 
 const AVAILABILITY_TIMEOUT_MS = 10_000
 /**
@@ -32,7 +32,7 @@ const DARWIN_MACOS_26_MAJOR = 25
 export interface AppleFmBackendOptions {
   /**
    * Directory for the compiled shim binary. Defaults to
-   * node_modules/.cache/locai under the current working directory.
+   * node_modules/.cache/odai under the current working directory.
    */
   cacheDir?: string | undefined
   /**
@@ -41,7 +41,7 @@ export interface AppleFmBackendOptions {
   env?: Record<string, string | undefined> | undefined
   /**
    * Shim override: skips the host checks and the swiftc build, and trusts
-   * the given command to speak the shim protocol. The `LOCAI_APPLE_FM_SHIM`
+   * the given command to speak the shim protocol. The `ODAI_APPLE_FM_SHIM`
    * env var is the string form — a path to a prebuilt shim binary, or a
    * `.js`/`.mjs`/`.cjs`/`.mts` script run with the current Node executable.
    */
@@ -100,7 +100,7 @@ export function checkAppleFmHost(host: {
 
 export function createAppleFmBackend(
   options?: AppleFmBackendOptions | undefined,
-): LocaiBackend {
+): OdaiBackend {
   const opts = { __proto__: null, ...options } as AppleFmBackendOptions
   return {
     async availability(): Promise<BackendAvailability> {
@@ -135,7 +135,7 @@ export function createAppleFmBackend(
 }
 
 export function defaultCacheDir(): string {
-  return `${process.cwd()}/node_modules/.cache/locai`
+  return `${process.cwd()}/node_modules/.cache/odai`
 }
 
 /**
@@ -259,7 +259,7 @@ export function readEnvShim(
   env: Record<string, string | undefined> | undefined,
 ): ShimCommand | undefined {
   const source = env ?? process.env
-  const value = source[LOCAI_APPLE_FM_SHIM_ENV_VAR]
+  const value = source[ODAI_APPLE_FM_SHIM_ENV_VAR]
   if (value === undefined || value === '') {
     return undefined
   }

@@ -2,7 +2,7 @@
  * @file High-level model wrapper. Holds a warm base session, clones it per
  *   request, and destroys the clone afterwards. This avoids the state-growth
  *   gotcha where every prompt appends to the same conversation history.
- *   `createLocaiModel` builds the wrapper on any registry backend;
+ *   `createOdaiModel` builds the wrapper on any registry backend;
  *   `createGeminiNanoModel` is the compat entry bound to the runtime's
  *   `LanguageModel` global.
  */
@@ -11,7 +11,7 @@ import { selectBackend } from './backends/registry.mts'
 import { promptStructured } from './json.mts'
 import { createLanguageModel, createWithFallback } from './session.mts'
 import { streamPrompt } from './stream.mts'
-import type { BackendName, LocaiBackend } from './backends/types.mts'
+import type { BackendName, OdaiBackend } from './backends/types.mts'
 import type { CreateSessionOptions } from './session.mts'
 import type {
   LanguageModelState,
@@ -24,7 +24,7 @@ import type { StreamOptions } from './stream.mts'
 
 export type { CreateSessionOptions, LanguageModelState }
 
-export interface LocaiModel {
+export interface OdaiModel {
   promptStructured<T>(
     userContent: string,
     options: StructuredPromptOptions<T>,
@@ -37,17 +37,17 @@ export interface LocaiModel {
 }
 
 /**
- * Compat alias from the Nano-only era; `LocaiModel` is the canonical name.
+ * Compat alias from the Nano-only era; `OdaiModel` is the canonical name.
  */
-export type GeminiNanoModel = LocaiModel
+export type GeminiNanoModel = OdaiModel
 
-export interface CreateLocaiModelOptions extends CreateSessionOptions {
+export interface CreateOdaiModelOptions extends CreateSessionOptions {
   /**
-   * Explicit backend: a registry name or a caller-built `LocaiBackend`.
-   * Selection precedence when omitted: `LOCAI_BACKEND` env var, then the
+   * Explicit backend: a registry name or a caller-built `OdaiBackend`.
+   * Selection precedence when omitted: `ODAI_BACKEND` env var, then the
    * availability probe order.
    */
-  backend?: BackendName | LocaiBackend | undefined
+  backend?: BackendName | OdaiBackend | undefined
   /**
    * Availability probe order override for auto-selection.
    */
@@ -65,30 +65,12 @@ export async function cloneSession(
 
 export async function createGeminiNanoModel(
   options: CreateSessionOptions = {},
-): Promise<LocaiModel> {
+): Promise<OdaiModel> {
   const state = await createLanguageModel(options)
   return createModelFromState(state)
 }
 
-export async function createLocaiModel(
-  options: CreateLocaiModelOptions = {},
-): Promise<LocaiModel> {
-  const opts = { __proto__: null, ...options } as typeof options
-  const backend = await selectBackend({
-    backend: opts.backend,
-    probe: opts.probe,
-  })
-  const factory = await backend.languageModel()
-  const session = await createWithFallback(factory, opts)
-  const state: LanguageModelState = {
-    cloneCapable: typeof session.clone === 'function',
-    namespace: 'modern',
-    session,
-  }
-  return createModelFromState(state)
-}
-
-export function createModelFromState(state: LanguageModelState): LocaiModel {
+export function createModelFromState(state: LanguageModelState): OdaiModel {
   return {
     async promptStructured<T>(
       userContent: string,
@@ -120,6 +102,24 @@ export function createModelFromState(state: LanguageModelState): LocaiModel {
       return state.session
     },
   }
+}
+
+export async function createOdaiModel(
+  options: CreateOdaiModelOptions = {},
+): Promise<OdaiModel> {
+  const opts = { __proto__: null, ...options } as typeof options
+  const backend = await selectBackend({
+    backend: opts.backend,
+    probe: opts.probe,
+  })
+  const factory = await backend.languageModel()
+  const session = await createWithFallback(factory, opts)
+  const state: LanguageModelState = {
+    cloneCapable: typeof session.clone === 'function',
+    namespace: 'modern',
+    session,
+  }
+  return createModelFromState(state)
 }
 
 export function destroySession(session: SessionLike): void {

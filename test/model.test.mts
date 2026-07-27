@@ -3,13 +3,13 @@ import { describe, expect, it, vi } from 'vitest'
 import { createSimulatorBackend } from '../src/backends/simulator.mts'
 import { runEval } from '../src/bench/index.mts'
 import { createBenchResponseRules } from '../src/bench/simulator.mts'
-import { createLocaiModel } from '../src/model.mts'
-import type { LocaiBackend } from '../src/backends/types.mts'
+import { createOdaiModel } from '../src/model.mts'
+import type { OdaiBackend } from '../src/backends/types.mts'
 import type { SessionLike } from '../src/types.mts'
 
-describe('createLocaiModel', () => {
+describe('createOdaiModel', () => {
   it('drives structured prompts through the simulator backend', async () => {
-    const model = await createLocaiModel({
+    const model = await createOdaiModel({
       backend: createSimulatorBackend({
         fallback: '{"summary":"nothing matched"}',
         rules: [
@@ -41,7 +41,7 @@ describe('createLocaiModel', () => {
   })
 
   it('streams raw output through the simulator backend', async () => {
-    const model = await createLocaiModel({
+    const model = await createOdaiModel({
       backend: createSimulatorBackend({ fallback: '{"ok":true}', rules: [] }),
     })
     const result = await model.promptStreaming('hello')
@@ -49,7 +49,7 @@ describe('createLocaiModel', () => {
   })
 
   it('runs the full bench battery through the seam', async () => {
-    const model = await createLocaiModel({
+    const model = await createOdaiModel({
       backend: createSimulatorBackend({
         fallback: '{"summary":"fallback"}',
         rules: createBenchResponseRules(),
@@ -75,7 +75,7 @@ describe('createLocaiModel', () => {
       .fn()
       .mockRejectedValueOnce(new TypeError('temperature is not supported'))
       .mockResolvedValueOnce(session)
-    const backend: LocaiBackend = {
+    const backend: OdaiBackend = {
       async availability() {
         return { available: true }
       },
@@ -89,7 +89,7 @@ describe('createLocaiModel', () => {
       },
       name: 'simulator',
     }
-    const model = await createLocaiModel({
+    const model = await createOdaiModel({
       backend,
       systemPrompt: 'sys',
       temperature: 0.7,

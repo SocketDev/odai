@@ -1,6 +1,6 @@
 /**
  * @file Backend registry and selection. Selection precedence: explicit
- *   `backend` option, then the `LOCAI_BACKEND` env var, then the availability
+ *   `backend` option, then the `ODAI_BACKEND` env var, then the availability
  *   probe order. Explicit choices are authoritative — an unavailable explicit
  *   backend throws with its reason instead of falling through.
  */
@@ -12,9 +12,9 @@ import { createGeminiNanoHeadlessBackend } from './gemini-nano-headless.mts'
 import { createLlamaServerBackend } from './llama-server.mts'
 import { createSimulatorBackend } from './simulator.mts'
 import { createWindowsPhiSilicaBackend } from './windows-phi-silica.mts'
-import type { BackendName, LocaiBackend } from './types.mts'
+import type { BackendName, OdaiBackend } from './types.mts'
 
-export const LOCAI_BACKEND_ENV_VAR = 'LOCAI_BACKEND'
+export const ODAI_BACKEND_ENV_VAR = 'ODAI_BACKEND'
 
 export const backendNames: readonly BackendName[] = [
   'apple-fm',
@@ -38,10 +38,10 @@ export const defaultProbeOrder: readonly BackendName[] = [
 
 export interface SelectBackendOptions {
   /**
-   * Explicit backend: a registry name or a caller-built `LocaiBackend`
+   * Explicit backend: a registry name or a caller-built `OdaiBackend`
    * instance. Wins over the env var and the probe.
    */
-  backend?: BackendName | LocaiBackend | undefined
+  backend?: BackendName | OdaiBackend | undefined
   /**
    * Env source, `process.env` by default. Injectable for tests.
    */
@@ -53,7 +53,7 @@ export interface SelectBackendOptions {
   probe?: readonly BackendName[] | undefined
 }
 
-export function createBackend(name: BackendName): LocaiBackend {
+export function createBackend(name: BackendName): OdaiBackend {
   switch (name) {
     case 'apple-fm':
       return createAppleFmBackend()
@@ -67,7 +67,7 @@ export function createBackend(name: BackendName): LocaiBackend {
       return createWindowsPhiSilicaBackend()
     default:
       throw new Error(
-        `Unknown locai backend "${String(name)}"; expected ${joinOr([...backendNames])}.`,
+        `Unknown odai backend "${String(name)}"; expected ${joinOr([...backendNames])}.`,
       )
   }
 }
@@ -79,13 +79,13 @@ export function isBackendName(value: string): value is BackendName {
 export function readEnvBackend(
   env: Record<string, string | undefined>,
 ): BackendName | undefined {
-  const value = env[LOCAI_BACKEND_ENV_VAR]
+  const value = env[ODAI_BACKEND_ENV_VAR]
   if (value === undefined || value === '') {
     return undefined
   }
   if (!isBackendName(value)) {
     throw new Error(
-      `${LOCAI_BACKEND_ENV_VAR} is "${value}"; expected ${joinOr([...backendNames])}. ` +
+      `${ODAI_BACKEND_ENV_VAR} is "${value}"; expected ${joinOr([...backendNames])}. ` +
         'Unset it or pick a declared backend.',
     )
   }
@@ -93,9 +93,9 @@ export function readEnvBackend(
 }
 
 export async function requireAvailable(
-  backend: LocaiBackend,
+  backend: OdaiBackend,
   source: string,
-): Promise<LocaiBackend> {
+): Promise<OdaiBackend> {
   const availability = await backend.availability()
   if (availability.available) {
     return backend
@@ -108,7 +108,7 @@ export async function requireAvailable(
 
 export async function selectBackend(
   options: SelectBackendOptions = {},
-): Promise<LocaiBackend> {
+): Promise<OdaiBackend> {
   const opts = { __proto__: null, ...options } as typeof options
   if (typeof opts.backend === 'object') {
     return await requireAvailable(opts.backend, 'explicit backend instance')
@@ -124,7 +124,7 @@ export async function selectBackend(
   if (envName !== undefined) {
     return await requireAvailable(
       createBackend(envName),
-      `${LOCAI_BACKEND_ENV_VAR} env var`,
+      `${ODAI_BACKEND_ENV_VAR} env var`,
     )
   }
   const reasons: string[] = []
@@ -137,7 +137,7 @@ export async function selectBackend(
     reasons.push(`${name}: ${availability.reason ?? 'no reason given'}`)
   }
   throw new Error(
-    `No locai backend is available. Probed in order — ${reasons.join(' | ')}. ` +
+    `No odai backend is available. Probed in order — ${reasons.join(' | ')}. ` +
       'Select the simulator backend explicitly or bring an engine up.',
   )
 }

@@ -9,7 +9,7 @@
 
 import type { LanguageModelLike, Message, SessionLike } from '../types.mts'
 
-export const STREAM_BINDING_NAME = '__locaiStreamChunk'
+export const STREAM_BINDING_NAME = '__odaiStreamChunk'
 
 const DEFAULT_READY_TIMEOUT_MS = 120_000
 const DOWNLOAD_KICK_GRACE_MS = 10_000
@@ -187,11 +187,11 @@ export async function pageCloneSession(payload: {
   sessionId: number
 }): Promise<{ error?: PageErrorShape | undefined; ok: boolean }> {
   const holder = globalThis as {
-    __locaiSessions?:
+    __odaiSessions?:
       | Map<number, { clone?: (() => unknown) | undefined }>
       | undefined
   }
-  const store = holder.__locaiSessions
+  const store = holder.__odaiSessions
   const session = store?.get(payload.sessionId)
   if (store === undefined || session === undefined) {
     return {
@@ -233,10 +233,10 @@ export async function pageCreateSession(payload: {
     }
   }
   const holder = globalThis as {
-    __locaiSessions?: Map<number, unknown> | undefined
+    __odaiSessions?: Map<number, unknown> | undefined
   }
-  holder.__locaiSessions ??= new Map()
-  const store = holder.__locaiSessions
+  holder.__odaiSessions ??= new Map()
+  const store = holder.__odaiSessions
   try {
     const session = await model.create(payload.options)
     store.set(payload.sessionId, session)
@@ -254,14 +254,14 @@ export async function pageCreateSession(payload: {
 
 export function pageDestroySession(payload: { sessionId: number }): void {
   const holder = globalThis as {
-    __locaiSessions?:
+    __odaiSessions?:
       | Map<number, { destroy?: (() => void) | undefined }>
       | undefined
   }
-  const session = holder.__locaiSessions?.get(payload.sessionId)
+  const session = holder.__odaiSessions?.get(payload.sessionId)
   if (session !== undefined) {
     session.destroy?.()
-    holder.__locaiSessions?.delete(payload.sessionId)
+    holder.__odaiSessions?.delete(payload.sessionId)
   }
 }
 
@@ -290,11 +290,11 @@ export async function pagePrompt(payload: {
   raw?: string | undefined
 }> {
   const holder = globalThis as {
-    __locaiSessions?:
+    __odaiSessions?:
       | Map<number, { prompt(messages: unknown): Promise<string> }>
       | undefined
   }
-  const session = holder.__locaiSessions?.get(payload.sessionId)
+  const session = holder.__odaiSessions?.get(payload.sessionId)
   if (session === undefined) {
     return {
       error: { message: 'unknown session id', name: 'Error' },
@@ -315,17 +315,17 @@ export async function pagePromptStreaming(payload: {
   streamId: number
 }): Promise<void> {
   const holder = globalThis as {
-    __locaiSessions?:
+    __odaiSessions?:
       | Map<number, { promptStreaming(messages: unknown): unknown }>
       | undefined
-    __locaiStreamChunk?: ((chunk: object) => Promise<unknown>) | undefined
+    __odaiStreamChunk?: ((chunk: object) => Promise<unknown>) | undefined
   }
   const emit =
-    holder.__locaiStreamChunk ??
+    holder.__odaiStreamChunk ??
     (async () => {
       /* binding not installed; nothing to deliver to */
     })
-  const session = holder.__locaiSessions?.get(payload.sessionId)
+  const session = holder.__odaiSessions?.get(payload.sessionId)
   if (session === undefined) {
     await emit({ error: 'unknown session id', streamId: payload.streamId })
     return

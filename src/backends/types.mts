@@ -26,10 +26,10 @@ export interface BackendAvailability {
   reason?: string | undefined
 }
 
-export interface LocaiBackend {
+export interface OdaiBackend {
   availability(): Promise<BackendAvailability>
   /**
-   * The engine's session factory. `createLocaiModel` runs the session-option
+   * The engine's session factory. `createOdaiModel` runs the session-option
    * fallback ladder against it, so a backend only supplies the factory and
    * never re-implements option handling.
    */

@@ -1,7 +1,7 @@
 /**
  * @file Node-side provisioning for the gemini-nano-headless bridge: Chrome
  *   executable resolution, model-component discovery, copy-on-write cloning
- *   of the system Chrome model into a locai-owned profile, and the Local
+ *   of the system Chrome model into a odai-owned profile, and the Local
  *   State activation seed. The recipe is empirical, verified against Chrome
  *   150: labs flags via `browser.enabled_labs_experiments`,
  *   `MODEL_EXECUTION_FEATURE_PROMPT_API` (id 6) marked recently used, and the
@@ -16,9 +16,9 @@ import type * as fspNs from 'node:fs/promises'
 import type * as osNs from 'node:os'
 import type * as pathNs from 'node:path'
 
-export const LOCAI_CHROME_ENV_VAR = 'LOCAI_CHROME'
-export const LOCAI_NANO_ALLOW_DOWNLOAD_ENV_VAR = 'LOCAI_NANO_ALLOW_DOWNLOAD'
-export const LOCAI_NANO_USER_DATA_DIR_ENV_VAR = 'LOCAI_NANO_USER_DATA_DIR'
+export const ODAI_CHROME_ENV_VAR = 'ODAI_CHROME'
+export const ODAI_NANO_ALLOW_DOWNLOAD_ENV_VAR = 'ODAI_NANO_ALLOW_DOWNLOAD'
+export const ODAI_NANO_USER_DATA_DIR_ENV_VAR = 'ODAI_NANO_USER_DATA_DIR'
 
 /**
  * Directory carrying the 4 GB foundational model component in a Chrome
@@ -26,7 +26,7 @@ export const LOCAI_NANO_USER_DATA_DIR_ENV_VAR = 'LOCAI_NANO_USER_DATA_DIR'
  */
 export const MODEL_COMPONENT_DIR = 'OptGuideOnDeviceModel'
 
-export const BRIDGE_PAGE_FILENAME = 'locai-bridge.html'
+export const BRIDGE_PAGE_FILENAME = 'odai-bridge.html'
 
 /**
  * Chrome://flags selections, persisted the same way the flags UI does.
@@ -138,7 +138,7 @@ export function chromeMissingReason(config: ResolvedBridgeConfig): string {
   return (
     'Google Chrome not found; looked at ' +
     `${config.chromePathCandidates.join(', ')}. Install Google Chrome or ` +
-    `point ${LOCAI_CHROME_ENV_VAR} at the executable. Chromium builds do ` +
+    `point ${ODAI_CHROME_ENV_VAR} at the executable. Chromium builds do ` +
     'not work: they lack optimization_guide_internal and cannot run Nano.'
   )
 }
@@ -204,11 +204,11 @@ export function defaultBridgeUserDataDir(
   path: NodeDeps['path'],
 ): string {
   const cacheHome = env['XDG_CACHE_HOME'] ?? path.join(homeDir, '.cache')
-  return path.join(cacheHome, 'locai', 'gemini-nano-headless')
+  return path.join(cacheHome, 'odai', 'gemini-nano-headless')
 }
 
 /**
- * Materialize the locai-owned bridge profile: clone the model component dirs
+ * Materialize the odai-owned bridge profile: clone the model component dirs
  * from the system Chrome profile when needed, and (re)seed the Local State
  * activation prefs. Returns the bridge page path — a file:// document,
  * because the Prompt API only exists in secure contexts. The system profile
@@ -250,7 +250,7 @@ export async function ensureBridgeProfile(
   const bridgePagePath = path.join(config.userDataDir, BRIDGE_PAGE_FILENAME)
   await fsp.writeFile(
     bridgePagePath,
-    '<!doctype html><title>locai gemini-nano-headless bridge</title>',
+    '<!doctype html><title>odai gemini-nano-headless bridge</title>',
   )
   return bridgePagePath
 }
@@ -283,7 +283,7 @@ export async function findModelSource(
       `${config.userDataDir} nor the system Chrome profile at ` +
       `${config.systemChromeUserDataDir} has ${MODEL_COMPONENT_DIR}, and ` +
       `downloads are off. Let Chrome download the model once, or set ` +
-      `${LOCAI_NANO_ALLOW_DOWNLOAD_ENV_VAR}=1 to fetch it here (CI mode).`,
+      `${ODAI_NANO_ALLOW_DOWNLOAD_ENV_VAR}=1 to fetch it here (CI mode).`,
   }
 }
 
@@ -344,14 +344,14 @@ export async function resolveBridgeConfig(
   const candidates =
     opts.chromePath !== undefined
       ? [opts.chromePath]
-      : env[LOCAI_CHROME_ENV_VAR] !== undefined &&
-          env[LOCAI_CHROME_ENV_VAR] !== ''
-        ? [env[LOCAI_CHROME_ENV_VAR]]
+      : env[ODAI_CHROME_ENV_VAR] !== undefined &&
+          env[ODAI_CHROME_ENV_VAR] !== ''
+        ? [env[ODAI_CHROME_ENV_VAR]]
         : chromePathCandidates(platform, env, homeDir)
   const chromePath = candidates.find(candidate => fs.existsSync(candidate))
   return {
     allowDownload:
-      opts.allowDownload ?? envFlag(env[LOCAI_NANO_ALLOW_DOWNLOAD_ENV_VAR]),
+      opts.allowDownload ?? envFlag(env[ODAI_NANO_ALLOW_DOWNLOAD_ENV_VAR]),
     chromePath,
     chromePathCandidates: candidates,
     systemChromeUserDataDir:
@@ -359,9 +359,9 @@ export async function resolveBridgeConfig(
       systemChromeUserDataDirFor(platform, env, homeDir),
     userDataDir:
       opts.userDataDir ??
-      (env[LOCAI_NANO_USER_DATA_DIR_ENV_VAR] !== undefined &&
-      env[LOCAI_NANO_USER_DATA_DIR_ENV_VAR] !== ''
-        ? env[LOCAI_NANO_USER_DATA_DIR_ENV_VAR]
+      (env[ODAI_NANO_USER_DATA_DIR_ENV_VAR] !== undefined &&
+      env[ODAI_NANO_USER_DATA_DIR_ENV_VAR] !== ''
+        ? env[ODAI_NANO_USER_DATA_DIR_ENV_VAR]
         : defaultBridgeUserDataDir(env, homeDir, path)),
   }
 }

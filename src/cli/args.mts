@@ -1,5 +1,5 @@
 /**
- * @file Argument parsing for the locai CLI. Pure and synchronous so tests
+ * @file Argument parsing for the odai CLI. Pure and synchronous so tests
  *   exercise every path without a process boundary.
  */
 
@@ -60,7 +60,7 @@ export function parseCliArgs(argv: string[]): CliArgs {
     }
     const value = next()
     if (value === undefined) {
-      throw new CliUsageError(`locai: ${flag} needs a value.`)
+      throw new CliUsageError(`odai: ${flag} needs a value.`)
     }
     return value
   }
@@ -80,7 +80,7 @@ export function parseCliArgs(argv: string[]): CliArgs {
         const value = takeValue(flag, inline, next)
         if (!isBackendName(value)) {
           throw new CliUsageError(
-            `locai: --backend ${value} is not a declared backend; expected ` +
+            `odai: --backend ${value} is not a declared backend; expected ` +
               `${joinOr([...backendNames])}.`,
           )
         }
@@ -109,7 +109,7 @@ export function parseCliArgs(argv: string[]): CliArgs {
         const parsed = Number(value)
         if (!Number.isFinite(parsed) || parsed <= 0) {
           throw new CliUsageError(
-            `locai: --timeout ${value} is not a positive number of milliseconds.`,
+            `odai: --timeout ${value} is not a positive number of milliseconds.`,
           )
         }
         args.timeoutMs = parsed
@@ -117,16 +117,16 @@ export function parseCliArgs(argv: string[]): CliArgs {
       }
       default: {
         if (token.startsWith('-')) {
-          throw new CliUsageError(`locai: unknown option ${token}.`)
+          throw new CliUsageError(`odai: unknown option ${token}.`)
         }
         if (args.command !== undefined) {
           throw new CliUsageError(
-            `locai: unexpected argument "${token}" after the ${args.command} command.`,
+            `odai: unexpected argument "${token}" after the ${args.command} command.`,
           )
         }
         if (!isCliCommand(token)) {
           throw new CliUsageError(
-            `locai: unknown command "${token}"; expected ${joinOr([...CLI_COMMANDS])}.`,
+            `odai: unknown command "${token}"; expected ${joinOr([...CLI_COMMANDS])}.`,
           )
         }
         args.command = token
@@ -139,7 +139,7 @@ export function parseCliArgs(argv: string[]): CliArgs {
     args.instruction === undefined
   ) {
     throw new CliUsageError(
-      'locai: patch needs --instruction <text> describing the change.',
+      'odai: patch needs --instruction <text> describing the change.',
     )
   }
   if (
@@ -148,7 +148,7 @@ export function parseCliArgs(argv: string[]): CliArgs {
     args.command !== 'patch'
   ) {
     throw new CliUsageError(
-      `locai: --instruction only applies to the patch command, not ${args.command}.`,
+      `odai: --instruction only applies to the patch command, not ${args.command}.`,
     )
   }
   return args
@@ -156,7 +156,7 @@ export function parseCliArgs(argv: string[]): CliArgs {
 
 export function usageText(): string {
   return [
-    'Usage: locai <command> [options]',
+    'Usage: odai <command> [options]',
     '',
     'Single-shot, keyless, on-device AI. Input arrives on stdin or --input;',
     'the parsed result prints as one JSON line on stdout.',
@@ -171,11 +171,11 @@ export function usageText(): string {
     '',
     'Options:',
     `  --backend <name>      pick a backend: ${backendNames.join(', ')};`,
-    '                        default: LOCAI_BACKEND env var, then the availability probe',
+    '                        default: ODAI_BACKEND env var, then the availability probe',
     '  --input <path>        read input from a file instead of stdin',
     '  --instruction <text>  the change patch should make; required for patch',
     '  --raw                 print the raw model reply instead of the parsed JSON',
-    '  --timeout <ms>        per-prompt budget; default 120000, env LOCAI_TIMEOUT_MS',
+    '  --timeout <ms>        per-prompt budget; default 120000, env ODAI_TIMEOUT_MS',
     '  -h, --help            show this help',
     '',
     'Exit codes: 0 success, 1 model or task failure, 2 usage error,',

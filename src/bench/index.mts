@@ -28,7 +28,7 @@ export interface EvalReport {
 
 export function formatReport(report: EvalReport): string {
   const lines: string[] = []
-  lines.push(`locai bench: ${report.passed}/${report.total} passed`)
+  lines.push(`odai bench: ${report.passed}/${report.total} passed`)
   lines.push('')
   for (const result of report.results) {
     const icon = result.ok ? '[PASS]' : '[FAIL]'

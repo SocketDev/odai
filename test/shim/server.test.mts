@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 
 import { startAnthropicShim } from '../../src/shim/server.mts'
 import type { AnthropicShimHandle } from '../../src/shim/server.mts'
-import type { LocaiBackend } from '../../src/backends/types.mts'
+import type { OdaiBackend } from '../../src/backends/types.mts'
 import type { Message } from '../../src/types.mts'
 
 interface SseEvent {
@@ -10,7 +10,7 @@ interface SseEvent {
   event: string
 }
 
-interface ScriptedBackend extends LocaiBackend {
+interface ScriptedBackend extends OdaiBackend {
   prompts: Message[][]
 }
 

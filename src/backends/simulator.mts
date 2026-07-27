@@ -7,11 +7,11 @@
 import { LanguageModelSimulator } from '../simulator.mts'
 import type { LanguageModelSimulatorOptions } from '../simulator.mts'
 import type { LanguageModelLike } from '../types.mts'
-import type { BackendAvailability, LocaiBackend } from './types.mts'
+import type { BackendAvailability, OdaiBackend } from './types.mts'
 
 export function createSimulatorBackend(
   options?: LanguageModelSimulatorOptions | undefined,
-): LocaiBackend {
+): OdaiBackend {
   const simulator = new LanguageModelSimulator(options)
   return {
     async availability(): Promise<BackendAvailability> {

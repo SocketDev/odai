@@ -5,7 +5,7 @@
  *   and cannot run Nano — with `--headless=new` via playwright-core and
  *   proxies the page's `LanguageModel` global across `page.evaluate`. Two
  *   first-class provisioning modes: system-Chrome mode clones the machine's
- *   already-downloaded model component into a locai-owned profile with
+ *   already-downloaded model component into a odai-owned profile with
  *   copy-on-write — zero weights download, the live Chrome profile is never
  *   written — and CI mode downloads the component once into a cacheable
  *   profile when downloads are explicitly allowed. Provisioning lives in
@@ -33,7 +33,7 @@ import type {
   StreamPayload,
   StreamQueue,
 } from './gemini-nano-page.mts'
-import type { BackendAvailability, LocaiBackend } from './types.mts'
+import type { BackendAvailability, OdaiBackend } from './types.mts'
 
 export type {
   BrowserContextLike,
@@ -41,9 +41,9 @@ export type {
   PageLike,
 } from './gemini-nano-page.mts'
 export {
-  LOCAI_CHROME_ENV_VAR,
-  LOCAI_NANO_ALLOW_DOWNLOAD_ENV_VAR,
-  LOCAI_NANO_USER_DATA_DIR_ENV_VAR,
+  ODAI_CHROME_ENV_VAR,
+  ODAI_NANO_ALLOW_DOWNLOAD_ENV_VAR,
+  ODAI_NANO_USER_DATA_DIR_ENV_VAR,
   MODEL_COMPONENT_DIR,
 } from './gemini-nano-profile.mts'
 
@@ -76,12 +76,12 @@ export const GEMINI_NANO_UNAVAILABLE_REASON =
 export interface GeminiNanoHeadlessOptions {
   /**
    * Allow the one-time in-CI model component download when no local model can
-   * be cloned. The `LOCAI_NANO_ALLOW_DOWNLOAD` env var (`1`/`true`) is the
+   * be cloned. The `ODAI_NANO_ALLOW_DOWNLOAD` env var (`1`/`true`) is the
    * string form. Off by default: local runs must be zero-download.
    */
   allowDownload?: boolean | undefined
   /**
-   * Google Chrome executable. Falls back to the `LOCAI_CHROME` env var, then
+   * Google Chrome executable. Falls back to the `ODAI_CHROME` env var, then
    * per-OS well-known install paths. Must be real Chrome — Chromium builds
    * cannot run Nano.
    */
@@ -106,8 +106,8 @@ export interface GeminiNanoHeadlessOptions {
    */
   systemChromeUserDataDir?: string | undefined
   /**
-   * The locai-owned Chrome profile the bridge launches with. Falls back to
-   * the `LOCAI_NANO_USER_DATA_DIR` env var, then a per-user cache dir.
+   * The odai-owned Chrome profile the bridge launches with. Falls back to
+   * the `ODAI_NANO_USER_DATA_DIR` env var, then a per-user cache dir.
    * Persistent on purpose: first activation registers the model component
    * with one small keyless metadata exchange, and later launches work
    * offline.
@@ -115,7 +115,7 @@ export interface GeminiNanoHeadlessOptions {
   userDataDir?: string | undefined
 }
 
-export interface GeminiNanoHeadlessBackend extends LocaiBackend {
+export interface GeminiNanoHeadlessBackend extends OdaiBackend {
   /**
    * Close the headless Chrome bridge if one was launched.
    */

@@ -9,7 +9,7 @@
  */
 
 import type { LanguageModelLike } from '../types.mts'
-import type { BackendAvailability, LocaiBackend } from './types.mts'
+import type { BackendAvailability, OdaiBackend } from './types.mts'
 
 export interface WindowsPhiSilicaBackendOptions {
   /**
@@ -20,7 +20,7 @@ export interface WindowsPhiSilicaBackendOptions {
 
 export function createWindowsPhiSilicaBackend(
   options?: WindowsPhiSilicaBackendOptions | undefined,
-): LocaiBackend {
+): OdaiBackend {
   const opts = { __proto__: null, ...options } as WindowsPhiSilicaBackendOptions
   return {
     async availability(): Promise<BackendAvailability> {

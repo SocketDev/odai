@@ -5,10 +5,10 @@ import { afterEach, describe, expect, it } from 'vitest'
 import {
   createLlamaServerBackend,
   DEFAULT_LLAMA_URL,
-  LOCAI_LLAMA_MODEL_ENV_VAR,
-  LOCAI_LLAMA_URL_ENV_VAR,
+  ODAI_LLAMA_MODEL_ENV_VAR,
+  ODAI_LLAMA_URL_ENV_VAR,
 } from '../../src/backends/llama-server.mts'
-import { createLocaiModel } from '../../src/model.mts'
+import { createOdaiModel } from '../../src/model.mts'
 import type { Server } from 'node:http'
 import type { SchemaLike } from '../../src/types.mts'
 
@@ -142,7 +142,7 @@ describe('llama-server backend', () => {
       'http://llama.internal:8080',
     ]) {
       expect(() => createLlamaServerBackend({ url })).toThrow(
-        /not loopback.*locai is local-only/s,
+        /not loopback.*odai is local-only/s,
       )
     }
   })
@@ -150,14 +150,14 @@ describe('llama-server backend', () => {
   it('refuses a non-loopback URL from the env var — no env escape', () => {
     expect(() =>
       createLlamaServerBackend({
-        env: { [LOCAI_LLAMA_URL_ENV_VAR]: 'http://models.example.dev:8080' },
+        env: { [ODAI_LLAMA_URL_ENV_VAR]: 'http://models.example.dev:8080' },
       }),
-    ).toThrow(/not loopback.*locai is local-only/s)
+    ).toThrow(/not loopback.*odai is local-only/s)
   })
 
   it('refuses an unparseable URL with the doctrine message', () => {
     expect(() => createLlamaServerBackend({ url: 'not a url' })).toThrow(
-      /not a valid URL.*locai is local-only/s,
+      /not a valid URL.*odai is local-only/s,
     )
   })
 
@@ -176,7 +176,7 @@ describe('llama-server backend', () => {
     const availability = await backend.availability()
     expect(availability.available).toBe(false)
     expect(availability.reason).toContain(`${url}/health`)
-    expect(availability.reason).toContain('LOCAI_LLAMA_URL')
+    expect(availability.reason).toContain('ODAI_LLAMA_URL')
   })
 
   it('reports the HTTP status when /health answers non-2xx', async () => {
@@ -191,8 +191,8 @@ describe('llama-server backend', () => {
     handle = await startMockServer({ chatContent: 'hi' })
     const backend = createLlamaServerBackend({
       env: {
-        [LOCAI_LLAMA_MODEL_ENV_VAR]: 'qwen2.5-coder-7b-instruct-q4_k_m',
-        [LOCAI_LLAMA_URL_ENV_VAR]: `${handle.url}/`,
+        [ODAI_LLAMA_MODEL_ENV_VAR]: 'qwen2.5-coder-7b-instruct-q4_k_m',
+        [ODAI_LLAMA_URL_ENV_VAR]: `${handle.url}/`,
       },
     })
     expect(await backend.availability()).toEqual({ available: true })
@@ -207,7 +207,7 @@ describe('llama-server backend', () => {
 
   it('shapes chat requests with session options and message pass-through', async () => {
     handle = await startMockServer({ chatContent: 'ok"}' })
-    const model = await createLocaiModel({
+    const model = await createOdaiModel({
       backend: createLlamaServerBackend({
         model: 'test-model',
         url: handle.url,
@@ -245,7 +245,7 @@ describe('llama-server backend', () => {
 
   it('parses continuation replies through the prefill merge', async () => {
     handle = await startMockServer({ chatContent: 'lodash deduped"}' })
-    const model = await createLocaiModel({
+    const model = await createOdaiModel({
       backend: createLlamaServerBackend({ url: handle.url }),
     })
     const result = await model.promptStructured<{ summary: string }>('dedupe', {
@@ -260,7 +260,7 @@ describe('llama-server backend', () => {
     handle = await startMockServer({
       chatContent: '```json\n{"summary":"echoed"}\n```',
     })
-    const model = await createLocaiModel({
+    const model = await createOdaiModel({
       backend: createLlamaServerBackend({ url: handle.url }),
     })
     const result = await model.promptStructured<{ summary: string }>('dedupe', {
@@ -273,7 +273,7 @@ describe('llama-server backend', () => {
 
   it('streams SSE deltas into one raw response', async () => {
     handle = await startMockServer({ sseDeltas: ['{"ok"', ':', 'true}'] })
-    const model = await createLocaiModel({
+    const model = await createOdaiModel({
       backend: createLlamaServerBackend({ url: handle.url }),
     })
     const result = await model.promptStreaming('hello')

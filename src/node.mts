@@ -1,26 +1,26 @@
 /**
  * @file Node entry point. Exports the backend registry, a deterministic mock
  *   session, and all task helpers. Tests and CLI tools run without Chrome:
- *   the simulator backend closes the probe order, so `createLocaiModel()`
+ *   the simulator backend closes the probe order, so `createOdaiModel()`
  *   always yields a working model here.
  */
 
 import {
   createAppleFmBackend,
-  LOCAI_APPLE_FM_SHIM_ENV_VAR,
+  ODAI_APPLE_FM_SHIM_ENV_VAR,
 } from './backends/apple-fm.mts'
 import { createGeminiNanoHeadlessBackend } from './backends/gemini-nano-headless.mts'
 import {
   createLlamaServerBackend,
   DEFAULT_LLAMA_URL,
-  LOCAI_LLAMA_MODEL_ENV_VAR,
-  LOCAI_LLAMA_URL_ENV_VAR,
+  ODAI_LLAMA_MODEL_ENV_VAR,
+  ODAI_LLAMA_URL_ENV_VAR,
 } from './backends/llama-server.mts'
 import {
   backendNames,
   createBackend,
   defaultProbeOrder,
-  LOCAI_BACKEND_ENV_VAR,
+  ODAI_BACKEND_ENV_VAR,
   selectBackend,
 } from './backends/registry.mts'
 import {
@@ -29,13 +29,13 @@ import {
   EXIT_OK,
   EXIT_TASK_FAILURE,
   EXIT_USAGE,
-  LOCAI_TIMEOUT_ENV_VAR,
+  ODAI_TIMEOUT_ENV_VAR,
   runCli,
 } from './cli/run.mts'
 import { createSimulatorBackend } from './backends/simulator.mts'
 import { createWindowsPhiSilicaBackend } from './backends/windows-phi-silica.mts'
 import { promptStructured } from './json.mts'
-import { createLocaiModel } from './model.mts'
+import { createOdaiModel } from './model.mts'
 import {
   installLanguageModelSimulator,
   LanguageModelSessionSimulator,
@@ -108,7 +108,7 @@ export {
   createBackend,
   createGeminiNanoHeadlessBackend,
   createLlamaServerBackend,
-  createLocaiModel,
+  createOdaiModel,
   createSimulatorBackend,
   createWindowsPhiSilicaBackend,
   dedupeDependencies,
@@ -123,11 +123,11 @@ export {
   installLanguageModelSimulator,
   LanguageModelSimulator,
   LanguageModelSessionSimulator,
-  LOCAI_APPLE_FM_SHIM_ENV_VAR,
-  LOCAI_BACKEND_ENV_VAR,
-  LOCAI_LLAMA_MODEL_ENV_VAR,
-  LOCAI_LLAMA_URL_ENV_VAR,
-  LOCAI_TIMEOUT_ENV_VAR,
+  ODAI_APPLE_FM_SHIM_ENV_VAR,
+  ODAI_BACKEND_ENV_VAR,
+  ODAI_LLAMA_MODEL_ENV_VAR,
+  ODAI_LLAMA_URL_ENV_VAR,
+  ODAI_TIMEOUT_ENV_VAR,
   reasonAboutLockfile,
   runCli,
   selectBackend,
@@ -145,12 +145,12 @@ export type { WindowsPhiSilicaBackendOptions } from './backends/windows-phi-sili
 export type {
   BackendAvailability,
   BackendName,
-  LocaiBackend,
+  OdaiBackend,
 } from './backends/types.mts'
 export type {
-  CreateLocaiModelOptions,
+  CreateOdaiModelOptions,
   GeminiNanoModel,
-  LocaiModel,
+  OdaiModel,
 } from './model.mts'
 export type { DepClassification } from './prompts/classify-deps.mts'
 export type { CommitMessage } from './prompts/commit.mts'

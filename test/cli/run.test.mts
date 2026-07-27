@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { createSimulatorBackend } from '../../src/backends/simulator.mts'
 import { runCli, withTimeout } from '../../src/cli/run.mts'
-import type { LocaiBackend } from '../../src/backends/types.mts'
+import type { OdaiBackend } from '../../src/backends/types.mts'
 import type { SessionLike } from '../../src/types.mts'
 
 interface Capture {
@@ -22,7 +22,7 @@ function createCapture(): Capture {
   }
 }
 
-function createUnavailableBackend(reason: string): LocaiBackend {
+function createUnavailableBackend(reason: string): OdaiBackend {
   return {
     async availability() {
       return { available: false, reason }
@@ -34,7 +34,7 @@ function createUnavailableBackend(reason: string): LocaiBackend {
   }
 }
 
-function createHangingBackend(): LocaiBackend {
+function createHangingBackend(): OdaiBackend {
   const session: SessionLike = {
     prompt: () => new Promise<string>(() => {}),
     promptStreaming: () =>
@@ -54,7 +54,7 @@ function createHangingBackend(): LocaiBackend {
   }
 }
 
-function createTriageBackend(): LocaiBackend {
+function createTriageBackend(): OdaiBackend {
   return createSimulatorBackend({
     fallback: 'no rule matched',
     rules: [
@@ -135,7 +135,7 @@ describe('runCli', () => {
     expect(code).toBe(69)
     expect(stderr.text()).toContain('engine offline')
     expect(stderr.text()).toContain('Provisioning:')
-    expect(stderr.text()).toContain('LOCAI_NANO_ALLOW_DOWNLOAD=1')
+    expect(stderr.text()).toContain('ODAI_NANO_ALLOW_DOWNLOAD=1')
     expect(stderr.text()).toContain('clean-skip signal')
   })
 
@@ -150,14 +150,14 @@ describe('runCli', () => {
     })
     expect(code).toBe(1)
     expect(stderr.text()).toContain('did not finish within 50ms')
-    expect(stderr.text()).toContain('LOCAI_TIMEOUT_MS')
+    expect(stderr.text()).toContain('ODAI_TIMEOUT_MS')
   })
 
-  it('reads the timeout from LOCAI_TIMEOUT_MS', async () => {
+  it('reads the timeout from ODAI_TIMEOUT_MS', async () => {
     const stderr = createCapture()
     const code = await runCli(['triage'], {
       backend: createHangingBackend(),
-      env: { LOCAI_TIMEOUT_MS: '60' },
+      env: { ODAI_TIMEOUT_MS: '60' },
       readStdin: async () => 'Critical: 2',
       stderr: stderr.write,
       stdout: createCapture().write,
@@ -166,17 +166,17 @@ describe('runCli', () => {
     expect(stderr.text()).toContain('did not finish within 60ms')
   })
 
-  it('rejects an invalid LOCAI_TIMEOUT_MS as a usage error', async () => {
+  it('rejects an invalid ODAI_TIMEOUT_MS as a usage error', async () => {
     const stderr = createCapture()
     const code = await runCli(['triage'], {
       backend: createTriageBackend(),
-      env: { LOCAI_TIMEOUT_MS: 'soon' },
+      env: { ODAI_TIMEOUT_MS: 'soon' },
       readStdin: async () => 'Critical: 2',
       stderr: stderr.write,
       stdout: createCapture().write,
     })
     expect(code).toBe(2)
-    expect(stderr.text()).toContain('LOCAI_TIMEOUT_MS')
+    expect(stderr.text()).toContain('ODAI_TIMEOUT_MS')
   })
 
   it('exits 1 when the reply fails validation', async () => {
@@ -202,7 +202,7 @@ describe('runCli', () => {
     })
     expect(code).toBe(2)
     expect(stderr.text()).toContain('unknown command')
-    expect(stderr.text()).toContain('Usage: locai')
+    expect(stderr.text()).toContain('Usage: odai')
   })
 
   it('exits 2 when no command is given', async () => {
@@ -249,7 +249,7 @@ describe('runCli', () => {
       stdout: stdout.write,
     })
     expect(code).toBe(0)
-    expect(stdout.text()).toContain('Usage: locai')
+    expect(stdout.text()).toContain('Usage: odai')
   })
 
   it('lists availability per backend for the backends command', async () => {
@@ -291,10 +291,10 @@ describe('runCli', () => {
     expect(code).toBe(69)
   })
 
-  it('honors LOCAI_BACKEND from the injected env', async () => {
+  it('honors ODAI_BACKEND from the injected env', async () => {
     const stdout = createCapture()
     const code = await runCli(['triage'], {
-      env: { LOCAI_BACKEND: 'simulator' },
+      env: { ODAI_BACKEND: 'simulator' },
       readStdin: async () => 'Critical: 2',
       stderr: createCapture().write,
       stdout: stdout.write,

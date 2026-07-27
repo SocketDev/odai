@@ -1,5 +1,5 @@
 /**
- * @file Locai CLI core. Single-shot subcommands over the backend seam:
+ * @file Odai CLI core. Single-shot subcommands over the backend seam:
  *   summarize, commit-msg, triage, patch, plus a backends availability probe.
  *   Node-only — the bin entry wraps `runCli`, tests call it directly with
  *   injected writers and backends. Failure modes are loud and bounded: a
@@ -17,7 +17,7 @@ import {
   createBackend,
   selectBackend,
 } from '../backends/registry.mts'
-import { createLocaiModel } from '../model.mts'
+import { createOdaiModel } from '../model.mts'
 import { classifyDependencyChange } from '../tasks/classify-deps.mts'
 import { suggestCommitMessage } from '../tasks/commit.mts'
 import { generateCodePatch } from '../tasks/patch.mts'
@@ -28,9 +28,9 @@ import type { CliArgs, CliCommand } from './args.mts'
 import type {
   BackendAvailability,
   BackendName,
-  LocaiBackend,
+  OdaiBackend,
 } from '../backends/types.mts'
-import type { LocaiModel } from '../model.mts'
+import type { OdaiModel } from '../model.mts'
 import type { TaskResult } from '../types.mts'
 
 export const EXIT_OK = 0
@@ -43,7 +43,7 @@ export const EXIT_USAGE = 2
 export const EXIT_NO_BACKEND = 69
 
 export const DEFAULT_PROMPT_TIMEOUT_MS = 120_000
-export const LOCAI_TIMEOUT_ENV_VAR = 'LOCAI_TIMEOUT_MS'
+export const ODAI_TIMEOUT_ENV_VAR = 'ODAI_TIMEOUT_MS'
 
 const RAW_REPLY_LOG_LIMIT = 400
 
@@ -59,7 +59,7 @@ export interface RunCliOptions {
   /**
    * Backend instance override. Wins over the --backend flag; the test seam.
    */
-  backend?: LocaiBackend | undefined
+  backend?: OdaiBackend | undefined
   /**
    * Env source, `process.env` by default. Injectable for tests.
    */
@@ -68,7 +68,7 @@ export interface RunCliOptions {
    * Backends the `backends` command probes. Defaults to every declared
    * registry backend; injectable so tests avoid live probes.
    */
-  probeBackends?: LocaiBackend[] | undefined
+  probeBackends?: OdaiBackend[] | undefined
   /**
    * Stdin reader override. Defaults to draining `process.stdin`.
    */
@@ -84,7 +84,7 @@ export interface RunCliOptions {
 }
 
 export async function closeBackend(
-  backend: LocaiBackend | undefined,
+  backend: OdaiBackend | undefined,
 ): Promise<void> {
   const closeable = backend as
     | { close?: (() => Promise<void>) | undefined }
@@ -99,14 +99,14 @@ export function promptTimeoutMs(
   if (args.timeoutMs !== undefined) {
     return args.timeoutMs
   }
-  const raw = env[LOCAI_TIMEOUT_ENV_VAR]
+  const raw = env[ODAI_TIMEOUT_ENV_VAR]
   if (raw === undefined || raw === '') {
     return DEFAULT_PROMPT_TIMEOUT_MS
   }
   const parsed = Number(raw)
   if (!Number.isFinite(parsed) || parsed <= 0) {
     throw new CliUsageError(
-      `locai: ${LOCAI_TIMEOUT_ENV_VAR}="${raw}" is not a positive number of ` +
+      `odai: ${ODAI_TIMEOUT_ENV_VAR}="${raw}" is not a positive number of ` +
         'milliseconds.',
     )
   }
@@ -118,13 +118,13 @@ export function provisioningHelp(): string {
     'Provisioning:',
     '  gemini-nano-headless — install Google Chrome; when the machine’s Chrome',
     '    already has the Gemini Nano component the bridge clones it with zero',
-    '    downloads. In CI point LOCAI_NANO_USER_DATA_DIR at a cached path and run',
-    '    one fill job with LOCAI_NANO_ALLOW_DOWNLOAD=1; later jobs restore the',
+    '    downloads. In CI point ODAI_NANO_USER_DATA_DIR at a cached path and run',
+    '    one fill job with ODAI_NANO_ALLOW_DOWNLOAD=1; later jobs restore the',
     '    cached profile and work offline.',
-    '  llama-server — start a loopback llama-server and set LOCAI_LLAMA_URL; the',
+    '  llama-server — start a loopback llama-server and set ODAI_LLAMA_URL; the',
     '    default probe target is http://127.0.0.1:8080.',
     '  apple-fm — needs Apple silicon with Apple Intelligence enabled.',
-    '  simulator — set LOCAI_BACKEND=simulator for deterministic canned replies.',
+    '  simulator — set ODAI_BACKEND=simulator for deterministic canned replies.',
     'Exit code 69 is the clean-skip signal: a CI step that sees it should skip',
     'its AI leg, never fail the job.',
   ].join('\n')
@@ -140,7 +140,7 @@ export async function readInputText(
       return await readFile(args.input, 'utf8')
     } catch (error) {
       throw new CliUsageError(
-        `locai: cannot read --input ${args.input}: ${errorMessage(error)}`,
+        `odai: cannot read --input ${args.input}: ${errorMessage(error)}`,
       )
     }
   }
@@ -149,7 +149,7 @@ export async function readInputText(
   }
   if (process.stdin.isTTY) {
     throw new CliUsageError(
-      'locai: nothing to read — pass --input <path> or pipe content on stdin.',
+      'odai: nothing to read — pass --input <path> or pipe content on stdin.',
     )
   }
   const chunks: Buffer[] = []
@@ -160,7 +160,7 @@ export async function readInputText(
 }
 
 export async function runBackendsCommand(
-  probeBackends: LocaiBackend[] | undefined,
+  probeBackends: OdaiBackend[] | undefined,
   stdout: LineWriter,
 ): Promise<number> {
   const backends =
@@ -218,7 +218,7 @@ export async function runCli(
   }
   const command = args.command
   if (command === undefined) {
-    stderr('locai: no command given.')
+    stderr('odai: no command given.')
     stderr(usageText())
     return EXIT_USAGE
   }
@@ -237,24 +237,24 @@ export async function runCli(
     throw error
   }
   if (input.trim() === '') {
-    stderr(`locai ${command}: the input is empty.`)
+    stderr(`odai ${command}: the input is empty.`)
     return EXIT_USAGE
   }
 
-  let backend: LocaiBackend
+  let backend: OdaiBackend
   try {
     backend = await selectBackend({
       backend: opts.backend ?? args.backend,
       env,
     })
   } catch (error) {
-    stderr(`locai ${command}: no usable backend — ${errorMessage(error)}`)
+    stderr(`odai ${command}: no usable backend — ${errorMessage(error)}`)
     stderr(provisioningHelp())
     return EXIT_NO_BACKEND
   }
 
   try {
-    const model = await createLocaiModel({
+    const model = await createOdaiModel({
       backend,
       temperature: 0,
       topK: 1,
@@ -262,20 +262,20 @@ export async function runCli(
     const result = await withTimeout(
       runTask(command, model, input, args.instruction),
       timeoutMs,
-      `locai ${command}: the ${backend.name} prompt`,
+      `odai ${command}: the ${backend.name} prompt`,
     )
     if (result.ok && result.data !== undefined) {
       stdout(args.raw ? result.raw : JSON.stringify(result.data))
       return EXIT_OK
     }
     stderr(
-      `locai ${command}: the ${backend.name} reply failed validation — ` +
+      `odai ${command}: the ${backend.name} reply failed validation — ` +
         (result.error ?? 'no parse error recorded'),
     )
     stderr(`raw reply: ${truncateForLog(result.raw)}`)
     return EXIT_TASK_FAILURE
   } catch (error) {
-    stderr(`locai ${command}: ${errorMessage(error)}`)
+    stderr(`odai ${command}: ${errorMessage(error)}`)
     return EXIT_TASK_FAILURE
   } finally {
     await closeBackend(backend)
@@ -284,7 +284,7 @@ export async function runCli(
 
 export async function runTask(
   command: CliCommand,
-  model: LocaiModel,
+  model: OdaiModel,
   input: string,
   instruction: string | undefined,
 ): Promise<TaskResult<unknown>> {
@@ -296,7 +296,7 @@ export async function runTask(
     case 'patch': {
       if (instruction === undefined) {
         throw new CliUsageError(
-          'locai: patch needs --instruction <text> describing the change.',
+          'odai: patch needs --instruction <text> describing the change.',
         )
       }
       return await generateCodePatch(model, input, instruction)
@@ -307,7 +307,7 @@ export async function runTask(
       return await triageAlerts(model, input)
     default:
       throw new CliUsageError(
-        `locai: "${command}" is not a prompt command; expected ` +
+        `odai: "${command}" is not a prompt command; expected ` +
           `${joinOr(['classify-deps', 'commit-msg', 'patch', 'summarize', 'triage'])}.`,
       )
   }
@@ -330,7 +330,7 @@ export function withTimeout<T>(
       reject(
         new CliTimeoutError(
           `${label} did not finish within ${timeoutMs}ms. Raise --timeout or ` +
-            `${LOCAI_TIMEOUT_ENV_VAR}; a CPU-only backend can need several ` +
+            `${ODAI_TIMEOUT_ENV_VAR}; a CPU-only backend can need several ` +
             'minutes for its first prompt.',
         ),
       )

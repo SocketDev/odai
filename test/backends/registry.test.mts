@@ -13,17 +13,17 @@ import {
   it,
 } from 'vitest'
 
-import { LOCAI_APPLE_FM_SHIM_ENV_VAR } from '../../src/backends/apple-fm.mts'
-import { LOCAI_CHROME_ENV_VAR } from '../../src/backends/gemini-nano-headless.mts'
+import { ODAI_APPLE_FM_SHIM_ENV_VAR } from '../../src/backends/apple-fm.mts'
+import { ODAI_CHROME_ENV_VAR } from '../../src/backends/gemini-nano-headless.mts'
 import {
   backendNames,
   createBackend,
   defaultProbeOrder,
   selectBackend,
 } from '../../src/backends/registry.mts'
-import { LOCAI_LLAMA_URL_ENV_VAR } from '../../src/backends/llama-server.mts'
+import { ODAI_LLAMA_URL_ENV_VAR } from '../../src/backends/llama-server.mts'
 import { LanguageModelSimulator } from '../../src/simulator.mts'
-import type { LocaiBackend } from '../../src/backends/types.mts'
+import type { OdaiBackend } from '../../src/backends/types.mts'
 
 /**
  * Mock apple-fm shim reporting deviceNotEligible, so registry results don't
@@ -60,36 +60,36 @@ describe('backend registry', () => {
   let originalLlamaUrl: string | undefined
 
   beforeAll(async () => {
-    originalLlamaUrl = process.env[LOCAI_LLAMA_URL_ENV_VAR]
+    originalLlamaUrl = process.env[ODAI_LLAMA_URL_ENV_VAR]
     const closedPort = await reserveClosedPort()
-    process.env[LOCAI_LLAMA_URL_ENV_VAR] = `http://127.0.0.1:${closedPort}`
-    originalAppleFmShim = process.env[LOCAI_APPLE_FM_SHIM_ENV_VAR]
-    const mockDir = await mkdtemp(path.join(os.tmpdir(), 'locai-registry-'))
+    process.env[ODAI_LLAMA_URL_ENV_VAR] = `http://127.0.0.1:${closedPort}`
+    originalAppleFmShim = process.env[ODAI_APPLE_FM_SHIM_ENV_VAR]
+    const mockDir = await mkdtemp(path.join(os.tmpdir(), 'odai-registry-'))
     const mockShimPath = path.join(mockDir, 'apple-fm-mock-shim.mjs')
     await writeFile(mockShimPath, APPLE_FM_MOCK_SHIM_SOURCE)
-    process.env[LOCAI_APPLE_FM_SHIM_ENV_VAR] = mockShimPath
+    process.env[ODAI_APPLE_FM_SHIM_ENV_VAR] = mockShimPath
     // Point Chrome resolution at a path that cannot exist, so registry
     // results don't depend on this machine having Chrome plus a downloaded
     // Nano model.
-    originalChrome = process.env[LOCAI_CHROME_ENV_VAR]
-    process.env[LOCAI_CHROME_ENV_VAR] = path.join(mockDir, 'no-chrome-here')
+    originalChrome = process.env[ODAI_CHROME_ENV_VAR]
+    process.env[ODAI_CHROME_ENV_VAR] = path.join(mockDir, 'no-chrome-here')
   })
 
   afterAll(() => {
     if (originalLlamaUrl === undefined) {
-      delete process.env[LOCAI_LLAMA_URL_ENV_VAR]
+      delete process.env[ODAI_LLAMA_URL_ENV_VAR]
     } else {
-      process.env[LOCAI_LLAMA_URL_ENV_VAR] = originalLlamaUrl
+      process.env[ODAI_LLAMA_URL_ENV_VAR] = originalLlamaUrl
     }
     if (originalAppleFmShim === undefined) {
-      delete process.env[LOCAI_APPLE_FM_SHIM_ENV_VAR]
+      delete process.env[ODAI_APPLE_FM_SHIM_ENV_VAR]
     } else {
-      process.env[LOCAI_APPLE_FM_SHIM_ENV_VAR] = originalAppleFmShim
+      process.env[ODAI_APPLE_FM_SHIM_ENV_VAR] = originalAppleFmShim
     }
     if (originalChrome === undefined) {
-      delete process.env[LOCAI_CHROME_ENV_VAR]
+      delete process.env[ODAI_CHROME_ENV_VAR]
     } else {
-      process.env[LOCAI_CHROME_ENV_VAR] = originalChrome
+      process.env[ODAI_CHROME_ENV_VAR] = originalChrome
     }
   })
 
@@ -139,13 +139,13 @@ describe('backend registry', () => {
   it('prefers the explicit backend option over env and probe', async () => {
     const backend = await selectBackend({
       backend: 'simulator',
-      env: { LOCAI_BACKEND: 'gemini-nano-headless' },
+      env: { ODAI_BACKEND: 'gemini-nano-headless' },
     })
     expect(backend.name).toBe('simulator')
   })
 
   it('accepts a caller-built backend instance when it is available', async () => {
-    const custom: LocaiBackend = {
+    const custom: OdaiBackend = {
       async availability() {
         return { available: true }
       },
@@ -164,22 +164,22 @@ describe('backend registry', () => {
     )
   })
 
-  it('prefers LOCAI_BACKEND env over the probe order', async () => {
+  it('prefers ODAI_BACKEND env over the probe order', async () => {
     ;(globalThis as { LanguageModel?: object | undefined }).LanguageModel =
       new LanguageModelSimulator()
-    const backend = await selectBackend({ env: { LOCAI_BACKEND: 'simulator' } })
+    const backend = await selectBackend({ env: { ODAI_BACKEND: 'simulator' } })
     expect(backend.name).toBe('simulator')
   })
 
-  it('throws with the reason when LOCAI_BACKEND names an unavailable backend', async () => {
+  it('throws with the reason when ODAI_BACKEND names an unavailable backend', async () => {
     await expect(
-      selectBackend({ env: { LOCAI_BACKEND: 'llama-server' } }),
+      selectBackend({ env: { ODAI_BACKEND: 'llama-server' } }),
     ).rejects.toThrow(/llama-server.*not reachable/s)
   })
 
-  it('rejects an unknown LOCAI_BACKEND value listing valid names', async () => {
+  it('rejects an unknown ODAI_BACKEND value listing valid names', async () => {
     await expect(
-      selectBackend({ env: { LOCAI_BACKEND: 'gpt-42' } }),
+      selectBackend({ env: { ODAI_BACKEND: 'gpt-42' } }),
     ).rejects.toThrow(/gpt-42.*simulator/s)
   })
 

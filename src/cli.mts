@@ -1,5 +1,5 @@
 /**
- * @file Locai bin entry. Parses argv, runs the CLI core, and exits with its
+ * @file Odai bin entry. Parses argv, runs the CLI core, and exits with its
  *   code. The explicit process.exit is deliberate: the headless-Chrome bridge
  *   holds a live child process, and a finished CLI must never linger on open
  *   handles.

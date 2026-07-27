@@ -7,25 +7,25 @@
 import { probeAvailability } from './availability.mts'
 import {
   createAppleFmBackend,
-  LOCAI_APPLE_FM_SHIM_ENV_VAR,
+  ODAI_APPLE_FM_SHIM_ENV_VAR,
 } from './backends/apple-fm.mts'
 import { createGeminiNanoHeadlessBackend } from './backends/gemini-nano-headless.mts'
 import {
   createLlamaServerBackend,
   DEFAULT_LLAMA_URL,
-  LOCAI_LLAMA_MODEL_ENV_VAR,
-  LOCAI_LLAMA_URL_ENV_VAR,
+  ODAI_LLAMA_MODEL_ENV_VAR,
+  ODAI_LLAMA_URL_ENV_VAR,
 } from './backends/llama-server.mts'
 import {
   backendNames,
   createBackend,
   defaultProbeOrder,
-  LOCAI_BACKEND_ENV_VAR,
+  ODAI_BACKEND_ENV_VAR,
   selectBackend,
 } from './backends/registry.mts'
 import { createSimulatorBackend } from './backends/simulator.mts'
 import { createWindowsPhiSilicaBackend } from './backends/windows-phi-silica.mts'
-import { createGeminiNanoModel, createLocaiModel } from './model.mts'
+import { createGeminiNanoModel, createOdaiModel } from './model.mts'
 import { classifyDependencyChange } from './tasks/classify-deps.mts'
 import {
   installLanguageModelSimulator,
@@ -47,7 +47,7 @@ export {
   createGeminiNanoHeadlessBackend,
   createGeminiNanoModel,
   createLlamaServerBackend,
-  createLocaiModel,
+  createOdaiModel,
   createSimulatorBackend,
   createWindowsPhiSilicaBackend,
   dedupeDependencies,
@@ -57,10 +57,10 @@ export {
   installLanguageModelSimulator,
   LanguageModelSimulator,
   LanguageModelSessionSimulator,
-  LOCAI_APPLE_FM_SHIM_ENV_VAR,
-  LOCAI_BACKEND_ENV_VAR,
-  LOCAI_LLAMA_MODEL_ENV_VAR,
-  LOCAI_LLAMA_URL_ENV_VAR,
+  ODAI_APPLE_FM_SHIM_ENV_VAR,
+  ODAI_BACKEND_ENV_VAR,
+  ODAI_LLAMA_MODEL_ENV_VAR,
+  ODAI_LLAMA_URL_ENV_VAR,
   probeAvailability,
   reasonAboutLockfile,
   selectBackend,
@@ -77,12 +77,12 @@ export type { WindowsPhiSilicaBackendOptions } from './backends/windows-phi-sili
 export type {
   BackendAvailability,
   BackendName,
-  LocaiBackend,
+  OdaiBackend,
 } from './backends/types.mts'
 export type {
-  CreateLocaiModelOptions,
+  CreateOdaiModelOptions,
   GeminiNanoModel,
-  LocaiModel,
+  OdaiModel,
 } from './model.mts'
 export type { CreateSessionOptions } from './session.mts'
 export type { StreamOptions } from './stream.mts'

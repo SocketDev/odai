@@ -23,7 +23,7 @@ import {
 } from './anthropic.mts'
 import { buildSseFrames } from './sse.mts'
 import type { IncomingMessage, Server, ServerResponse } from 'node:http'
-import type { BackendName, LocaiBackend } from '../backends/types.mts'
+import type { BackendName, OdaiBackend } from '../backends/types.mts'
 import type { LanguageModelLike, SessionLike } from '../types.mts'
 import type { AnthropicMessagesRequest } from './anthropic.mts'
 
@@ -42,7 +42,7 @@ export interface AnthropicShimOptions {
   /**
    * Explicit backend instance. Wins over registry selection; the test seam.
    */
-  backend?: LocaiBackend | undefined
+  backend?: OdaiBackend | undefined
   /**
    * Registry backend name passed to selection when no instance is given.
    */

@@ -14,11 +14,11 @@ import { errorMessage } from '@socketsecurity/lib/errors/message'
 
 import type { CreateOptions } from '../session.mts'
 import type { LanguageModelLike, Message, SessionLike } from '../types.mts'
-import type { BackendAvailability, LocaiBackend } from './types.mts'
+import type { BackendAvailability, OdaiBackend } from './types.mts'
 
 export const DEFAULT_LLAMA_URL = 'http://127.0.0.1:8080'
-export const LOCAI_LLAMA_MODEL_ENV_VAR = 'LOCAI_LLAMA_MODEL'
-export const LOCAI_LLAMA_URL_ENV_VAR = 'LOCAI_LLAMA_URL'
+export const ODAI_LLAMA_MODEL_ENV_VAR = 'ODAI_LLAMA_MODEL'
+export const ODAI_LLAMA_URL_ENV_VAR = 'ODAI_LLAMA_URL'
 
 const DEFAULT_HEALTH_TIMEOUT_MS = 2000
 const DEFAULT_REQUEST_TIMEOUT_MS = 120_000
@@ -42,7 +42,7 @@ export interface LlamaServerBackendOptions {
   /**
    * Model name passed through in the request body. llama-server serves one
    * model and ignores it; ollama and multi-model gateways require it. Falls
-   * back to the `LOCAI_LLAMA_MODEL` env var; omitted from the body when unset.
+   * back to the `ODAI_LLAMA_MODEL` env var; omitted from the body when unset.
    */
   model?: string | undefined
   /**
@@ -50,7 +50,7 @@ export interface LlamaServerBackendOptions {
    */
   requestTimeoutMs?: number | undefined
   /**
-   * Server base URL. Falls back to the `LOCAI_LLAMA_URL` env var, then to
+   * Server base URL. Falls back to the `ODAI_LLAMA_URL` env var, then to
    * `http://127.0.0.1:8080` — llama-server's default bind. Loopback only:
    * a host other than `127.0.0.1`, `::1`, or `localhost` throws at config
    * time, whichever source it came from.
@@ -92,14 +92,14 @@ export function assertLoopbackUrl(url: string): string {
     parsed = new URL(url)
   } catch {
     throw new Error(
-      `llama-server URL "${url}" is not a valid URL. locai is local-only — ` +
+      `llama-server URL "${url}" is not a valid URL. odai is local-only — ` +
         'no cloud, no remote endpoints, no keys; point ' +
-        `${LOCAI_LLAMA_URL_ENV_VAR} at 127.0.0.1, ::1, or localhost.`,
+        `${ODAI_LLAMA_URL_ENV_VAR} at 127.0.0.1, ::1, or localhost.`,
     )
   }
   if (!LOOPBACK_HOSTNAMES.has(parsed.hostname)) {
     throw new Error(
-      `llama-server URL "${url}" is not loopback. locai is local-only — ` +
+      `llama-server URL "${url}" is not loopback. odai is local-only — ` +
         'no cloud, no remote endpoints, no keys; the llama-server backend ' +
         'only speaks to 127.0.0.1, ::1, or localhost.',
     )
@@ -142,16 +142,16 @@ export function buildRequestBody(
 
 export function createLlamaServerBackend(
   options?: LlamaServerBackendOptions | undefined,
-): LocaiBackend {
+): OdaiBackend {
   const opts = { __proto__: null, ...options } as LlamaServerBackendOptions
   const env = opts.env ?? (typeof process === 'undefined' ? {} : process.env)
   const url = normalizeUrl(
     assertLoopbackUrl(
-      opts.url ?? env[LOCAI_LLAMA_URL_ENV_VAR] ?? DEFAULT_LLAMA_URL,
+      opts.url ?? env[ODAI_LLAMA_URL_ENV_VAR] ?? DEFAULT_LLAMA_URL,
     ),
   )
   const config: LlamaConfig = {
-    model: opts.model ?? env[LOCAI_LLAMA_MODEL_ENV_VAR],
+    model: opts.model ?? env[ODAI_LLAMA_MODEL_ENV_VAR],
     requestTimeoutMs: opts.requestTimeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS,
     url,
   }
@@ -160,7 +160,7 @@ export function createLlamaServerBackend(
     async availability(): Promise<BackendAvailability> {
       const endpoint = `${url}/health`
       const remedy =
-        `Start llama-server, or point ${LOCAI_LLAMA_URL_ENV_VAR} at an ` +
+        `Start llama-server, or point ${ODAI_LLAMA_URL_ENV_VAR} at an ` +
         'OpenAI-compatible endpoint.'
       let response: Response
       try {
@@ -290,7 +290,7 @@ export async function postChat(
     throw new Error(
       `llama-server request to ${endpoint} failed: ` +
         `${describeRequestError(error, config.requestTimeoutMs)}. ` +
-        `Check the server and ${LOCAI_LLAMA_URL_ENV_VAR}.`,
+        `Check the server and ${ODAI_LLAMA_URL_ENV_VAR}.`,
       { cause: error },
     )
   }
