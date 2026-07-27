@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import {
   isAvailableState,
@@ -7,25 +7,28 @@ import {
 } from '../src/availability.mts'
 import type { LanguageModelLike } from '../src/types.mts'
 
+// The built-in resolver lives in socket-lib's `ai/builtin`; odai delegates to it
+// and adapts the result. Mock that seam so each case controls exactly which
+// factory (if any) the runtime resolves, without socket-lib's module-scope probe
+// cache leaking across cases.
+const builtin = vi.hoisted(() => ({ factory: undefined as unknown }))
+vi.mock(import('@socketsecurity/lib/ai/builtin'), () => ({
+  getLanguageModel: () => builtin.factory,
+}))
+
 describe('availability', () => {
-  let originalLanguageModel: unknown
-
-  beforeEach(() => {
-    originalLanguageModel = (
-      globalThis as { LanguageModel?: unknown | undefined }
-    ).LanguageModel
-  })
-
   afterEach(() => {
     vi.restoreAllMocks()
-    ;(globalThis as { LanguageModel?: unknown | undefined }).LanguageModel =
-      originalLanguageModel
+    builtin.factory = undefined
   })
 
   it('detects modern namespace as available', async () => {
-    ;(globalThis as { LanguageModel?: object | undefined }).LanguageModel = {
+    builtin.factory = {
       async availability() {
         return 'available'
+      },
+      async create() {
+        return { prompt: async () => '' }
       },
     }
     const result = await probeAvailability()
@@ -35,17 +38,19 @@ describe('availability', () => {
   })
 
   it('reports unavailable when no api is present', async () => {
-    ;(globalThis as { LanguageModel?: unknown | undefined }).LanguageModel =
-      undefined
+    builtin.factory = undefined
     const result = await probeAvailability()
     expect(result.namespace).toBe('none')
     expect(result.available).toBe(false)
   })
 
   it('treats a modern-namespace downloadable model as unavailable', async () => {
-    ;(globalThis as { LanguageModel?: object | undefined }).LanguageModel = {
+    builtin.factory = {
       async availability() {
         return 'downloadable'
+      },
+      async create() {
+        return { prompt: async () => '' }
       },
     }
     const result = await probeAvailability()

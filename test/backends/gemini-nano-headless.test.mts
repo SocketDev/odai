@@ -2,7 +2,7 @@ import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
   createGeminiNanoHeadlessBackend,
@@ -19,6 +19,15 @@ import type {
   ChromiumLauncherLike,
   PageLike,
 } from '../../src/backends/gemini-nano-headless.mts'
+
+// odai delegates built-in model resolution to socket-lib's `ai/builtin`, whose
+// real resolver probes the runtime once and caches. Mock it to re-read the
+// per-case `globalThis.LanguageModel` install on every call.
+vi.mock(import('@socketsecurity/lib/ai/builtin'), () => ({
+  getLanguageModel: () =>
+    (globalThis as { LanguageModel?: unknown | undefined }).LanguageModel ??
+    undefined,
+}))
 
 interface FakeBrowser {
   closed: boolean
@@ -371,6 +380,9 @@ describe('gemini-nano-headless backend', () => {
       async availability(): Promise<string> {
         return 'downloadable'
       },
+      async create(): Promise<never> {
+        throw new Error('not available')
+      },
     }
     const backend = createGeminiNanoHeadlessBackend({ env: {} })
     const availability = await backend.availability()
@@ -378,11 +390,16 @@ describe('gemini-nano-headless backend', () => {
     expect(availability.reason).toContain('not')
   })
 
-  it('returns the runtime LanguageModel global directly from languageModel', async () => {
+  it('returns a factory backed by the runtime LanguageModel global from languageModel', async () => {
     const model = new LanguageModelSimulator()
     ;(globalThis as Record<string, unknown>)['LanguageModel'] = model
     const backend = createGeminiNanoHeadlessBackend({ env: {} })
-    expect(await backend.languageModel()).toBe(model)
+    const factory = await backend.languageModel()
+    // The runtime global is used (not the headless bridge); odai adapts it to
+    // the session seam, so assert delegation rather than object identity.
+    expect(await factory.availability()).toBe('available')
+    const session = await factory.create()
+    expect(typeof session.prompt).toBe('function')
   })
 
   it('resolves a real playwright launcher when none is injected', async () => {

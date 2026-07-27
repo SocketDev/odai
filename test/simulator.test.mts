@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import {
   installLanguageModelSimulator,
@@ -7,6 +7,15 @@ import {
 import { createGeminiNanoModel } from '../src/model.mts'
 import { runEval } from '../src/bench/index.mts'
 import { createBenchResponseRules } from '../src/bench/simulator.mts'
+
+// odai delegates built-in model resolution to socket-lib's `ai/builtin`, whose
+// real resolver probes the runtime once and caches. Mock it to re-read the
+// per-case `globalThis.LanguageModel` install on every call.
+vi.mock(import('@socketsecurity/lib/ai/builtin'), () => ({
+  getLanguageModel: () =>
+    (globalThis as { LanguageModel?: unknown | undefined }).LanguageModel ??
+    undefined,
+}))
 
 describe('LanguageModelSimulator', () => {
   it('installs a global LanguageModel and returns available', async () => {

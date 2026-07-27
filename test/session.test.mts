@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import {
   buildCreateOptions,
@@ -8,18 +8,16 @@ import {
 } from '../src/session.mts'
 import type { LanguageModelLike } from '../src/types.mts'
 
+// `createLanguageModel` resolves the factory through socket-lib's `ai/builtin`
+// seam. Mock it so each case controls the resolved factory directly.
+const builtin = vi.hoisted(() => ({ factory: undefined as unknown }))
+vi.mock(import('@socketsecurity/lib/ai/builtin'), () => ({
+  getLanguageModel: () => builtin.factory,
+}))
+
 describe('session', () => {
-  let originalLanguageModel: unknown
-
-  beforeEach(() => {
-    originalLanguageModel = (
-      globalThis as { LanguageModel?: unknown | undefined }
-    ).LanguageModel
-  })
-
   afterEach(() => {
-    ;(globalThis as { LanguageModel?: unknown | undefined }).LanguageModel =
-      originalLanguageModel
+    builtin.factory = undefined
   })
 
   it('creates a modern session with full options', async () => {
@@ -28,7 +26,7 @@ describe('session', () => {
       destroy: vi.fn(),
       prompt: vi.fn(),
     })
-    ;(globalThis as { LanguageModel?: object | undefined }).LanguageModel = {
+    builtin.factory = {
       async availability() {
         return 'available'
       },
@@ -48,7 +46,7 @@ describe('session', () => {
       .fn()
       .mockRejectedValueOnce(new TypeError('unsupported'))
       .mockResolvedValueOnce({ prompt: vi.fn() })
-    ;(globalThis as { LanguageModel?: object | undefined }).LanguageModel = {
+    builtin.factory = {
       async availability() {
         return 'available'
       },
@@ -62,8 +60,7 @@ describe('session', () => {
   })
 
   it('throws when no api is present', async () => {
-    ;(globalThis as { LanguageModel?: unknown | undefined }).LanguageModel =
-      undefined
+    builtin.factory = undefined
     await expect(createLanguageModel()).rejects.toThrow('Chrome AI not found')
   })
 })

@@ -11,6 +11,7 @@ import {
   describe,
   expect,
   it,
+  vi,
 } from 'vitest'
 
 import { ODAI_APPLE_FM_SHIM_ENV_VAR } from '../../src/backends/apple-fm.mts'
@@ -24,6 +25,15 @@ import {
 import { ODAI_LLAMA_URL_ENV_VAR } from '../../src/backends/llama-server.mts'
 import { LanguageModelSimulator } from '../../src/simulator.mts'
 import type { OdaiBackend } from '../../src/backends/types.mts'
+
+// odai delegates built-in model resolution to socket-lib's `ai/builtin`, whose
+// real resolver probes the runtime once and caches. Mock it to re-read the
+// per-case `globalThis.LanguageModel` install on every call.
+vi.mock(import('@socketsecurity/lib/ai/builtin'), () => ({
+  getLanguageModel: () =>
+    (globalThis as { LanguageModel?: unknown | undefined }).LanguageModel ??
+    undefined,
+}))
 
 /**
  * Mock apple-fm shim reporting deviceNotEligible, so registry results don't
