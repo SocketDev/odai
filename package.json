@@ -9,6 +9,9 @@
     "type": "git",
     "url": "git+https://github.com/SocketDev/socket-gemini-nano.git"
   },
+  "bin": {
+    "locai": "./dist/cli.js"
+  },
   "files": [
     "dist/**/*",
     "CHANGELOG.md"

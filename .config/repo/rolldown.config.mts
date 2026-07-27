@@ -48,6 +48,17 @@ const nodeConfig: RolldownOptions = {
   platform: 'node',
 }
 
+const cliConfig: RolldownOptions = {
+  ...baseConfig,
+  input: path.join(srcPath, 'cli.mts'),
+  output: {
+    ...baseConfig.output,
+    banner: '#!/usr/bin/env node',
+    entryFileNames: 'cli.js',
+  },
+  platform: 'node',
+}
+
 const benchConfig: RolldownOptions = {
   ...baseConfig,
   external: ['playwright-core'],
@@ -75,6 +86,7 @@ const browserEsmConfig: RolldownOptions = {
 const configs: readonly RolldownOptions[] = [
   browserConfig,
   nodeConfig,
+  cliConfig,
   benchConfig,
   browserEsmConfig,
 ]

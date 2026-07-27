@@ -23,6 +23,15 @@ import {
   LOCAI_BACKEND_ENV_VAR,
   selectBackend,
 } from './backends/registry.mts'
+import {
+  DEFAULT_PROMPT_TIMEOUT_MS,
+  EXIT_NO_BACKEND,
+  EXIT_OK,
+  EXIT_TASK_FAILURE,
+  EXIT_USAGE,
+  LOCAI_TIMEOUT_ENV_VAR,
+  runCli,
+} from './cli/run.mts'
 import { createSimulatorBackend } from './backends/simulator.mts'
 import { createWindowsPhiSilicaBackend } from './backends/windows-phi-silica.mts'
 import { promptStructured } from './json.mts'
@@ -102,7 +111,12 @@ export {
   createWindowsPhiSilicaBackend,
   dedupeDependencies,
   DEFAULT_LLAMA_URL,
+  DEFAULT_PROMPT_TIMEOUT_MS,
   defaultProbeOrder,
+  EXIT_NO_BACKEND,
+  EXIT_OK,
+  EXIT_TASK_FAILURE,
+  EXIT_USAGE,
   generateCodePatch,
   installLanguageModelSimulator,
   LanguageModelSimulator,
@@ -111,7 +125,9 @@ export {
   LOCAI_BACKEND_ENV_VAR,
   LOCAI_LLAMA_MODEL_ENV_VAR,
   LOCAI_LLAMA_URL_ENV_VAR,
+  LOCAI_TIMEOUT_ENV_VAR,
   reasonAboutLockfile,
+  runCli,
   selectBackend,
   suggestCommitMessage,
   summarizeText,
@@ -119,6 +135,8 @@ export {
 }
 
 export type { AppleFmBackendOptions } from './backends/apple-fm.mts'
+export type { CliArgs, CliCommand } from './cli/args.mts'
+export type { LineWriter, RunCliOptions } from './cli/run.mts'
 export type { LlamaServerBackendOptions } from './backends/llama-server.mts'
 export type { SelectBackendOptions } from './backends/registry.mts'
 export type { WindowsPhiSilicaBackendOptions } from './backends/windows-phi-silica.mts'
