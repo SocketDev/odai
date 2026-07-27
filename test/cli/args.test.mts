@@ -94,6 +94,7 @@ describe('usageText', () => {
     const text = usageText()
     for (const command of [
       'backends',
+      'classify-deps',
       'commit-msg',
       'patch',
       'summarize',

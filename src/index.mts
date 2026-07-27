@@ -26,6 +26,7 @@ import {
 import { createSimulatorBackend } from './backends/simulator.mts'
 import { createWindowsPhiSilicaBackend } from './backends/windows-phi-silica.mts'
 import { createGeminiNanoModel, createLocaiModel } from './model.mts'
+import { classifyDependencyChange } from './tasks/classify-deps.mts'
 import {
   installLanguageModelSimulator,
   LanguageModelSessionSimulator,
@@ -40,6 +41,7 @@ import { triageAlerts } from './tasks/triage.mts'
 
 export {
   backendNames,
+  classifyDependencyChange,
   createAppleFmBackend,
   createBackend,
   createGeminiNanoHeadlessBackend,
@@ -84,6 +86,7 @@ export type {
 } from './model.mts'
 export type { CreateSessionOptions } from './session.mts'
 export type { StreamOptions } from './stream.mts'
+export type { DepClassification } from './prompts/classify-deps.mts'
 export type { CommitMessage } from './prompts/commit.mts'
 export type { CodePatch } from './prompts/patch.mts'
 export type { DedupeResult } from './prompts/dedupe.mts'

@@ -10,6 +10,7 @@ import type { BackendName } from '../backends/types.mts'
 
 export const CLI_COMMANDS = [
   'backends',
+  'classify-deps',
   'commit-msg',
   'patch',
   'summarize',
@@ -162,6 +163,7 @@ export function usageText(): string {
     '',
     'Commands:',
     '  backends              probe every declared backend, print availability JSON',
+    '  classify-deps         flag a narrowed dependency diff as routine or surprise',
     '  commit-msg            suggest a Conventional Commits subject for a diff',
     '  patch                 generate a unified-diff code patch for a file',
     '  summarize             condense text into a summary plus key points',

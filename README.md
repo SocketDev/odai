@@ -56,6 +56,7 @@ git diff | locai commit-msg
 printf 'Critical: 2\nHigh: 5\n' | locai triage
 locai summarize --input README.md
 locai patch --input src/greet.js --instruction "use a template literal"
+locai classify-deps --input narrowed-dep-diff.json
 locai backends
 ```
 

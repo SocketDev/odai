@@ -41,6 +41,7 @@ import {
   LanguageModelSessionSimulator,
   LanguageModelSimulator,
 } from './simulator.mts'
+import { classifyDependencyChange } from './tasks/classify-deps.mts'
 import { suggestCommitMessage } from './tasks/commit.mts'
 import { dedupeDependencies } from './tasks/dedupe.mts'
 import { reasonAboutLockfile } from './tasks/lockfile.mts'
@@ -102,6 +103,7 @@ export function createMockSession(options: MockSessionOptions): SessionLike {
 
 export {
   backendNames,
+  classifyDependencyChange,
   createAppleFmBackend,
   createBackend,
   createGeminiNanoHeadlessBackend,
@@ -150,6 +152,7 @@ export type {
   GeminiNanoModel,
   LocaiModel,
 } from './model.mts'
+export type { DepClassification } from './prompts/classify-deps.mts'
 export type { CommitMessage } from './prompts/commit.mts'
 export type { TextSummary } from './prompts/summarize.mts'
 export type { AlertTriage } from './prompts/triage.mts'

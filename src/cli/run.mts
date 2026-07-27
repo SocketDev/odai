@@ -18,6 +18,7 @@ import {
   selectBackend,
 } from '../backends/registry.mts'
 import { createLocaiModel } from '../model.mts'
+import { classifyDependencyChange } from '../tasks/classify-deps.mts'
 import { suggestCommitMessage } from '../tasks/commit.mts'
 import { generateCodePatch } from '../tasks/patch.mts'
 import { summarizeText } from '../tasks/summarize.mts'
@@ -288,6 +289,8 @@ export async function runTask(
   instruction: string | undefined,
 ): Promise<TaskResult<unknown>> {
   switch (command) {
+    case 'classify-deps':
+      return await classifyDependencyChange(model, input)
     case 'commit-msg':
       return await suggestCommitMessage(model, input)
     case 'patch': {
@@ -305,7 +308,7 @@ export async function runTask(
     default:
       throw new CliUsageError(
         `locai: "${command}" is not a prompt command; expected ` +
-          `${joinOr(['commit-msg', 'patch', 'summarize', 'triage'])}.`,
+          `${joinOr(['classify-deps', 'commit-msg', 'patch', 'summarize', 'triage'])}.`,
       )
   }
 }
