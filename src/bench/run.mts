@@ -11,6 +11,7 @@ import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 
 import { createSimulatorBackend } from '../backends/simulator.mts'
 import { createBackend, isBackendName } from '../backends/registry.mts'
+import { isMainModule } from '../is-main-module.mts'
 import { createOdaiModel } from '../model.mts'
 import { createMockModel } from '../node.mts'
 import { formatReport, runEval } from './index.mts'
@@ -40,6 +41,7 @@ export function parseArgs(argv: string[]): RunArgs {
   }
 }
 
+/* c8 ignore start - module entrypoint; exercised via subprocess */
 async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2))
   let model
@@ -70,7 +72,10 @@ async function main(): Promise<void> {
   process.exit(report.score >= 0.5 ? 0 : 1)
 }
 
-main().catch((error: unknown) => {
-  logger.fail(error)
-  process.exit(1)
-})
+if (isMainModule(import.meta.url)) {
+  main().catch((error: unknown) => {
+    logger.fail(error)
+    process.exit(1)
+  })
+}
+/* c8 ignore stop */

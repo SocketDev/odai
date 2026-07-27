@@ -12,6 +12,7 @@ import { errorMessage } from '@socketsecurity/lib/errors/message'
 import { getDefaultLogger } from '@socketsecurity/lib/logger/default'
 
 import { isBackendName } from '../backends/registry.mts'
+import { isMainModule } from '../is-main-module.mts'
 import { startAnthropicShim } from './server.mts'
 import type { BackendName } from '../backends/types.mts'
 
@@ -49,6 +50,7 @@ export function parseServeArgs(argv: string[]): {
   return { backendName, port }
 }
 
+/* c8 ignore start - module entrypoint; exercised via subprocess */
 async function main(): Promise<void> {
   const { backendName, port } = parseServeArgs(process.argv.slice(2))
   const handle = await startAnthropicShim({
@@ -67,7 +69,10 @@ async function main(): Promise<void> {
   await handle.close()
 }
 
-main().catch((error: unknown) => {
-  logger.error(errorMessage(error))
-  process.exitCode = 1
-})
+if (isMainModule(import.meta.url)) {
+  main().catch((error: unknown) => {
+    logger.error(errorMessage(error))
+    process.exitCode = 1
+  })
+}
+/* c8 ignore stop */

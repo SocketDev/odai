@@ -8,7 +8,9 @@
 import { getDefaultLogger } from '@socketsecurity/lib/logger/default'
 
 import { runCli } from './cli/run.mts'
+import { isMainModule } from './is-main-module.mts'
 
+/* c8 ignore start - bin entrypoint; exercised via subprocess */
 const logger = getDefaultLogger()
 
 async function main(): Promise<void> {
@@ -16,7 +18,10 @@ async function main(): Promise<void> {
   process.exit(code)
 }
 
-main().catch((error: unknown) => {
-  logger.fail(error)
-  process.exit(1)
-})
+if (isMainModule(import.meta.url)) {
+  main().catch((error: unknown) => {
+    logger.fail(error)
+    process.exit(1)
+  })
+}
+/* c8 ignore stop */
