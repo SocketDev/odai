@@ -1,7 +1,7 @@
 {
   "$schema": "../fleet/lockstep.schema.json",
-  "area": "socket-gemini-nano",
-  "description": "lockstep manifest for socket-gemini-nano.",
+  "area": "odai",
+  "description": "lockstep manifest for odai.",
   "upstreams": {},
   "rows": []
 }

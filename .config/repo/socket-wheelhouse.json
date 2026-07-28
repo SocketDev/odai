@@ -1,7 +1,7 @@
 {
   "$schema": "./socket-wheelhouse-schema.json",
   "schemaVersion": 1,
-  "repoName": "socket-gemini-nano",
+  "repoName": "odai",
   "repo": {
     "type": "solo"
   },
