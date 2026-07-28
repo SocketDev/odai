@@ -79,7 +79,8 @@
     "setup:rust": "node scripts/fleet/setup/rust.mts",
     "npm:publish": "node scripts/fleet/publish-pipeline.mts",
     "prepublishOnly": "echo 'ERROR: Use GitHub Actions workflow for publishing' && exit 1",
-    "socket-wheelhouse:emit-schema": "node scripts/fleet/socket-wheelhouse-emit-schema.mts"
+    "socket-wheelhouse:emit-schema": "node scripts/fleet/socket-wheelhouse-emit-schema.mts",
+    "mcp:reset": "node scripts/fleet/mcp-reset.mts"
   },
   "dependencies": {
     "@sinclair/typebox": "catalog:",
