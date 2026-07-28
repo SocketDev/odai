@@ -1,3 +1,4 @@
+// socket-lint: mirror-exempt — end-to-end router proof spanning provider.mts and the simulator backend by design; no single unit under test.
 /**
  * @file End-to-end proof that socket-lib's availability-gated tier router reaches
  *   odai as the keyless-local rung and completes a real generation round-trip.
