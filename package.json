@@ -1,6 +1,6 @@
 {
   "name": "@socketsecurity/odai",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "private": false,
   "description": "Local on-device AI library for browser and Node, with the bench evaluation harness",
   "homepage": "https://github.com/SocketDev/odai",

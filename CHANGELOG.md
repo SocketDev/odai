@@ -5,7 +5,7 @@ All notable changes to `@socketsecurity/odai` will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.1.0](https://github.com/SocketDev/odai/releases/tag/v0.1.0) - 2026-07-29
 
 ### Added
 
@@ -22,3 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Renamed the package from `@socketsecurity/gemini-nano` to `@socketsecurity/odai`; the `gnh` evaluation harness is now `bench` — the `./gnh` export and `pnpm run gnh` script are now `./bench` and `pnpm run bench`.
+
+### Fixed
+
+- **`apple-fm`** — move the shim cache out of node\_modules to the repo-root store
