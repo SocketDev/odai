@@ -312,10 +312,9 @@ describe('describeUnavailableReason', () => {
 })
 
 describe('defaultCacheDir', () => {
-  it('resolves the shim binary cache under the package cache dir', () => {
-    expect(defaultCacheDir()).toContain(
-      ['node_modules', '.cache', 'odai'].join('/'),
-    )
+  it('resolves the shim binary cache under the repo-root cache dir', () => {
+    expect(defaultCacheDir()).toContain(['.cache', 'odai'].join('/'))
+    expect(defaultCacheDir()).not.toContain('node_modules')
   })
 })
 

@@ -135,7 +135,7 @@ export function createAppleFmBackend(
 }
 
 export function defaultCacheDir(): string {
-  return `${process.cwd()}/node_modules/.cache/odai`
+  return `${process.cwd()}/.cache/odai`
 }
 
 /**
