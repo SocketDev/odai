@@ -15,7 +15,7 @@ import {
   PATCH_SYSTEM_PROMPT,
 } from '../prompts/patch.mts'
 import type { CodePatch } from '../prompts/patch.mts'
-import type { GeminiNanoModel } from '../model.mts'
+import type { OdaiModel } from '../model.mts'
 import type { TaskResult } from '../types.mts'
 
 export type { CodePatch }
@@ -35,7 +35,7 @@ const CodePatchSchemaLike = {
 }
 
 export async function generateCodePatch(
-  model: GeminiNanoModel,
+  model: OdaiModel,
   fileContent: string,
   instruction: string,
 ): Promise<TaskResult<CodePatch>> {

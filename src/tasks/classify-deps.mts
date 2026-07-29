@@ -16,7 +16,7 @@ import {
   createClassifyDepsPrompt,
 } from '../prompts/classify-deps.mts'
 import type { DepClassification } from '../prompts/classify-deps.mts'
-import type { GeminiNanoModel } from '../model.mts'
+import type { OdaiModel } from '../model.mts'
 import type { TaskResult } from '../types.mts'
 
 export type { DepClassification }
@@ -37,7 +37,7 @@ const DepClassificationSchemaLike = {
 }
 
 export async function classifyDependencyChange(
-  model: GeminiNanoModel,
+  model: OdaiModel,
   narrowedDiffText: string,
 ): Promise<TaskResult<DepClassification>> {
   return model.promptStructured<Static<typeof DepClassificationSchema>>(

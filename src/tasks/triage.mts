@@ -15,7 +15,7 @@ import {
   TRIAGE_SYSTEM_PROMPT,
 } from '../prompts/triage.mts'
 import type { AlertTriage } from '../prompts/triage.mts'
-import type { GeminiNanoModel } from '../model.mts'
+import type { OdaiModel } from '../model.mts'
 import type { TaskResult } from '../types.mts'
 
 export type { AlertTriage }
@@ -35,7 +35,7 @@ const AlertTriageSchemaLike = {
 }
 
 export async function triageAlerts(
-  model: GeminiNanoModel,
+  model: OdaiModel,
   findingsText: string,
 ): Promise<TaskResult<AlertTriage>> {
   return model.promptStructured<Static<typeof AlertTriageSchema>>(

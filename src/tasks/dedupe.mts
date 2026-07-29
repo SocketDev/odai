@@ -15,7 +15,7 @@ import {
   DEDUPE_SYSTEM_PROMPT,
 } from '../prompts/dedupe.mts'
 import type { DedupeResult } from '../prompts/dedupe.mts'
-import type { GeminiNanoModel } from '../model.mts'
+import type { OdaiModel } from '../model.mts'
 import type { TaskResult } from '../types.mts'
 
 export type { DedupeResult }
@@ -43,7 +43,7 @@ const DedupeResultSchemaLike = {
 }
 
 export async function dedupeDependencies(
-  model: GeminiNanoModel,
+  model: OdaiModel,
   manifestText: string,
   lockfileText: string,
 ): Promise<TaskResult<DedupeResult>> {

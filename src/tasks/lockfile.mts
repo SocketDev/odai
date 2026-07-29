@@ -15,7 +15,7 @@ import {
   LOCKFILE_SYSTEM_PROMPT,
 } from '../prompts/lockfile.mts'
 import type { LockfileReasoning } from '../prompts/lockfile.mts'
-import type { GeminiNanoModel } from '../model.mts'
+import type { OdaiModel } from '../model.mts'
 import type { TaskResult } from '../types.mts'
 
 export type { LockfileReasoning }
@@ -48,7 +48,7 @@ const LockfileReasoningSchemaLike = {
 }
 
 export async function reasonAboutLockfile(
-  model: GeminiNanoModel,
+  model: OdaiModel,
   lockfileText: string,
 ): Promise<TaskResult<LockfileReasoning>> {
   return model.promptStructured<Static<typeof LockfileReasoningSchema>>(

@@ -3,8 +3,9 @@
  *   request, and destroys the clone afterwards. This avoids the state-growth
  *   gotcha where every prompt appends to the same conversation history.
  *   `createOdaiModel` builds the wrapper on any registry backend;
- *   `createGeminiNanoModel` is the compat entry bound to the runtime's
- *   `LanguageModel` global.
+ *   `createBuiltinModel` is the browser-direct entry bound to the runtime's
+ *   built-in `LanguageModel` global — no backend registry, so a browser bundle
+ *   never pulls in the Node-only backends.
  */
 
 import { selectBackend } from './backends/registry.mts'
@@ -36,11 +37,6 @@ export interface OdaiModel {
   rawSession(): SessionLike
 }
 
-/**
- * Compat alias from the Nano-only era; `OdaiModel` is the canonical name.
- */
-export type GeminiNanoModel = OdaiModel
-
 export interface CreateOdaiModelOptions extends CreateSessionOptions {
   /**
    * Explicit backend: a registry name or a caller-built `OdaiBackend`.
@@ -63,7 +59,7 @@ export async function cloneSession(
   return state.session
 }
 
-export async function createGeminiNanoModel(
+export async function createBuiltinModel(
   options: CreateSessionOptions = {},
 ): Promise<OdaiModel> {
   const state = await createLanguageModel(options)
