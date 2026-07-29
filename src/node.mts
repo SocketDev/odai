@@ -39,6 +39,7 @@ import {
   formatControlTokens,
   parseControlTokens,
 } from './control-tokens.mts'
+import { detectModelName, matchModelName } from './model-identity.mts'
 import { promptStructured } from './json.mts'
 import { createOdaiModel } from './model.mts'
 import {
@@ -113,7 +114,9 @@ export function createMockSession(options: MockSessionOptions): SessionLike {
 export {
   backendNames,
   CONTROL_TOKENS,
+  detectModelName,
   formatControlTokens,
+  matchModelName,
   parseControlTokens,
   classifyDependencyChange,
   createAppleFmBackend,
@@ -166,6 +169,7 @@ export type {
   OdaiBackend,
 } from './backends/types.mts'
 export type { CreateOdaiModelOptions, OdaiModel } from './model.mts'
+export type { ModelIdentity } from './model-identity.mts'
 export type { Message } from './types.mts'
 export type { DepClassification } from './prompts/classify-deps.mts'
 export type { CommitMessage } from './prompts/commit.mts'

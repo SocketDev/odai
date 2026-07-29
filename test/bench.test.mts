@@ -52,4 +52,23 @@ describe('bench evaluator', () => {
     expect(report.total).toBe(0)
     expect(report.score).toBe(0)
   })
+
+  it('records the detected model name when identifyModel is set', async () => {
+    const report = await runEval({
+      identifyModel: true,
+      model: createMockModel('I am Gemma 4.'),
+      scenarios: [],
+    })
+    expect(report.model).toBe('Gemma 4')
+    expect(formatReport(report)).toContain('model: Gemma 4')
+  })
+
+  it('leaves the model unset when identity is not requested', async () => {
+    const report = await runEval({
+      model: createMockModel('{"summary":"ok"}'),
+      scenarios: [],
+    })
+    expect(report.model).toBe(undefined)
+    expect(formatReport(report)).not.toContain('model:')
+  })
 })
