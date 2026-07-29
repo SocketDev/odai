@@ -415,6 +415,9 @@ importers:
       fast-check:
         specifier: 'catalog:'
         version: 4.9.0
+      form-data:
+        specifier: 4.0.6
+        version: 4.0.6
       magic-string:
         specifier: 1.0.0
         version: 1.0.0
@@ -3213,6 +3216,14 @@ packages:
     resolution: {integrity: sha512-pCJr9kYvUKzIZQUbkSzHW/PlZ5cvm4DXmxFMBmGydScVKxri4/BBdh9ASW+38/82pdaE5lTK92AN+MYydJIQCw==}
     engines: {node: '>=18'}
 
+  '@socketregistry/es-set-tostringtag@1.0.10':
+    resolution: {integrity: sha512-btXmvw1JpA8WtSoXx9mTapo9NAyIDKRRzK84i48d8zc0X09M6ORfobVnHbgwhXf7CFhkRzhYrHG9dqbI9vpELQ==}
+    engines: {node: '>=18'}
+
+  '@socketregistry/hasown@1.0.7':
+    resolution: {integrity: sha512-MZ5dyXOtiEc7q3801T+2EmKkxrd55BOSQnG8z/8/IkIJzDxqBxGGBKVyixqFm3W657TyUEBfIT9iWgSB6ipFsA==}
+    engines: {node: '>=18'}
+
   '@socketregistry/packageurl-js@1.4.8':
     resolution: {integrity: sha512-u9Mlg3zeiCr8FHdG6Sxd4T8dWS/zVzW270tS67JdDra2hrzPfgsmbWr7itlQc/0P9uWX6gslISs88YQvi3Z5SQ==}
     engines: {node: '>=24', npm: '>=12.0.0', pnpm: '>=11.0.5'}
@@ -3642,6 +3653,9 @@ packages:
   ast-v8-to-istanbul@1.0.4:
     resolution: {integrity: sha512-0bC0/4bTSrnwdhU3IsZDwEdojvuPrSg59OYZfKsLRtJZ0u8VBx9DebfqqG8bRdCC0I7vjgxmPi41P0lpkhJHtA==}
 
+  asynckit@0.4.0:
+    resolution: {integrity: sha512-Oei9OH4tRh0YqU3GxhX79dM/mwVgvbZJaSNaRk+bshkj0S5cfHcgYakreBjrHwatXKbz+IoIdYLxrKim2MjW0Q==}
+
   balanced-match@4.0.4:
     resolution: {integrity: sha512-BLrgEcRTwX2o6gGxGOCNyMvGSp35YofuYzw9h1IMTRmKqttAZZVU67bdb9Pr2vUHA8+j3i2tJfjO6C6+4myGTA==}
     engines: {node: 18 || 20 || >=22}
@@ -3736,6 +3750,10 @@ packages:
   color-name@1.1.4:
     resolution: {integrity: sha512-dOy+3AuW3a2wNbZHIuMZpTcgjGuLU/uBL/ubcZF9OXbDo8ff4O8yVp5Bf0efS8uEoYo5q4Fx7dY9OgQGXgAsQA==}
 
+  combined-stream@1.0.8:
+    resolution: {integrity: sha512-FQN4MRfuJeHf7cBbBMJFXhKSDq+2kAArBlmRBvcvFE5BB1HZKXtSFASDhdlz9zOYwxh8lDdnvmMOe/+5cdoEdg==}
+    engines: {node: '>= 0.8'}
+
   commander@8.3.0:
     resolution: {integrity: sha512-OkTL9umf+He2DZkUq8f8J9of7yL6RJKI24dVITBmNfZBmri9zYZQrKkuXiKhyfPSu8tUhnVBB1iKXevvnlR4Ww==}
     engines: {node: '>= 12'}
@@ -3777,6 +3795,10 @@ packages:
 
   defu@6.1.7:
     resolution: {integrity: sha512-7z22QmUWiQ/2d0KkdYmANbRUVABpZ9SNYyH5vx6PZ+nE5bcC0l7uFvEfHlyld/HcGBFTL536ClDt3DEcSlEJAQ==}
+
+  delayed-stream@1.0.0:
+    resolution: {integrity: sha512-ZySD7Nf91aLB0RxL4KGrKHBXl7Eds1DAmEdcoVawXnLD7SDhpNgtuII2aAkg7a7QS41jxPSZ17p4VdGnMHk3MQ==}
+    engines: {node: '>=0.4.0'}
 
   depd@2.0.0:
     resolution: {integrity: sha512-g7nH6P6dyDioJogAAGprGpCtVImJhpPk/roCzdb3fIh61/s/nPsfR6onyMwkCAR/OlC3yBC0lESvUoQEAssIrw==}
@@ -3880,6 +3902,10 @@ packages:
   foreground-child@3.3.1:
     resolution: {integrity: sha512-gIXjKqtFuWEgzFRJA9WCQeSJLZDjgJUOMCMzxtvFq/37KojM1BFGufqsCy0r4qSQmYLsZYMeyRqzIWOMup03sw==}
     engines: {node: '>=14'}
+
+  form-data@4.0.6:
+    resolution: {integrity: sha512-vKatAh4SlVfgbv+YtmhiRjhEMJsYpsG1Y2rMQtR+SVSbytsSD1YGzDIcrAJmdFec88u/+VoGmxnl+80gL1tRCQ==}
+    engines: {node: '>= 6'}
 
   fs-constants@1.0.0:
     resolution: {integrity: sha512-y6OAwoSIf7FyjMIv94u+b5rdheZEjzR63GTyZJm5qh4Bi+2YgwLCcI/fPFZkL5PSixOt6ZNKm+w+Hfp/Bciwow==}
@@ -4250,6 +4276,10 @@ packages:
 
   mime-db@1.54.0:
     resolution: {integrity: sha512-aU5EJuIN2WDemCcAp2vFBfp/m4EAhWJnUNSSw0ixs7/kXbd6Pg64EmwJkNdFhB8aWt1sH2CTXrLxo/iAGV3oPQ==}
+    engines: {node: '>= 0.6'}
+
+  mime-types@2.1.35:
+    resolution: {integrity: sha512-ZDY+bPm5zTTF+YpCrAU9nK0UgICYPT0QtT1NZWFv4s++TNkcgVaT0g6+4R2uI4MjQjzysHB1zxuWL50hzaeXiw==}
     engines: {node: '>= 0.6'}
 
   mime-types@3.0.2:
@@ -5205,6 +5235,10 @@ snapshots:
 
   '@socketregistry/es-define-property@1.0.7': {}
 
+  '@socketregistry/es-set-tostringtag@1.0.10': {}
+
+  '@socketregistry/hasown@1.0.7': {}
+
   '@socketregistry/packageurl-js@1.4.8': {}
 
   '@socketregistry/safe-buffer@1.0.9': {}
@@ -5526,6 +5560,8 @@ snapshots:
       estree-walker: 3.0.3
       js-tokens: 10.0.0
 
+  asynckit@0.4.0: {}
+
   balanced-match@4.0.4: {}
 
   base64-js@1.5.1: {}
@@ -5618,6 +5654,10 @@ snapshots:
 
   color-name@1.1.4: {}
 
+  combined-stream@1.0.8:
+    dependencies:
+      delayed-stream: 1.0.0
+
   commander@8.3.0: {}
 
   compromise@14.16.0:
@@ -5655,6 +5695,8 @@ snapshots:
       character-entities: 2.0.2
 
   defu@6.1.7: {}
+
+  delayed-stream@1.0.0: {}
 
   depd@2.0.0: {}
 
@@ -5758,6 +5800,14 @@ snapshots:
     dependencies:
       cross-spawn: 7.0.6
       signal-exit: 4.1.0
+
+  form-data@4.0.6:
+    dependencies:
+      asynckit: 0.4.0
+      combined-stream: 1.0.8
+      es-set-tostringtag: '@socketregistry/es-set-tostringtag@1.0.10'
+      hasown: '@socketregistry/hasown@1.0.7'
+      mime-types: 2.1.35
 
   fs-constants@1.0.0: {}
 
@@ -6209,6 +6259,10 @@ snapshots:
       picomatch: 2.3.2
 
   mime-db@1.54.0: {}
+
+  mime-types@2.1.35:
+    dependencies:
+      mime-db: 1.54.0
 
   mime-types@3.0.2:
     dependencies:
