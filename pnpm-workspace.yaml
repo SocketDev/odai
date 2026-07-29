@@ -30,7 +30,7 @@ catalog:
   'micromark': 4.0.2
   'neosanitize': 0.3.0
   'nock': 14.0.16
-  'oxfmt': 0.59.0
+  'oxfmt': 0.60.0
   'oxlint': 1.75.0
   # oxlint-tsgolint — the type-aware lint sidecar the fleet lint runner's
   # whole-tree gate invokes via `oxlint --type-aware`. Exact-pinned to match
@@ -131,64 +131,10 @@ minimumReleaseAgeExclude:
   # runner's whole-tree gate needs. The main package + its per-platform binary
   # family are pinned to the exact version (a scope glob would blanket-bypass a
   # future publish); exact-pinned so a future version re-soaks.
-  # published: 2026-07-21 | removable: 2026-07-28
-  - 'oxlint-tsgolint@7.0.2001'
-  # published: 2026-07-21 | removable: 2026-07-28
-  - '@oxlint-tsgolint/darwin-arm64@7.0.2001'
-  # published: 2026-07-21 | removable: 2026-07-28
-  - '@oxlint-tsgolint/darwin-x64@7.0.2001'
-  # published: 2026-07-21 | removable: 2026-07-28
-  - '@oxlint-tsgolint/linux-arm64@7.0.2001'
-  # published: 2026-07-21 | removable: 2026-07-28
-  - '@oxlint-tsgolint/linux-x64@7.0.2001'
-  # published: 2026-07-21 | removable: 2026-07-28
-  - '@oxlint-tsgolint/win32-arm64@7.0.2001'
-  # published: 2026-07-21 | removable: 2026-07-28
-  - '@oxlint-tsgolint/win32-x64@7.0.2001'
   # published: 2026-07-23 | removable: 2026-07-30
   - 'js-yaml@5.2.2'
-  # published: 2026-07-21 | removable: 2026-07-28
-  - '@oxlint/binding-android-arm-eabi@1.75.0'
-  # published: 2026-07-21 | removable: 2026-07-28
-  - '@oxlint/binding-android-arm64@1.75.0'
-  # published: 2026-07-21 | removable: 2026-07-28
-  - '@oxlint/binding-darwin-arm64@1.75.0'
-  # published: 2026-07-21 | removable: 2026-07-28
-  - '@oxlint/binding-darwin-x64@1.75.0'
-  # published: 2026-07-21 | removable: 2026-07-28
-  - '@oxlint/binding-freebsd-x64@1.75.0'
-  # published: 2026-07-21 | removable: 2026-07-28
-  - '@oxlint/binding-linux-arm-gnueabihf@1.75.0'
-  # published: 2026-07-21 | removable: 2026-07-28
-  - '@oxlint/binding-linux-arm-musleabihf@1.75.0'
-  # published: 2026-07-21 | removable: 2026-07-28
-  - '@oxlint/binding-linux-arm64-gnu@1.75.0'
-  # published: 2026-07-21 | removable: 2026-07-28
-  - '@oxlint/binding-linux-arm64-musl@1.75.0'
-  # published: 2026-07-21 | removable: 2026-07-28
-  - '@oxlint/binding-linux-ppc64-gnu@1.75.0'
-  # published: 2026-07-21 | removable: 2026-07-28
-  - '@oxlint/binding-linux-riscv64-gnu@1.75.0'
-  # published: 2026-07-21 | removable: 2026-07-28
-  - '@oxlint/binding-linux-riscv64-musl@1.75.0'
-  # published: 2026-07-21 | removable: 2026-07-28
-  - '@oxlint/binding-linux-s390x-gnu@1.75.0'
-  # published: 2026-07-21 | removable: 2026-07-28
-  - '@oxlint/binding-linux-x64-gnu@1.75.0'
-  # published: 2026-07-21 | removable: 2026-07-28
-  - '@oxlint/binding-linux-x64-musl@1.75.0'
-  # published: 2026-07-21 | removable: 2026-07-28
-  - '@oxlint/binding-openharmony-arm64@1.75.0'
-  # published: 2026-07-21 | removable: 2026-07-28
-  - '@oxlint/binding-win32-arm64-msvc@1.75.0'
-  # published: 2026-07-21 | removable: 2026-07-28
-  - '@oxlint/binding-win32-ia32-msvc@1.75.0'
-  # published: 2026-07-21 | removable: 2026-07-28
-  - '@oxlint/binding-win32-x64-msvc@1.75.0'
   # published: 2026-07-24 | removable: 2026-07-31
   - '@shadscan/cli@0.2.0'
-  # published: 2026-07-21 | removable: 2026-07-28
-  - 'oxlint@1.75.0'
 
 allowBuilds:
   '@socketsecurity/sdk': false
