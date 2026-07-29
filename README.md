@@ -1,7 +1,7 @@
 # @socketsecurity/odai
 
 <div align="center">
-  <img src="assets/repo/brand/odai-combomark.svg" width="360" alt="odai — the Socket shield holding the odai wordmark, on disk AI, by socket labs">
+  <img src="assets/repo/brand/odai-combomark.svg" width="360" alt="odai — the odai badge: the odai wordmark, on disk AI, socket labs, and stacked storage layers inside the violet shield">
 </div>
 
 <a href="https://badge.socket.dev/npm/package/@socketsecurity/odai"><img src="https://badge.socket.dev/npm/package/@socketsecurity/odai" alt="Socket Badge" height="20"></a>
