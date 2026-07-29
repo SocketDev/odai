@@ -219,8 +219,9 @@ export function formatReleaseTagExemption(
     lines.push(
       `Skipping ${exempt.length} commit(s) in this range for the ${scanLabel} check:`,
     )
+    const oneTag = tags.length === 1
     lines.push(
-      `  release ${tags.length === 1 ? 'tag' : 'tags'} ${joinAnd(tags)} already publish(es) them.`,
+      `  release ${oneTag ? 'tag' : 'tags'} ${joinAnd(tags)} already ${oneTag ? 'publishes' : 'publish'} them.`,
     )
     lines.push(
       '  A published tag pins these SHAs — rewriting one orphans the tag, so',

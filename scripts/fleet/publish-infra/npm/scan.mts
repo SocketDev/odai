@@ -23,6 +23,10 @@ import process from 'node:process'
 import { SocketSdk } from '@socketsecurity/sdk-stable'
 
 import { logger, rootPath, runCapture } from '../shared.mts'
+import {
+  acquireSocketTokenViaOAuth,
+  socketOAuthConfigured,
+} from '../socket-oauth.mts'
 import { defaultPackTarball } from './staged.mts'
 import { errorMessage } from '@socketsecurity/lib-stable/errors/message'
 import { safeDelete } from '@socketsecurity/lib-stable/fs/safe'
@@ -106,6 +110,16 @@ export async function preflightSocketScanAuth(
   } = { __proto__: null, ...options } as NonNullable<typeof options>
 
   let token = resolveSocketApiToken(env)
+  if (!token && socketOAuthConfigured(env)) {
+    // Browser OAuth (authorization-code + PKCE + loopback) — no key to copy.
+    // The browser opens on the operator's screen, so this path does not need
+    // a TTY; a thrown failure falls through to the paste/fail paths below.
+    try {
+      token = await acquireSocketTokenViaOAuth({ env, openUrl })
+    } catch (e) {
+      logger.warn(errorMessage(e))
+    }
+  }
   if (!token && interactive) {
     logger.log(
       `Scan gate: no Socket API token in the environment — opening ${SOCKET_TOKEN_MINT_URL} ` +
