@@ -6,6 +6,7 @@
  */
 
 import { getLanguageModel } from './availability.mts'
+import { parseControlTokens } from './control-tokens.mts'
 import type {
   LanguageModelLike,
   LanguageModelState,
@@ -13,20 +14,14 @@ import type {
   SessionLike,
 } from './types.mts'
 
-export interface CreateOptions {
-  initialPrompts?: Message[] | undefined
-  systemPrompt?: string | undefined
-  temperature?: number | undefined
-  topK?: number | undefined
-}
-
 export function buildCreateOptions(
   options: CreateSessionOptions,
 ): CreateOptions {
   const opts = { __proto__: null, ...options } as typeof options
   const result: CreateOptions = {}
-  if (opts.initialPrompts !== undefined && opts.initialPrompts.length > 0) {
-    result.initialPrompts = opts.initialPrompts
+  const initialPrompts = resolveInitialPrompts(options)
+  if (initialPrompts !== undefined) {
+    result.initialPrompts = initialPrompts
   } else if (opts.systemPrompt !== undefined) {
     result.systemPrompt = opts.systemPrompt
   }
@@ -69,7 +64,7 @@ export async function createWithFallback(
   }
 
   const reduced: CreateSessionOptions = {
-    initialPrompts: opts.initialPrompts,
+    initialPrompts: resolveInitialPrompts(options),
   }
   try {
     return await model.create(reduced)
@@ -86,6 +81,11 @@ export async function createWithFallback(
 }
 
 export interface CreateSessionOptions {
+  /**
+   * A Chrome control-token template (`$SYSTEM` / `$USER` / `$MODEL` / `$END`).
+   * Parsed into `initialPrompts` when `initialPrompts` is not given explicitly.
+   */
+  controlTemplate?: string | undefined
   initialPrompts?: Message[] | undefined
   systemPrompt?: string | undefined
   temperature?: number | undefined
@@ -102,4 +102,27 @@ export function isUnsupportedError(error: unknown): boolean {
     name === 'NotSupportedError' ||
     error.message.toLowerCase().includes('not supported')
   )
+}
+
+export interface CreateOptions {
+  initialPrompts?: Message[] | undefined
+  systemPrompt?: string | undefined
+  temperature?: number | undefined
+  topK?: number | undefined
+}
+
+export function resolveInitialPrompts(
+  options: CreateSessionOptions,
+): Message[] | undefined {
+  const opts = { __proto__: null, ...options } as typeof options
+  if (opts.initialPrompts !== undefined && opts.initialPrompts.length > 0) {
+    return opts.initialPrompts
+  }
+  if (opts.controlTemplate !== undefined) {
+    const parsed = parseControlTokens(opts.controlTemplate)
+    if (parsed.length > 0) {
+      return parsed
+    }
+  }
+  return undefined
 }

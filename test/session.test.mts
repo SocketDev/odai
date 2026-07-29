@@ -5,6 +5,7 @@ import {
   createLanguageModel,
   createWithFallback,
   isUnsupportedError,
+  resolveInitialPrompts,
 } from '../src/session.mts'
 import type { LanguageModelLike } from '../src/types.mts'
 
@@ -89,6 +90,38 @@ describe('buildCreateOptions', () => {
 
   it('returns an empty bag when nothing is provided', () => {
     expect(buildCreateOptions({})).toEqual({})
+  })
+
+  it('parses a controlTemplate into initialPrompts', () => {
+    expect(
+      buildCreateOptions({
+        controlTemplate: ['$SYSTEM', 'be terse', '$END', '$USER', 'hi'].join(
+          '\n',
+        ),
+      }),
+    ).toEqual({
+      initialPrompts: [
+        { content: 'be terse', role: 'system' },
+        { content: 'hi', role: 'user' },
+      ],
+    })
+  })
+})
+
+describe('resolveInitialPrompts', () => {
+  it('prefers explicit initialPrompts over a controlTemplate', () => {
+    expect(
+      resolveInitialPrompts({
+        controlTemplate: '$USER\nfrom template\n$END',
+        initialPrompts: [{ content: 'explicit', role: 'user' }],
+      }),
+    ).toEqual([{ content: 'explicit', role: 'user' }])
+  })
+
+  it('is undefined when the controlTemplate yields no messages', () => {
+    expect(resolveInitialPrompts({ controlTemplate: 'no tokens' })).toBe(
+      undefined,
+    )
   })
 })
 
