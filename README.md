@@ -14,13 +14,20 @@ odai — pronounced like the trickster; it lives in your machine and does your c
 
 ## Why this repo exists
 
-odai is local-only — the primary backend is Gemini Nano via installed Google
-Chrome on every platform; llama-server (loopback) is the local fallback; Apple
-FM and Phi Silica (Copilot+) are opportunistic per-OS extras. No cloud, no
-remote endpoints, no keys.
+odai is local-only — the primary backend is Chrome's built-in AI (the Prompt
+API, stable since Chrome 148) via installed Google Chrome on every platform;
+llama-server (loopback) is the local fallback; Apple FM and Phi Silica
+(Copilot+) are opportunistic per-OS extras. No cloud, no remote endpoints, no
+keys.
+
+The Prompt API is model-agnostic by design, so odai names its backend for the
+interface rather than the model. The on-device model is Gemini Nano today;
+Gemma 4 is [the base for the next Gemini Nano](https://android-developers.googleblog.com/2026/04/gemma-4-new-standard-for-local-agentic-intelligence.html)
+and is already testable in Chrome Canary behind the "Gemma 4 for Built-in AI"
+flag.
 
 `@socketsecurity/odai` is a local, on-device AI library for browser and Node.
-It wraps the browser's built-in Gemini Nano Prompt API behind a type-safe,
+It wraps the browser's built-in AI Prompt API behind a type-safe,
 backend-agnostic seam, hardens small-model JSON output, and ships `bench` — an
 evaluation harness that scores any backend on real Socket workloads. It exists
 so Socket code can feature-detect, prompt, and parse on-device model responses
