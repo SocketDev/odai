@@ -9,7 +9,7 @@ import {
   createAppleFmBackend,
   ODAI_APPLE_FM_SHIM_ENV_VAR,
 } from './backends/apple-fm.mts'
-import { createGeminiNanoHeadlessBackend } from './backends/gemini-nano-headless.mts'
+import { createChromeBuiltinBackend } from './backends/chrome-builtin.mts'
 import {
   createLlamaServerBackend,
   DEFAULT_LLAMA_URL,
@@ -52,7 +52,7 @@ import { reasonAboutLockfile } from './tasks/lockfile.mts'
 import { generateCodePatch } from './tasks/patch.mts'
 import { summarizeText } from './tasks/summarize.mts'
 import { triageAlerts } from './tasks/triage.mts'
-import type { GeminiNanoModel } from './model.mts'
+import type { OdaiModel } from './model.mts'
 import type {
   Message,
   SessionLike,
@@ -61,7 +61,7 @@ import type {
 } from './types.mts'
 import type { StreamOptions } from './stream.mts'
 
-export function createMockModel(response: string): GeminiNanoModel {
+export function createMockModel(response: string): OdaiModel {
   const session = createMockSession({ response })
   return {
     async promptStructured<T>(
@@ -110,7 +110,7 @@ export {
   classifyDependencyChange,
   createAppleFmBackend,
   createBackend,
-  createGeminiNanoHeadlessBackend,
+  createChromeBuiltinBackend,
   createLlamaServerBackend,
   createLocalLanguageModelFactory,
   createOdaiModel,
@@ -157,11 +157,7 @@ export type {
   BackendName,
   OdaiBackend,
 } from './backends/types.mts'
-export type {
-  CreateOdaiModelOptions,
-  GeminiNanoModel,
-  OdaiModel,
-} from './model.mts'
+export type { CreateOdaiModelOptions, OdaiModel } from './model.mts'
 export type { DepClassification } from './prompts/classify-deps.mts'
 export type { CommitMessage } from './prompts/commit.mts'
 export type { TextSummary } from './prompts/summarize.mts'

@@ -2,7 +2,7 @@
  * @file CLI entry for the bench evaluator. Usage: node
  *   src/bench/run.mts # run the simulator backend through the odai seam node
  *   src/bench/run.mts --mock # run with single-response deterministic mock
- *   node src/bench/run.mts --backend=gemini-nano-headless # score a real
+ *   node src/bench/run.mts --backend=chrome-builtin # score a real
  *   registry backend through the same seam. The simulator mode lets the
  *   evaluator run in Node or node-smol without Chrome.
  */

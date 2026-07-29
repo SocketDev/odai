@@ -10,7 +10,7 @@ import { Value } from '@sinclair/typebox/value'
 import { dedupeDependencies } from '../tasks/dedupe.mts'
 import { reasonAboutLockfile } from '../tasks/lockfile.mts'
 import { generateCodePatch } from '../tasks/patch.mts'
-import type { GeminiNanoModel } from '../model.mts'
+import type { OdaiModel } from '../model.mts'
 import type { TaskResult } from '../types.mts'
 import {
   ALTERNATIVE_PACKAGE_PROMPT,
@@ -40,7 +40,7 @@ export interface ScenarioResult {
 
 export interface Scenario {
   name: string
-  run(model: GeminiNanoModel): Promise<ScenarioResult>
+  run(model: OdaiModel): Promise<ScenarioResult>
 }
 
 export function schemaLike<T extends ReturnType<typeof Type.Object>>(

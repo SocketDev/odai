@@ -15,7 +15,7 @@ import {
 } from 'vitest'
 
 import { ODAI_APPLE_FM_SHIM_ENV_VAR } from '../../src/backends/apple-fm.mts'
-import { ODAI_CHROME_ENV_VAR } from '../../src/backends/gemini-nano-headless.mts'
+import { ODAI_CHROME_ENV_VAR } from '../../src/backends/chrome-builtin.mts'
 import {
   backendNames,
   createBackend,
@@ -80,7 +80,7 @@ describe('backend registry', () => {
     process.env[ODAI_APPLE_FM_SHIM_ENV_VAR] = mockShimPath
     // Point Chrome resolution at a path that cannot exist, so registry
     // results don't depend on this machine having Chrome plus a downloaded
-    // Nano model.
+    // on-device model.
     originalChrome = process.env[ODAI_CHROME_ENV_VAR]
     process.env[ODAI_CHROME_ENV_VAR] = path.join(mockDir, 'no-chrome-here')
   })
@@ -119,12 +119,12 @@ describe('backend registry', () => {
   it('declares all five backends and probes real engines before the simulator', () => {
     expect([...backendNames].toSorted()).toEqual([
       'apple-fm',
-      'gemini-nano-headless',
+      'chrome-builtin',
       'llama-server',
       'simulator',
       'windows-phi-silica',
     ])
-    expect(defaultProbeOrder[0]).toBe('gemini-nano-headless')
+    expect(defaultProbeOrder[0]).toBe('chrome-builtin')
     expect(defaultProbeOrder[defaultProbeOrder.length - 1]).toBe('simulator')
   })
 
@@ -132,9 +132,9 @@ describe('backend registry', () => {
     expect(await createBackend('simulator').availability()).toEqual({
       available: true,
     })
-    const nano = await createBackend('gemini-nano-headless').availability()
-    expect(nano.available).toBe(false)
-    expect(nano.reason).toContain('Google Chrome not found')
+    const chromeBuiltin = await createBackend('chrome-builtin').availability()
+    expect(chromeBuiltin.available).toBe(false)
+    expect(chromeBuiltin.reason).toContain('Google Chrome not found')
     const llama = await createBackend('llama-server').availability()
     expect(llama.available).toBe(false)
     expect(llama.reason).toContain('not reachable')
@@ -149,7 +149,7 @@ describe('backend registry', () => {
   it('prefers the explicit backend option over env and probe', async () => {
     const backend = await selectBackend({
       backend: 'simulator',
-      env: { ODAI_BACKEND: 'gemini-nano-headless' },
+      env: { ODAI_BACKEND: 'chrome-builtin' },
     })
     expect(backend.name).toBe('simulator')
   })
@@ -193,11 +193,11 @@ describe('backend registry', () => {
     ).rejects.toThrow(/gpt-42.*simulator/s)
   })
 
-  it('auto-selects gemini-nano-headless when a LanguageModel global is available', async () => {
+  it('auto-selects chrome-builtin when a LanguageModel global is available', async () => {
     ;(globalThis as { LanguageModel?: object | undefined }).LanguageModel =
       new LanguageModelSimulator()
     const backend = await selectBackend({ env: {} })
-    expect(backend.name).toBe('gemini-nano-headless')
+    expect(backend.name).toBe('chrome-builtin')
   })
 
   it('falls through unavailable backends to the simulator in a bare runtime', async () => {
@@ -209,8 +209,8 @@ describe('backend registry', () => {
     await expect(
       selectBackend({
         env: {},
-        probe: ['gemini-nano-headless', 'llama-server', 'apple-fm'],
+        probe: ['chrome-builtin', 'llama-server', 'apple-fm'],
       }),
-    ).rejects.toThrow(/gemini-nano-headless.*llama-server.*apple-fm/s)
+    ).rejects.toThrow(/chrome-builtin.*llama-server.*apple-fm/s)
   })
 })

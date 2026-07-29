@@ -4,7 +4,7 @@ import {
   installLanguageModelSimulator,
   LanguageModelSimulator,
 } from '../src/simulator.mts'
-import { createGeminiNanoModel } from '../src/model.mts'
+import { createBuiltinModel } from '../src/model.mts'
 import { runEval } from '../src/bench/index.mts'
 import { createBenchResponseRules } from '../src/bench/simulator.mts'
 
@@ -23,7 +23,7 @@ describe('LanguageModelSimulator', () => {
       fallback: '{"ok":true}',
       rules: [],
     })
-    const model = await createGeminiNanoModel()
+    const model = await createBuiltinModel()
     const result = await model.promptStreaming('hello')
     expect(result.raw).toBe('{"ok":true}')
   })
@@ -35,7 +35,7 @@ describe('LanguageModelSimulator', () => {
     })
     ;(globalThis as { LanguageModel?: object | undefined }).LanguageModel =
       simulator
-    const model = await createGeminiNanoModel()
+    const model = await createBuiltinModel()
     const report = await runEval({ model })
     expect(report.total).toBe(8)
     expect(report.score).toBe(1)

@@ -15,7 +15,7 @@ import {
   createCommitMessagePrompt,
 } from '../prompts/commit.mts'
 import type { CommitMessage } from '../prompts/commit.mts'
-import type { GeminiNanoModel } from '../model.mts'
+import type { OdaiModel } from '../model.mts'
 import type { TaskResult } from '../types.mts'
 
 export type { CommitMessage }
@@ -34,7 +34,7 @@ const CommitMessageSchemaLike = {
 }
 
 export async function suggestCommitMessage(
-  model: GeminiNanoModel,
+  model: OdaiModel,
   diff: string,
 ): Promise<TaskResult<CommitMessage>> {
   return model.promptStructured<Static<typeof CommitMessageSchema>>(

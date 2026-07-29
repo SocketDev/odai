@@ -15,7 +15,7 @@ import {
   SUMMARIZE_SYSTEM_PROMPT,
 } from '../prompts/summarize.mts'
 import type { TextSummary } from '../prompts/summarize.mts'
-import type { GeminiNanoModel } from '../model.mts'
+import type { OdaiModel } from '../model.mts'
 import type { TaskResult } from '../types.mts'
 
 export type { TextSummary }
@@ -35,7 +35,7 @@ const TextSummarySchemaLike = {
 }
 
 export async function summarizeText(
-  model: GeminiNanoModel,
+  model: OdaiModel,
   text: string,
 ): Promise<TaskResult<TextSummary>> {
   return model.promptStructured<Static<typeof TextSummarySchema>>(

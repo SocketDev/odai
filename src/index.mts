@@ -9,7 +9,7 @@ import {
   createAppleFmBackend,
   ODAI_APPLE_FM_SHIM_ENV_VAR,
 } from './backends/apple-fm.mts'
-import { createGeminiNanoHeadlessBackend } from './backends/gemini-nano-headless.mts'
+import { createChromeBuiltinBackend } from './backends/chrome-builtin.mts'
 import {
   createLlamaServerBackend,
   DEFAULT_LLAMA_URL,
@@ -25,7 +25,7 @@ import {
 } from './backends/registry.mts'
 import { createSimulatorBackend } from './backends/simulator.mts'
 import { createWindowsPhiSilicaBackend } from './backends/windows-phi-silica.mts'
-import { createGeminiNanoModel, createOdaiModel } from './model.mts'
+import { createBuiltinModel, createOdaiModel } from './model.mts'
 import {
   createLocalLanguageModelFactory,
   isLanguageModelFactory,
@@ -48,8 +48,8 @@ export {
   classifyDependencyChange,
   createAppleFmBackend,
   createBackend,
-  createGeminiNanoHeadlessBackend,
-  createGeminiNanoModel,
+  createBuiltinModel,
+  createChromeBuiltinBackend,
   createLlamaServerBackend,
   createLocalLanguageModelFactory,
   createOdaiModel,
@@ -89,11 +89,7 @@ export type {
   BackendName,
   OdaiBackend,
 } from './backends/types.mts'
-export type {
-  CreateOdaiModelOptions,
-  GeminiNanoModel,
-  OdaiModel,
-} from './model.mts'
+export type { CreateOdaiModelOptions, OdaiModel } from './model.mts'
 export type { CreateSessionOptions } from './session.mts'
 export type { StreamOptions } from './stream.mts'
 export type { DepClassification } from './prompts/classify-deps.mts'

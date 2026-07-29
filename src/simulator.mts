@@ -2,7 +2,7 @@
  * @file Node/browser-agnostic simulator of the stable `LanguageModel` Prompt API.
  *   Useful for CI, node-smol SEA builds, and any environment where Chrome's
  *   on-device model is unavailable. The simulator conforms to the same shape as
- *   the browser global so `createGeminiNanoModel` works unchanged.
+ *   the browser global so `createBuiltinModel` works unchanged.
  */
 
 import type { LanguageModelLike, Message, SessionLike } from './types.mts'

@@ -1,11 +1,11 @@
 /**
  * @file Bench evaluator. Runs a battery of small, real-world scenarios
- *   against a GeminiNanoModel and reports pass/fail scores plus raw outputs.
+ *   against an OdaiModel and reports pass/fail scores plus raw outputs.
  *   Designed to answer: "how well does an on-device model actually work for
  *   these tasks?"
  */
 
-import type { GeminiNanoModel } from '../model.mts'
+import type { OdaiModel } from '../model.mts'
 import { allScenarios } from './scenarios.mts'
 import type { Scenario, ScenarioResult } from './scenarios.mts'
 
@@ -15,7 +15,7 @@ export type { Scenario, ScenarioResult }
 // socket-lint: allow no-required-in-options-bag — published API shape; renaming
 // the exported interface or reshaping the bag is a breaking change.
 export interface EvalRunOptions {
-  model: GeminiNanoModel
+  model: OdaiModel
   scenarios?: Scenario[] | undefined
 }
 

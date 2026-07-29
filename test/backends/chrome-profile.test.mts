@@ -16,15 +16,15 @@ import {
   findModelSource,
   isNodeRuntime,
   MODEL_COMPONENT_DIR,
+  ODAI_CHROME_ALLOW_DOWNLOAD_ENV_VAR,
   ODAI_CHROME_ENV_VAR,
-  ODAI_NANO_ALLOW_DOWNLOAD_ENV_VAR,
-  ODAI_NANO_USER_DATA_DIR_ENV_VAR,
+  ODAI_CHROME_USER_DATA_DIR_ENV_VAR,
   pathToFileUrl,
   readSystemLocalState,
   resolveBridgeConfig,
   systemChromeUserDataDirFor,
-} from '../../src/backends/gemini-nano-profile.mts'
-import type { ResolvedBridgeConfig } from '../../src/backends/gemini-nano-profile.mts'
+} from '../../src/backends/chrome-profile.mts'
+import type { ResolvedBridgeConfig } from '../../src/backends/chrome-profile.mts'
 
 async function tmpDir(): Promise<string> {
   return await mkdtemp(path.join(os.tmpdir(), 'odai-profile-test-'))
@@ -94,12 +94,12 @@ describe('defaultBridgeUserDataDir', () => {
   it('uses XDG_CACHE_HOME when set', () => {
     expect(
       defaultBridgeUserDataDir({ XDG_CACHE_HOME: '/cache' }, '/home/x', path),
-    ).toBe('/cache/odai/gemini-nano-headless')
+    ).toBe('/cache/odai/chrome-builtin')
   })
 
   it('falls back to the home cache dir without XDG_CACHE_HOME', () => {
     expect(defaultBridgeUserDataDir({}, '/home/x', path)).toBe(
-      ['/home/x', '.cache', 'odai', 'gemini-nano-headless'].join('/'),
+      ['/home/x', '.cache', 'odai', 'chrome-builtin'].join('/'),
     )
   })
 })
@@ -206,8 +206,8 @@ describe('resolveBridgeConfig', () => {
     const config = await resolveBridgeConfig({
       env: {
         [ODAI_CHROME_ENV_VAR]: chromePath,
-        [ODAI_NANO_ALLOW_DOWNLOAD_ENV_VAR]: '1',
-        [ODAI_NANO_USER_DATA_DIR_ENV_VAR]: path.join(root, 'from-env'),
+        [ODAI_CHROME_ALLOW_DOWNLOAD_ENV_VAR]: '1',
+        [ODAI_CHROME_USER_DATA_DIR_ENV_VAR]: path.join(root, 'from-env'),
       },
     })
     expect(config.chromePath).toBe(chromePath)
@@ -278,7 +278,7 @@ describe('findModelSource', () => {
       userDataDir: path.join(root, 'profile'),
     })
     expect(source.kind).toBe('download')
-    expect(source.reason).toContain('ODAI_NANO_ALLOW_DOWNLOAD')
+    expect(source.reason).toContain('ODAI_CHROME_ALLOW_DOWNLOAD')
   })
 })
 
