@@ -25,6 +25,11 @@ import {
 } from './backends/registry.mts'
 import { createSimulatorBackend } from './backends/simulator.mts'
 import { createWindowsPhiSilicaBackend } from './backends/windows-phi-silica.mts'
+import {
+  CONTROL_TOKENS,
+  formatControlTokens,
+  parseControlTokens,
+} from './control-tokens.mts'
 import { createBuiltinModel, createOdaiModel } from './model.mts'
 import {
   createLocalLanguageModelFactory,
@@ -45,6 +50,9 @@ import { triageAlerts } from './tasks/triage.mts'
 
 export {
   backendNames,
+  CONTROL_TOKENS,
+  formatControlTokens,
+  parseControlTokens,
   classifyDependencyChange,
   createAppleFmBackend,
   createBackend,

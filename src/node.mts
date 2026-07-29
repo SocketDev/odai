@@ -34,6 +34,11 @@ import {
 } from './cli/run.mts'
 import { createSimulatorBackend } from './backends/simulator.mts'
 import { createWindowsPhiSilicaBackend } from './backends/windows-phi-silica.mts'
+import {
+  CONTROL_TOKENS,
+  formatControlTokens,
+  parseControlTokens,
+} from './control-tokens.mts'
 import { promptStructured } from './json.mts'
 import { createOdaiModel } from './model.mts'
 import {
@@ -107,6 +112,9 @@ export function createMockSession(options: MockSessionOptions): SessionLike {
 
 export {
   backendNames,
+  CONTROL_TOKENS,
+  formatControlTokens,
+  parseControlTokens,
   classifyDependencyChange,
   createAppleFmBackend,
   createBackend,
@@ -158,6 +166,7 @@ export type {
   OdaiBackend,
 } from './backends/types.mts'
 export type { CreateOdaiModelOptions, OdaiModel } from './model.mts'
+export type { Message } from './types.mts'
 export type { DepClassification } from './prompts/classify-deps.mts'
 export type { CommitMessage } from './prompts/commit.mts'
 export type { TextSummary } from './prompts/summarize.mts'
