@@ -13,12 +13,12 @@ import {
   StreamQueue,
   stripUndefined,
   waitForModelReady,
-} from '../../src/backends/gemini-nano-page.mts'
+} from '../../src/backends/chrome-page.mts'
 import type {
   Bridge,
   PageLike,
   StreamPayload,
-} from '../../src/backends/gemini-nano-page.mts'
+} from '../../src/backends/chrome-page.mts'
 import type { SessionLike } from '../../src/types.mts'
 
 type Holder = Record<string, unknown>
@@ -337,7 +337,7 @@ describe('page-proxy functions', () => {
 
     it('falls back to a generic error when no shape is given', () => {
       expect(() => rethrowPageError(undefined)).toThrow(
-        /gemini-nano-headless page error/,
+        /chrome-builtin page error/,
       )
     })
   })

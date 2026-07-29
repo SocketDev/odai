@@ -1,5 +1,5 @@
 /**
- * @file Page-proxy layer for the gemini-nano-headless bridge. The `page*`
+ * @file Page-proxy layer for the chrome-builtin bridge. The `page*`
  *   functions run INSIDE Chrome via `page.evaluate`: playwright serializes
  *   them into the page, so they must be self-contained — argument plus
  *   globals only, no closure over Node scope. `createPageBoundFactory` wraps
@@ -358,7 +358,7 @@ export async function pagePromptStreaming(payload: {
 }
 
 export function rethrowPageError(error: PageErrorShape | undefined): never {
-  const raised = new Error(error?.message ?? 'gemini-nano-headless page error')
+  const raised = new Error(error?.message ?? 'chrome-builtin page error')
   raised.name = error?.name ?? 'Error'
   throw raised
 }
@@ -413,8 +413,8 @@ export async function waitForModelReady(
     if (state === 'no-global') {
       throw new Error(
         'Chrome exposed no LanguageModel global on the bridge page. This ' +
-          'needs real Google Chrome — Chromium builds cannot run Nano — new ' +
-          'enough to ship the Prompt API.',
+          'needs real Google Chrome — Chromium builds cannot run the ' +
+          'on-device model — new enough to ship the Prompt API.',
       )
     }
     const kickDue =
@@ -428,9 +428,9 @@ export async function waitForModelReady(
     await new Promise(resolve => setTimeout(resolve, READY_POLL_INTERVAL_MS))
   }
   throw new Error(
-    `Gemini Nano did not become available within ${timeoutMs}ms (last state ` +
-      `"${state}"). First activation of a fresh bridge profile needs network ` +
-      'for one keyless component-metadata exchange; once activated the ' +
+    `the on-device model did not become available within ${timeoutMs}ms (last ` +
+      `state "${state}"). First activation of a fresh bridge profile needs ` +
+      'network for one keyless component-metadata exchange; once activated the ' +
       `profile at ${opts.userDataDir} works offline.`,
   )
 }

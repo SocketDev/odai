@@ -1,15 +1,16 @@
 /**
- * @file Gemini Nano headless backend. Inside Chrome the runtime's
- *   `LanguageModel` global is used directly. In Node the backend launches
- *   REAL Google Chrome — Chromium builds lack `optimization_guide_internal`
- *   and cannot run Nano — with `--headless=new` via playwright-core and
- *   proxies the page's `LanguageModel` global across `page.evaluate`. Two
- *   first-class provisioning modes: system-Chrome mode clones the machine's
+ * @file Chrome built-in AI backend (headless bridge). Inside Chrome the
+ *   runtime's `LanguageModel` global is used directly. In Node the backend
+ *   launches REAL Google Chrome — Chromium builds lack
+ *   `optimization_guide_internal` and cannot run the on-device model — with
+ *   `--headless=new` via playwright-core and proxies the page's
+ *   `LanguageModel` global across `page.evaluate`. Two first-class
+ *   provisioning modes: system-Chrome mode clones the machine's
  *   already-downloaded model component into a odai-owned profile with
  *   copy-on-write — zero weights download, the live Chrome profile is never
  *   written — and CI mode downloads the component once into a cacheable
  *   profile when downloads are explicitly allowed. Provisioning lives in
- *   `gemini-nano-profile.mts`, the page proxy in `gemini-nano-page.mts`.
+ *   `chrome-profile.mts`, the page proxy in `chrome-page.mts`.
  */
 
 import { getLanguageModel, probeAvailability } from '../availability.mts'
@@ -17,7 +18,7 @@ import {
   createPageBoundFactory,
   STREAM_BINDING_NAME,
   waitForModelReady,
-} from './gemini-nano-page.mts'
+} from './chrome-page.mts'
 import {
   chromeMissingReason,
   ensureBridgeProfile,
@@ -25,31 +26,31 @@ import {
   isNodeRuntime,
   pathToFileUrl,
   resolveBridgeConfig,
-} from './gemini-nano-profile.mts'
+} from './chrome-profile.mts'
 import type { LanguageModelLike } from '../types.mts'
 import type {
   Bridge,
   ChromiumLauncherLike,
   StreamPayload,
   StreamQueue,
-} from './gemini-nano-page.mts'
+} from './chrome-page.mts'
 import type { BackendAvailability, OdaiBackend } from './types.mts'
 
 export type {
   BrowserContextLike,
   ChromiumLauncherLike,
   PageLike,
-} from './gemini-nano-page.mts'
+} from './chrome-page.mts'
 export {
-  ODAI_CHROME_ENV_VAR,
-  ODAI_NANO_ALLOW_DOWNLOAD_ENV_VAR,
-  ODAI_NANO_USER_DATA_DIR_ENV_VAR,
   MODEL_COMPONENT_DIR,
-} from './gemini-nano-profile.mts'
+  ODAI_CHROME_ALLOW_DOWNLOAD_ENV_VAR,
+  ODAI_CHROME_ENV_VAR,
+  ODAI_CHROME_USER_DATA_DIR_ENV_VAR,
+} from './chrome-profile.mts'
 
 /**
- * Playwright defaults that break Nano and must not reach Chrome:
- * `--disable-component-update` blocks local component adoption, and
+ * Playwright defaults that break the on-device model and must not reach
+ * Chrome: `--disable-component-update` blocks local component adoption, and
  * background networking / field-trial config are load-bearing for component
  * plus model delivery.
  */
@@ -61,7 +62,7 @@ const IGNORED_DEFAULT_ARGS = [
 
 /**
  * Replacement for playwright's `--disable-features` switch, whose default
- * list includes the Nano-killing `OptimizationHints`: Chrome honors the last
+ * list includes the model-killing `OptimizationHints`: Chrome honors the last
  * occurrence, so appending this keeps the quiet-automation intent while
  * dropping the kill.
  */
@@ -69,21 +70,21 @@ const LAUNCH_ARGS = [
   '--disable-features=DialMediaRouteProvider,GlobalMediaControls,MediaRouter,Translate',
 ]
 
-export const GEMINI_NANO_UNAVAILABLE_REASON =
-  'gemini-nano-headless needs a LanguageModel global that reports available, ' +
+export const CHROME_BUILTIN_UNAVAILABLE_REASON =
+  'chrome-builtin needs a LanguageModel global that reports available, ' +
   'or a Node runtime with Google Chrome to drive headlessly.'
 
-export interface GeminiNanoHeadlessOptions {
+export interface ChromeBuiltinOptions {
   /**
    * Allow the one-time in-CI model component download when no local model can
-   * be cloned. The `ODAI_NANO_ALLOW_DOWNLOAD` env var (`1`/`true`) is the
+   * be cloned. The `ODAI_CHROME_ALLOW_DOWNLOAD` env var (`1`/`true`) is the
    * string form. Off by default: local runs must be zero-download.
    */
   allowDownload?: boolean | undefined
   /**
    * Google Chrome executable. Falls back to the `ODAI_CHROME` env var, then
    * per-OS well-known install paths. Must be real Chrome — Chromium builds
-   * cannot run Nano.
+   * cannot run the on-device model.
    */
   chromePath?: string | undefined
   /**
@@ -107,7 +108,7 @@ export interface GeminiNanoHeadlessOptions {
   systemChromeUserDataDir?: string | undefined
   /**
    * The odai-owned Chrome profile the bridge launches with. Falls back to
-   * the `ODAI_NANO_USER_DATA_DIR` env var, then a per-user cache dir.
+   * the `ODAI_CHROME_USER_DATA_DIR` env var, then a per-user cache dir.
    * Persistent on purpose: first activation registers the model component
    * with one small keyless metadata exchange, and later launches work
    * offline.
@@ -115,17 +116,17 @@ export interface GeminiNanoHeadlessOptions {
   userDataDir?: string | undefined
 }
 
-export interface GeminiNanoHeadlessBackend extends OdaiBackend {
+export interface ChromeBuiltinBackend extends OdaiBackend {
   /**
    * Close the headless Chrome bridge if one was launched.
    */
   close(): Promise<void>
 }
 
-export function createGeminiNanoHeadlessBackend(
-  options?: GeminiNanoHeadlessOptions | undefined,
-): GeminiNanoHeadlessBackend {
-  const opts = { __proto__: null, ...options } as GeminiNanoHeadlessOptions
+export function createChromeBuiltinBackend(
+  options?: ChromeBuiltinOptions | undefined,
+): ChromeBuiltinBackend {
+  const opts = { __proto__: null, ...options } as ChromeBuiltinOptions
   let bridgePromise: Promise<Bridge> | undefined
   return {
     async availability(): Promise<BackendAvailability> {
@@ -142,7 +143,7 @@ export function createGeminiNanoHeadlessBackend(
         }
       }
       if (!isNodeRuntime()) {
-        return { available: false, reason: GEMINI_NANO_UNAVAILABLE_REASON }
+        return { available: false, reason: CHROME_BUILTIN_UNAVAILABLE_REASON }
       }
       const config = await resolveBridgeConfig(opts)
       if (config.chromePath === undefined) {
@@ -172,7 +173,7 @@ export function createGeminiNanoHeadlessBackend(
         return model
       }
       if (!isNodeRuntime()) {
-        throw new Error(GEMINI_NANO_UNAVAILABLE_REASON)
+        throw new Error(CHROME_BUILTIN_UNAVAILABLE_REASON)
       }
       bridgePromise ??= startBridge(opts)
       try {
@@ -182,17 +183,15 @@ export function createGeminiNanoHeadlessBackend(
         throw error
       }
     },
-    name: 'gemini-nano-headless',
+    name: 'chrome-builtin',
   }
 }
 
-export async function loadLauncher(
-  options: GeminiNanoHeadlessOptions,
-): Promise<{
+export async function loadLauncher(options: ChromeBuiltinOptions): Promise<{
   launcher?: ChromiumLauncherLike | undefined
   reason?: string | undefined
 }> {
-  const opts = { __proto__: null, ...options } as GeminiNanoHeadlessOptions
+  const opts = { __proto__: null, ...options } as ChromeBuiltinOptions
   if (opts.launcher !== undefined) {
     return { launcher: opts.launcher }
   }
@@ -213,9 +212,9 @@ export async function loadLauncher(
 }
 
 export async function startBridge(
-  options: GeminiNanoHeadlessOptions,
+  options: ChromeBuiltinOptions,
 ): Promise<Bridge> {
-  const opts = { __proto__: null, ...options } as GeminiNanoHeadlessOptions
+  const opts = { __proto__: null, ...options } as ChromeBuiltinOptions
   const config = await resolveBridgeConfig(opts)
   if (config.chromePath === undefined) {
     throw new Error(chromeMissingReason(config))

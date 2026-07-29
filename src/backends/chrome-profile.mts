@@ -1,9 +1,9 @@
 /**
- * @file Node-side provisioning for the gemini-nano-headless bridge: Chrome
+ * @file Node-side provisioning for the chrome-builtin bridge: Chrome
  *   executable resolution, model-component discovery, copy-on-write cloning
- *   of the system Chrome model into a odai-owned profile, and the Local
- *   State activation seed. The recipe is empirical, verified against Chrome
- *   150: labs flags via `browser.enabled_labs_experiments`,
+ *   of the system Chrome on-device model into a odai-owned profile, and the
+ *   Local State activation seed. The recipe is empirical, verified against
+ *   Chrome 150: labs flags via `browser.enabled_labs_experiments`,
  *   `MODEL_EXECUTION_FEATURE_PROMPT_API` (id 6) marked recently used, and the
  *   system profile's on-device prefs plus component registration carried
  *   over. The live Chrome profile is only ever read. All node: imports are
@@ -17,8 +17,8 @@ import type * as osNs from 'node:os'
 import type * as pathNs from 'node:path'
 
 export const ODAI_CHROME_ENV_VAR = 'ODAI_CHROME'
-export const ODAI_NANO_ALLOW_DOWNLOAD_ENV_VAR = 'ODAI_NANO_ALLOW_DOWNLOAD'
-export const ODAI_NANO_USER_DATA_DIR_ENV_VAR = 'ODAI_NANO_USER_DATA_DIR'
+export const ODAI_CHROME_ALLOW_DOWNLOAD_ENV_VAR = 'ODAI_CHROME_ALLOW_DOWNLOAD'
+export const ODAI_CHROME_USER_DATA_DIR_ENV_VAR = 'ODAI_CHROME_USER_DATA_DIR'
 
 /**
  * Directory carrying the 4 GB foundational model component in a Chrome
@@ -139,7 +139,8 @@ export function chromeMissingReason(config: ResolvedBridgeConfig): string {
     'Google Chrome not found; looked at ' +
     `${config.chromePathCandidates.join(', ')}. Install Google Chrome or ` +
     `point ${ODAI_CHROME_ENV_VAR} at the executable. Chromium builds do ` +
-    'not work: they lack optimization_guide_internal and cannot run Nano.'
+    'not work: they lack optimization_guide_internal and cannot run the ' +
+    'on-device model.'
   )
 }
 
@@ -204,7 +205,7 @@ export function defaultBridgeUserDataDir(
   path: NodeDeps['path'],
 ): string {
   const cacheHome = env['XDG_CACHE_HOME'] ?? path.join(homeDir, '.cache')
-  return path.join(cacheHome, 'odai', 'gemini-nano-headless')
+  return path.join(cacheHome, 'odai', 'chrome-builtin')
 }
 
 /**
@@ -250,7 +251,7 @@ export async function ensureBridgeProfile(
   const bridgePagePath = path.join(config.userDataDir, BRIDGE_PAGE_FILENAME)
   await fsp.writeFile(
     bridgePagePath,
-    '<!doctype html><title>odai gemini-nano-headless bridge</title>',
+    '<!doctype html><title>odai chrome-builtin bridge</title>',
   )
   return bridgePagePath
 }
@@ -279,11 +280,11 @@ export async function findModelSource(
   return {
     kind: 'download',
     reason:
-      `no Gemini Nano model component: neither the bridge profile at ` +
+      `no Chrome built-in AI model component: neither the bridge profile at ` +
       `${config.userDataDir} nor the system Chrome profile at ` +
       `${config.systemChromeUserDataDir} has ${MODEL_COMPONENT_DIR}, and ` +
       `downloads are off. Let Chrome download the model once, or set ` +
-      `${ODAI_NANO_ALLOW_DOWNLOAD_ENV_VAR}=1 to fetch it here (CI mode).`,
+      `${ODAI_CHROME_ALLOW_DOWNLOAD_ENV_VAR}=1 to fetch it here (CI mode).`,
   }
 }
 
@@ -351,7 +352,7 @@ export async function resolveBridgeConfig(
   const chromePath = candidates.find(candidate => fs.existsSync(candidate))
   return {
     allowDownload:
-      opts.allowDownload ?? envFlag(env[ODAI_NANO_ALLOW_DOWNLOAD_ENV_VAR]),
+      opts.allowDownload ?? envFlag(env[ODAI_CHROME_ALLOW_DOWNLOAD_ENV_VAR]),
     chromePath,
     chromePathCandidates: candidates,
     systemChromeUserDataDir:
@@ -359,9 +360,9 @@ export async function resolveBridgeConfig(
       systemChromeUserDataDirFor(platform, env, homeDir),
     userDataDir:
       opts.userDataDir ??
-      (env[ODAI_NANO_USER_DATA_DIR_ENV_VAR] !== undefined &&
-      env[ODAI_NANO_USER_DATA_DIR_ENV_VAR] !== ''
-        ? env[ODAI_NANO_USER_DATA_DIR_ENV_VAR]
+      (env[ODAI_CHROME_USER_DATA_DIR_ENV_VAR] !== undefined &&
+      env[ODAI_CHROME_USER_DATA_DIR_ENV_VAR] !== ''
+        ? env[ODAI_CHROME_USER_DATA_DIR_ENV_VAR]
         : defaultBridgeUserDataDir(env, homeDir, path)),
   }
 }

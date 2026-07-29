@@ -46,7 +46,7 @@ console.log(raw)
 
 `createOdaiModel` picks a backend by precedence: the explicit `backend`
 option, then the `ODAI_BACKEND` env var, then the availability probe order —
-`gemini-nano-headless`, `llama-server`, `apple-fm`, `windows-phi-silica`,
+`chrome-builtin`, `llama-server`, `apple-fm`, `windows-phi-silica`,
 `simulator`.
 
 ### CLI
@@ -86,7 +86,7 @@ real backend with `--backend`:
 
 ```sh
 pnpm run bench
-pnpm run bench --backend=gemini-nano-headless
+pnpm run bench --backend=chrome-builtin
 ```
 
 ## Development

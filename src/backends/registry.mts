@@ -8,7 +8,7 @@
 import { joinOr } from '@socketsecurity/lib/arrays/join'
 
 import { createAppleFmBackend } from './apple-fm.mts'
-import { createGeminiNanoHeadlessBackend } from './gemini-nano-headless.mts'
+import { createChromeBuiltinBackend } from './chrome-builtin.mts'
 import { createLlamaServerBackend } from './llama-server.mts'
 import { createSimulatorBackend } from './simulator.mts'
 import { createWindowsPhiSilicaBackend } from './windows-phi-silica.mts'
@@ -18,7 +18,7 @@ export const ODAI_BACKEND_ENV_VAR = 'ODAI_BACKEND'
 
 export const backendNames: readonly BackendName[] = [
   'apple-fm',
-  'gemini-nano-headless',
+  'chrome-builtin',
   'llama-server',
   'simulator',
   'windows-phi-silica',
@@ -29,7 +29,7 @@ export const backendNames: readonly BackendName[] = [
  * bare Node runtime lands on a working, clearly-canned model.
  */
 export const defaultProbeOrder: readonly BackendName[] = [
-  'gemini-nano-headless',
+  'chrome-builtin',
   'llama-server',
   'apple-fm',
   'windows-phi-silica',
@@ -57,8 +57,8 @@ export function createBackend(name: BackendName): OdaiBackend {
   switch (name) {
     case 'apple-fm':
       return createAppleFmBackend()
-    case 'gemini-nano-headless':
-      return createGeminiNanoHeadlessBackend()
+    case 'chrome-builtin':
+      return createChromeBuiltinBackend()
     case 'llama-server':
       return createLlamaServerBackend()
     case 'simulator':

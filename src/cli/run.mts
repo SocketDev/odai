@@ -116,11 +116,11 @@ export function promptTimeoutMs(
 export function provisioningHelp(): string {
   return [
     'Provisioning:',
-    '  gemini-nano-headless — install Google Chrome; when the machine’s Chrome',
-    '    already has the Gemini Nano component the bridge clones it with zero',
-    '    downloads. In CI point ODAI_NANO_USER_DATA_DIR at a cached path and run',
-    '    one fill job with ODAI_NANO_ALLOW_DOWNLOAD=1; later jobs restore the',
-    '    cached profile and work offline.',
+    '  chrome-builtin — install Google Chrome; when the machine’s Chrome',
+    '    already has the on-device model component the bridge clones it with',
+    '    zero downloads. In CI point ODAI_CHROME_USER_DATA_DIR at a cached path',
+    '    and run one fill job with ODAI_CHROME_ALLOW_DOWNLOAD=1; later jobs',
+    '    restore the cached profile and work offline.',
     '  llama-server — start a loopback llama-server and set ODAI_LLAMA_URL; the',
     '    default probe target is http://127.0.0.1:8080.',
     '  apple-fm — needs Apple silicon with Apple Intelligence enabled.',

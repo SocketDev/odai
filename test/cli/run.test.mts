@@ -146,7 +146,7 @@ describe('runCli', () => {
     expect(code).toBe(69)
     expect(stderr.text()).toContain('engine offline')
     expect(stderr.text()).toContain('Provisioning:')
-    expect(stderr.text()).toContain('ODAI_NANO_ALLOW_DOWNLOAD=1')
+    expect(stderr.text()).toContain('ODAI_CHROME_ALLOW_DOWNLOAD=1')
     expect(stderr.text()).toContain('clean-skip signal')
   })
 

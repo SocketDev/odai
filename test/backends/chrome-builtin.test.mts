@@ -5,20 +5,20 @@ import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
-  createGeminiNanoHeadlessBackend,
+  createChromeBuiltinBackend,
   loadLauncher,
   MODEL_COMPONENT_DIR,
+  ODAI_CHROME_ALLOW_DOWNLOAD_ENV_VAR,
   ODAI_CHROME_ENV_VAR,
-  ODAI_NANO_ALLOW_DOWNLOAD_ENV_VAR,
   startBridge,
-} from '../../src/backends/gemini-nano-headless.mts'
+} from '../../src/backends/chrome-builtin.mts'
 import { createOdaiModel } from '../../src/model.mts'
 import { LanguageModelSimulator } from '../../src/simulator.mts'
 import type {
   BrowserContextLike,
   ChromiumLauncherLike,
   PageLike,
-} from '../../src/backends/gemini-nano-headless.mts'
+} from '../../src/backends/chrome-builtin.mts'
 
 // odai delegates built-in model resolution to socket-lib's `ai/builtin`, whose
 // real resolver probes the runtime once and caches. Mock it to re-read the
@@ -110,7 +110,7 @@ interface Fixture {
 }
 
 async function createFixture(): Promise<Fixture> {
-  const root = await mkdtemp(path.join(os.tmpdir(), 'odai-nano-test-'))
+  const root = await mkdtemp(path.join(os.tmpdir(), 'odai-chrome-test-'))
   const chromePath = path.join(root, 'chrome')
   await writeFile(chromePath, '#!/bin/sh\n')
   const systemDir = path.join(root, 'system-chrome')
@@ -139,7 +139,7 @@ async function createFixture(): Promise<Fixture> {
   }
 }
 
-describe('gemini-nano-headless backend', () => {
+describe('chrome-builtin backend', () => {
   let originalLanguageModel: unknown
 
   beforeEach(() => {
@@ -157,12 +157,12 @@ describe('gemini-nano-headless backend', () => {
   it('reports available when the runtime LanguageModel global is usable', async () => {
     ;(globalThis as Record<string, unknown>)['LanguageModel'] =
       new LanguageModelSimulator()
-    const backend = createGeminiNanoHeadlessBackend({ env: {} })
+    const backend = createChromeBuiltinBackend({ env: {} })
     expect(await backend.availability()).toEqual({ available: true })
   })
 
   it('is unavailable with a Chrome remedy when no Chrome executable exists', async () => {
-    const backend = createGeminiNanoHeadlessBackend({
+    const backend = createChromeBuiltinBackend({
       env: { [ODAI_CHROME_ENV_VAR]: '/definitely/not/chrome' },
     })
     const availability = await backend.availability()
@@ -174,7 +174,7 @@ describe('gemini-nano-headless backend', () => {
 
   it('is unavailable when no model component exists and downloads are off', async () => {
     const fixture = await createFixture()
-    const backend = createGeminiNanoHeadlessBackend({
+    const backend = createChromeBuiltinBackend({
       chromePath: fixture.chromePath,
       env: {},
       systemChromeUserDataDir: path.join(fixture.systemDir, 'missing'),
@@ -183,12 +183,12 @@ describe('gemini-nano-headless backend', () => {
     const availability = await backend.availability()
     expect(availability.available).toBe(false)
     expect(availability.reason).toContain('OptGuideOnDeviceModel')
-    expect(availability.reason).toContain('ODAI_NANO_ALLOW_DOWNLOAD')
+    expect(availability.reason).toContain('ODAI_CHROME_ALLOW_DOWNLOAD')
   })
 
   it('is available in system-Chrome mode when the model can be cloned', async () => {
     const fixture = await createFixture()
-    const backend = createGeminiNanoHeadlessBackend({
+    const backend = createChromeBuiltinBackend({
       chromePath: fixture.chromePath,
       env: {},
       systemChromeUserDataDir: fixture.systemDir,
@@ -199,9 +199,9 @@ describe('gemini-nano-headless backend', () => {
 
   it('is available in CI mode when downloads are explicitly allowed', async () => {
     const fixture = await createFixture()
-    const backend = createGeminiNanoHeadlessBackend({
+    const backend = createChromeBuiltinBackend({
       chromePath: fixture.chromePath,
-      env: { [ODAI_NANO_ALLOW_DOWNLOAD_ENV_VAR]: '1' },
+      env: { [ODAI_CHROME_ALLOW_DOWNLOAD_ENV_VAR]: '1' },
       systemChromeUserDataDir: path.join(fixture.systemDir, 'missing'),
       userDataDir: fixture.userDataDir,
     })
@@ -211,7 +211,7 @@ describe('gemini-nano-headless backend', () => {
   it('launches a throwaway profile seeded from system Chrome, never the live profile', async () => {
     const fixture = await createFixture()
     const fake = createFakeBrowser(new LanguageModelSimulator())
-    const backend = createGeminiNanoHeadlessBackend({
+    const backend = createChromeBuiltinBackend({
       chromePath: fixture.chromePath,
       env: {},
       launcher: fake.launcher,
@@ -265,13 +265,13 @@ describe('gemini-nano-headless backend', () => {
         fallback: '{"summary":"canned"}',
         rules: [
           {
-            response: '{"summary":"nano says hi"}',
+            response: '{"summary":"builtin says hi"}',
             when: text => text.includes('hello'),
           },
         ],
       }),
     )
-    const backend = createGeminiNanoHeadlessBackend({
+    const backend = createChromeBuiltinBackend({
       chromePath: fixture.chromePath,
       env: {},
       launcher: fake.launcher,
@@ -281,7 +281,7 @@ describe('gemini-nano-headless backend', () => {
     const factory = await backend.languageModel()
     const session = await factory.create({})
     const raw = await session.prompt([{ content: 'hello', role: 'user' }])
-    expect(raw).toBe('{"summary":"nano says hi"}')
+    expect(raw).toBe('{"summary":"builtin says hi"}')
     await backend.close()
   })
 
@@ -289,11 +289,11 @@ describe('gemini-nano-headless backend', () => {
     const fixture = await createFixture()
     const fake = createFakeBrowser(
       new LanguageModelSimulator({
-        fallback: 'streamed reply from nano',
+        fallback: 'streamed reply from builtin',
         rules: [],
       }),
     )
-    const backend = createGeminiNanoHeadlessBackend({
+    const backend = createChromeBuiltinBackend({
       chromePath: fixture.chromePath,
       env: {},
       launcher: fake.launcher,
@@ -309,7 +309,7 @@ describe('gemini-nano-headless backend', () => {
       chunks.push(chunk)
     }
     expect(chunks.length).toBeGreaterThan(0)
-    expect(chunks.join('')).toBe('streamed reply from nano')
+    expect(chunks.join('')).toBe('streamed reply from builtin')
     await backend.close()
   })
 
@@ -321,7 +321,7 @@ describe('gemini-nano-headless backend', () => {
         rules: [],
       }),
     )
-    const backend = createGeminiNanoHeadlessBackend({
+    const backend = createChromeBuiltinBackend({
       chromePath: fixture.chromePath,
       env: {},
       launcher: fake.launcher,
@@ -360,7 +360,7 @@ describe('gemini-nano-headless backend', () => {
       },
     }
     const fake = createFakeBrowser(throwingModel)
-    const backend = createGeminiNanoHeadlessBackend({
+    const backend = createChromeBuiltinBackend({
       chromePath: fixture.chromePath,
       env: {},
       launcher: fake.launcher,
@@ -384,7 +384,7 @@ describe('gemini-nano-headless backend', () => {
         throw new Error('not available')
       },
     }
-    const backend = createGeminiNanoHeadlessBackend({ env: {} })
+    const backend = createChromeBuiltinBackend({ env: {} })
     const availability = await backend.availability()
     expect(availability.available).toBe(false)
     expect(availability.reason).toContain('not')
@@ -393,7 +393,7 @@ describe('gemini-nano-headless backend', () => {
   it('returns a factory backed by the runtime LanguageModel global from languageModel', async () => {
     const model = new LanguageModelSimulator()
     ;(globalThis as Record<string, unknown>)['LanguageModel'] = model
-    const backend = createGeminiNanoHeadlessBackend({ env: {} })
+    const backend = createChromeBuiltinBackend({ env: {} })
     const factory = await backend.languageModel()
     // The runtime global is used (not the headless bridge); odai adapts it to
     // the session seam, so assert delegation rather than object identity.
@@ -431,7 +431,7 @@ describe('gemini-nano-headless backend', () => {
         systemChromeUserDataDir: path.join(fixture.systemDir, 'missing'),
         userDataDir: fixture.userDataDir,
       }),
-    ).rejects.toThrow(/no Gemini Nano model component/)
+    ).rejects.toThrow(/no Chrome built-in AI model component/)
   })
 
   it('fails with the wait reason when the model never becomes available', async () => {
@@ -445,7 +445,7 @@ describe('gemini-nano-headless backend', () => {
       },
     }
     const fake = createFakeBrowser(stuckModel)
-    const backend = createGeminiNanoHeadlessBackend({
+    const backend = createChromeBuiltinBackend({
       chromePath: fixture.chromePath,
       env: {},
       launcher: fake.launcher,
@@ -462,16 +462,16 @@ describe('gemini-nano-headless backend', () => {
 })
 
 describe.runIf(process.env['ODAI_E2E'] === '1')(
-  'gemini-nano-headless e2e (ODAI_E2E=1)',
+  'chrome-builtin e2e (ODAI_E2E=1)',
   () => {
     it(
-      'prompts real Gemini Nano through headless system Chrome',
+      'prompts the real on-device model through headless system Chrome',
       { timeout: 300_000 },
       async () => {
         const userDataDir = await mkdtemp(
-          path.join(os.tmpdir(), 'odai-nano-e2e-'),
+          path.join(os.tmpdir(), 'odai-chrome-e2e-'),
         )
-        const backend = createGeminiNanoHeadlessBackend({
+        const backend = createChromeBuiltinBackend({
           userDataDir: path.join(userDataDir, 'profile'),
         })
         const availability = await backend.availability()

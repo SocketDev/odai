@@ -9,7 +9,7 @@ import {
   createAppleFmBackend,
   ODAI_APPLE_FM_SHIM_ENV_VAR,
 } from './backends/apple-fm.mts'
-import { createGeminiNanoHeadlessBackend } from './backends/gemini-nano-headless.mts'
+import { createChromeBuiltinBackend } from './backends/chrome-builtin.mts'
 import {
   createLlamaServerBackend,
   DEFAULT_LLAMA_URL,
@@ -49,7 +49,7 @@ export {
   createAppleFmBackend,
   createBackend,
   createBuiltinModel,
-  createGeminiNanoHeadlessBackend,
+  createChromeBuiltinBackend,
   createLlamaServerBackend,
   createLocalLanguageModelFactory,
   createOdaiModel,

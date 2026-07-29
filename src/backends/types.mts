@@ -12,7 +12,7 @@ import type { LanguageModelLike } from '../types.mts'
  */
 export type BackendName =
   | 'apple-fm'
-  | 'gemini-nano-headless'
+  | 'chrome-builtin'
   | 'llama-server'
   | 'simulator'
   | 'windows-phi-silica'
