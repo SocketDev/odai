@@ -24,15 +24,17 @@
   "types": "./dist/index.d.mts",
   "exports": {
     ".": {
+      "source": "./src/index.mts",
       "types": "./dist/index.d.mts",
-      "import": "./dist/index.esm.js",
       "default": "./dist/index.js"
     },
     "./node": {
+      "source": "./src/node.mts",
       "types": "./dist/node.d.mts",
       "default": "./dist/node.js"
     },
     "./bench": {
+      "source": "./src/bench/index.mts",
       "types": "./dist/bench/index.d.mts",
       "default": "./dist/bench/index.js"
     },

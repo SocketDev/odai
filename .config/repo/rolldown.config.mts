@@ -71,24 +71,11 @@ const benchConfig: RolldownOptions = {
   platform: 'browser',
 }
 
-const browserEsmConfig: RolldownOptions = {
-  ...baseConfig,
-  external: ['playwright-core'],
-  input: path.join(srcPath, 'index.mts'),
-  output: {
-    ...baseConfig.output,
-    entryFileNames: 'index.esm.js',
-    format: 'esm',
-  },
-  platform: 'browser',
-}
-
 const configs: readonly RolldownOptions[] = [
   browserConfig,
   nodeConfig,
   cliConfig,
   benchConfig,
-  browserEsmConfig,
 ]
 
 export default configs
