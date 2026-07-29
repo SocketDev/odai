@@ -1,4 +1,4 @@
-/**
+/*
  * @file Exports-config for the package-exports generator + the
  *   public-files-are-exported check. Shape follows socket-packageurl-js: the
  *   runtime surface is `.`, `./node`, and `./bench` (dist-based, `outDir`
