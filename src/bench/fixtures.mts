@@ -71,3 +71,29 @@ export const SBOM_ANOMALY_INPUT = `Components:
 - pkg:npm/chalk@4.1.2
 - pkg:npm/left-pad@1.3.0 (deprecated)
 - pkg:npm/eval-evil@1.0.0 (git dependency, no tag)`
+
+// Hoist decision fixtures. The project's minimum supported Node major is 22 in
+// every hoist scenario, so a changelog that only drops Node <= 22 is safe.
+export const HOIST_MIN_NODE_MAJOR = 22
+
+// SAFE: the sole breaking change drops Node majors below the project minimum.
+export const HOIST_NODE_ONLY_CHANGELOG = `## 3.0.0
+### BREAKING CHANGES
+- Drop support for Node.js 18 and 20. Node.js 22+ is now required.
+### Features
+- Faster cold start via lazy imports.`
+
+// UNSAFE: a real API removal, independent of Node version.
+export const HOIST_REAL_BREAKING_CHANGELOG = `## 5.0.0
+### BREAKING CHANGES
+- Remove the deprecated \`readSync()\` export; use \`read()\` which returns a promise.
+- Drop support for Node.js 18.`
+
+// UNSAFE: drops a Node major the project still supports (24 > our minimum 22).
+export const HOIST_NODE_ABOVE_MIN_CHANGELOG = `## 4.0.0
+### BREAKING CHANGES
+- Require Node.js 24+. Support for Node.js 22 and below is dropped.`
+
+// ABSTAIN: the changelog is truncated and lists no concrete breaking changes.
+export const HOIST_AMBIGUOUS_CHANGELOG = `## 2.0.0
+See the migration guide for details. Various internal changes and`
