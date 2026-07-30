@@ -81,6 +81,7 @@ export async function assessSecurityFix(
           ...SECURITY_FIX_FEW_SHOT,
         ],
         prefill: SECURITY_FIX_PREFILL,
+        responseConstraint: SecurityFixExtractionSchema,
         schema: SecurityFixExtractionSchemaLike,
         synonymMap: SECURITY_FIX_SYNONYM_MAP,
       },

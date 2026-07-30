@@ -101,12 +101,20 @@ export function createPageBoundFactory(bridge: Bridge): LanguageModelLike {
           .evaluate(pageDestroySession, { sessionId })
           .catch(() => undefined)
       },
-      async prompt(messages: Message[]): Promise<string> {
+      async prompt(
+        messages: Message[],
+        options?: { responseConstraint?: object | undefined } | undefined,
+      ): Promise<string> {
+        const opts = { __proto__: null, ...options } as typeof options
         const result = await page.evaluate<{
           error?: PageErrorShape | undefined
           ok: boolean
           raw?: string | undefined
-        }>(pagePrompt, { messages, sessionId })
+        }>(pagePrompt, {
+          messages,
+          responseConstraint: opts?.responseConstraint,
+          sessionId,
+        })
         if (!result.ok || result.raw === undefined) {
           rethrowPageError(result.error)
         }
@@ -283,6 +291,7 @@ export async function pageKickDownload(): Promise<string> {
 
 export async function pagePrompt(payload: {
   messages: Message[]
+  responseConstraint?: object | undefined
   sessionId: number
 }): Promise<{
   error?: PageErrorShape | undefined
@@ -291,7 +300,15 @@ export async function pagePrompt(payload: {
 }> {
   const holder = globalThis as {
     __odaiSessions?:
-      | Map<number, { prompt(messages: unknown): Promise<string> }>
+      | Map<
+          number,
+          {
+            prompt(
+              messages: unknown,
+              options?: unknown | undefined,
+            ): Promise<string>
+          }
+        >
       | undefined
   }
   const session = holder.__odaiSessions?.get(payload.sessionId)
@@ -302,6 +319,22 @@ export async function pagePrompt(payload: {
     }
   }
   try {
+    // Runtime feature-detection against the live Nano session: pass
+    // responseConstraint only when the caller supplied one, and if this Chrome
+    // build rejects the option (throws) fall back to a plain prompt so an older
+    // runtime never hard-fails.
+    if (payload.responseConstraint !== undefined) {
+      try {
+        return {
+          ok: true,
+          raw: await session.prompt(payload.messages, {
+            responseConstraint: payload.responseConstraint,
+          }),
+        }
+      } catch {
+        // Unsupported option or a throw — fall through to the plain prompt.
+      }
+    }
     return { ok: true, raw: await session.prompt(payload.messages) }
   } catch (error) {
     const err = error as Error

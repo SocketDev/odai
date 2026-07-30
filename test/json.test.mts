@@ -155,6 +155,57 @@ describe('json', () => {
     expect(result.data).toEqual({ a: 1 })
   })
 
+  it('forwards responseConstraint to the session prompt when set', async () => {
+    const constraint = { properties: { a: { type: 'number' } }, type: 'object' }
+    let seen: unknown
+    const session: SessionLike = {
+      async prompt(
+        messages: Message[],
+        options?: { responseConstraint?: object | undefined } | undefined,
+      ): Promise<string> {
+        void messages
+        seen = options?.responseConstraint
+        return '{"a":1}'
+      },
+      promptStreaming(): AsyncIterable<string> {
+        return (async function* generate(): AsyncGenerator<string> {
+          yield ''
+        })()
+      },
+    }
+    const result = await promptStructured(session, 'go', {
+      prefill: '',
+      responseConstraint: constraint,
+      schema: identitySchema,
+    })
+    expect(seen).toBe(constraint)
+    expect(result.ok).toBe(true)
+  })
+
+  it('omits the prompt options bag when no responseConstraint is set', async () => {
+    let argCount = -1
+    const session: SessionLike = {
+      async prompt(
+        messages: Message[],
+        options?: { responseConstraint?: object | undefined } | undefined,
+      ): Promise<string> {
+        void messages
+        argCount = options === undefined ? 1 : 2
+        return '{"a":1}'
+      },
+      promptStreaming(): AsyncIterable<string> {
+        return (async function* generate(): AsyncGenerator<string> {
+          yield ''
+        })()
+      },
+    }
+    await promptStructured(session, 'go', {
+      prefill: '',
+      schema: identitySchema,
+    })
+    expect(argCount).toBe(1)
+  })
+
   it('gives up after exhausting retries and reports the last error', async () => {
     let calls = 0
     const session: SessionLike = {
