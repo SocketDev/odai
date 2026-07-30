@@ -1,3 +1,4 @@
+// socket-lint: mirror-exempt — cross-cutting fuzz + prompt-injection suite spanning all three decision tasks (hoist / security-fix / weekly-update); not a single-source mirror
 /**
  * @file Property/fuzz tests for the decision tasks (hoist, security-fix,
  *   weekly-update) — the untrusted-input boundary where a changelog, advisory,
