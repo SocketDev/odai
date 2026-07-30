@@ -331,6 +331,7 @@ export const sbomAnomalyScenario: Scenario = {
     const prompt = [
       'Identify anomalies in this SBOM component list.',
       'Respond with compact JSON: { "summary": string, "anomalies": string[] }.',
+      'List EACH anomaly as a separate string in the "anomalies" array; do not fold findings only into "summary".',
       SBOM_ANOMALY_INPUT,
     ].join('\n')
     const result = await model.promptStructured(prompt, {

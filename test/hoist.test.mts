@@ -3,10 +3,11 @@ import { describe, expect, it } from 'vitest'
 import { hoistScenario } from '../src/bench/scenarios.mts'
 import { createMockModel } from '../src/node.mts'
 import { createHoistPrompt } from '../src/prompts/hoist.mts'
-import { assessHoistSafety } from '../src/tasks/hoist.mts'
+import { assessHoistSafety, decideHoistVerdict } from '../src/tasks/hoist.mts'
+import type { HoistBreakingChange } from '../src/tasks/hoist.mts'
 
 const SAFE_RESPONSE =
-  '{"verdict":"safe","breakingChanges":["Drop Node 18 and 20"],"reason":"only breaking change drops Node below the project minimum"}'
+  '{"breakingChanges":[{"text":"Drop Node 18 and 20","isNodeDrop":true,"droppedNodeMajor":20}]}'
 
 describe('createHoistPrompt', () => {
   it('includes the versions and the minimum Node major', () => {
@@ -39,7 +40,7 @@ describe('createHoistPrompt', () => {
 })
 
 describe('assessHoistSafety', () => {
-  it('parses a structured verdict from the model', async () => {
+  it('extracts breaking changes and lets code decide the verdict', async () => {
     const result = await assessHoistSafety(createMockModel(SAFE_RESPONSE), {
       changelog: '## 3.0.0\n- drop node 18',
       currentVersion: '2.0.0',
@@ -48,6 +49,68 @@ describe('assessHoistSafety', () => {
     })
     expect(result.ok).toBe(true)
     expect(result.data?.verdict).toBe('safe')
+    expect(result.data?.breakingChanges).toEqual(['Drop Node 18 and 20'])
+  })
+})
+
+describe('decideHoistVerdict', () => {
+  it('is safe when every change only drops Node at or below the project minimum', () => {
+    const changes: HoistBreakingChange[] = [
+      {
+        droppedNodeMajor: 20,
+        isNodeDrop: true,
+        text: 'Drop support for Node.js 18 and 20',
+      },
+    ]
+    const assessment = decideHoistVerdict(changes, 22)
+    expect(assessment.verdict).toBe('safe')
+    expect(assessment.breakingChanges).toEqual([
+      'Drop support for Node.js 18 and 20',
+    ])
+  })
+
+  it('is unsafe when a Node drop reaches above the project minimum', () => {
+    const changes: HoistBreakingChange[] = [
+      {
+        droppedNodeMajor: 23,
+        isNodeDrop: true,
+        text: 'Require Node.js 24+',
+      },
+    ]
+    expect(decideHoistVerdict(changes, 22).verdict).toBe('unsafe')
+  })
+
+  it('is unsafe when a Node drop reaches the project minimum itself', () => {
+    // Dropping Node 22 when the project minimum IS 22 removes a version we
+    // still support — the >= boundary, robust to a 22-vs-23 extraction read.
+    const changes: HoistBreakingChange[] = [
+      {
+        droppedNodeMajor: 22,
+        isNodeDrop: true,
+        text: 'Drop Node.js 22 and below',
+      },
+    ]
+    expect(decideHoistVerdict(changes, 22).verdict).toBe('unsafe')
+  })
+
+  it('is unsafe when any change is a real API break, not a Node drop', () => {
+    const changes: HoistBreakingChange[] = [
+      {
+        droppedNodeMajor: undefined,
+        isNodeDrop: false,
+        text: 'Remove the deprecated readSync() export',
+      },
+      {
+        droppedNodeMajor: 18,
+        isNodeDrop: true,
+        text: 'Drop support for Node.js 18',
+      },
+    ]
+    expect(decideHoistVerdict(changes, 22).verdict).toBe('unsafe')
+  })
+
+  it('abstains when nothing concrete was extracted', () => {
+    expect(decideHoistVerdict([], 22).verdict).toBe('abstain')
   })
 })
 

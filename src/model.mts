@@ -72,12 +72,35 @@ export function createModelFromState(state: LanguageModelState): OdaiModel {
       userContent: string,
       structuredOptions: StructuredPromptOptions<T>,
     ): Promise<TaskResult<T>> {
-      const session = await cloneSession(state)
-      try {
-        return await promptStructured(session, userContent, structuredOptions)
-      } finally {
-        destroySession(session)
+      const opts = {
+        __proto__: null,
+        ...structuredOptions,
+      } as StructuredPromptOptions<T>
+      const attempts = (opts.retries ?? 2) + 1
+      // Retry with a FRESH cloned session per attempt. A stateful backend
+      // (Chrome's Nano) rejects a re-sent system message on an already-used
+      // session, so re-prompting the same clone is invalid — each attempt gets
+      // its own clone and a single json-layer pass (retries: 0).
+      let last: TaskResult<T> = {
+        error: 'model returned no parseable response',
+        ok: false,
+        raw: '',
       }
+      for (let attempt = 0; attempt < attempts; attempt += 1) {
+        const session = await cloneSession(state)
+        try {
+          last = await promptStructured(session, userContent, {
+            ...opts,
+            retries: 0,
+          })
+        } finally {
+          destroySession(session)
+        }
+        if (last.ok) {
+          return last
+        }
+      }
+      return last
     },
 
     async promptStreaming(
