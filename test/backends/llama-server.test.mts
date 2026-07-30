@@ -145,6 +145,8 @@ describe('llama-server backend', () => {
       'http://localhost:8080',
       'http://[::1]:8080',
       'https://localhost:11434/',
+      // portless: RFC-6761 *.localhost names always resolve to loopback
+      'https://odai-llama.localhost/',
     ]) {
       expect(() => createLlamaServerBackend({ url })).not.toThrow()
     }
