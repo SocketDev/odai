@@ -329,23 +329,23 @@ overrides:
   isexe@>=3: 4.0.0
   js-yaml@>=5.0.0 <5.2.2: 5.2.2
   lru-cache@>=10: 11.5.2
-  magic-string: 1.0.0
+  magic-string: 1.1.0
   mime-db: 1.54.0
   mime-types@>=3: 3.0.2
   minipass@>=4: 7.1.3
   safe-buffer: npm:@socketregistry/safe-buffer@1.0.9
   safer-buffer: npm:@socketregistry/safer-buffer@1.0.10
-  semver@>=5.0.0 <7.6.0: 7.8.1
+  semver@>=5.0.0 <7.6.0: 7.8.5
   side-channel: npm:@socketregistry/side-channel@1.0.10
   ssri@>=12: 13.0.1
   string-width@>=5: 8.2.2
-  rolldown: 1.1.4
   update-notifier@>=4.0.0: 7.3.1
   uuid: 11.1.1
-  vite: 8.1.5
   which: 7.0.0
   wrap-ansi@>=8: 9.0.2
   yaml@2: 2.9.0
+  rolldown: 1.1.4
+  vite: 8.1.5
 
 patchedDependencies:
   taze@19.16.0: 77208c02cff936d0f1dbf2ffcc95f6f0def9697d6ba7ca4671c399c8c933c6fd
@@ -416,8 +416,8 @@ importers:
         specifier: 'catalog:'
         version: 4.9.0
       magic-string:
-        specifier: 1.0.0
-        version: 1.0.0
+        specifier: 1.1.0
+        version: 1.1.0
       markdownlint-cli2:
         specifier: 'catalog:'
         version: 0.23.1(supports-color@7.2.0)
@@ -4131,8 +4131,8 @@ packages:
     resolution: {integrity: sha512-4pfM1Ff0x50o0tQwb5ucw/RzNyD0/YJME6IVcStalZuMWxdt3sR3huStTtxz4PUmvZfRguvDejasvQ2kifR11g==}
     engines: {node: 20 || >=22}
 
-  magic-string@1.0.0:
-    resolution: {integrity: sha512-CGvjzMN08iv6w1mm4/x3Gh1hLb4VnyRUA15FFpl6CsCIGGoe36k7kY5KNz9QDbSBN5I/fWHM6ZlIkUTa5xdUEA==}
+  magic-string@1.1.0:
+    resolution: {integrity: sha512-kS3VHe0nEPST2saQV4Rbkchcd3UBRkVTQHo1D3h/ZTwFDhai/mfKkmtPAtD129EOI7K3HlHIsFOt0WrI2/oU9g==}
 
   magicast@0.5.3:
     resolution: {integrity: sha512-pVKE4UdSQ7DvHzivsCIFx2BJn1mHG6KsyrFcaxFx6tONdneEuThrDx0Cj3AMg58KyN4pzYT+LHOotxDQDjNvkw==}
@@ -4493,11 +4493,6 @@ packages:
 
   run-parallel@1.2.0:
     resolution: {integrity: sha512-5l4VyZR86LZ/lDxZTR6jqL8AFE2S0IFLMP26AbjsLVADxHdhB/c0GUsH+y39UfCi3dzz8OlQuPmnaJOMoDHQBA==}
-
-  semver@7.8.1:
-    resolution: {integrity: sha512-rkVq3IXh+4FDGch+KwzX3aV9W3kO54GyEgpvBzSyctDA6Xtd7RJQV1xmXbeQp5v7+VzLOfVqiutSE6GICgPFvg==}
-    engines: {node: '>=10'}
-    hasBin: true
 
   semver@7.8.5:
     resolution: {integrity: sha512-Y7/KDsb8LjooZpwaqGyulO6DQlksgCncchHGk+sZIY4SBvUocMBEFH5Ur1fI4dV+Jvl0w6cjvucaIi40puRioA==}
@@ -5428,7 +5423,7 @@ snapshots:
     dependencies:
       '@vitest/spy': 4.1.10
       estree-walker: 3.0.3
-      magic-string: 1.0.0
+      magic-string: 1.1.0
     optionalDependencies:
       vite: 8.1.5(@types/node@26.1.1)(jiti@2.7.0)(yaml@2.9.0)
 
@@ -5445,7 +5440,7 @@ snapshots:
     dependencies:
       '@vitest/pretty-format': 4.1.10
       '@vitest/utils': 4.1.10
-      magic-string: 1.0.0
+      magic-string: 1.1.0
       pathe: 2.0.3
 
   '@vitest/spy@4.1.10': {}
@@ -5477,7 +5472,7 @@ snapshots:
       es-module-lexer: 2.3.0
       escape-string-regexp: 5.0.0
       ipaddr.js: 2.4.0
-      magic-string: 1.0.0
+      magic-string: 1.1.0
       valibot: 1.4.2(typescript@7.0.2)
       vite: 8.1.5(@types/node@26.1.1)(jiti@2.7.0)(yaml@2.9.0)
       vitest: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(@vitest/ui@4.1.10)(vite@8.1.5(@types/node@26.1.1)(jiti@2.7.0)(yaml@2.9.0))
@@ -5954,7 +5949,7 @@ snapshots:
 
   lru-cache@11.5.2: {}
 
-  magic-string@1.0.0:
+  magic-string@1.1.0:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.5
 
@@ -5966,7 +5961,7 @@ snapshots:
 
   make-dir@4.0.0:
     dependencies:
-      semver: 7.8.1
+      semver: 7.8.5
 
   markdown-it@14.3.0:
     dependencies:
@@ -6480,8 +6475,6 @@ snapshots:
     dependencies:
       queue-microtask: 1.2.3
 
-  semver@7.8.1: {}
-
   semver@7.8.5: {}
 
   setprototypeof@1.2.0: {}
@@ -6726,7 +6719,7 @@ snapshots:
       '@vitest/utils': 4.1.10
       es-module-lexer: 2.3.0
       expect-type: 1.4.0
-      magic-string: 1.0.0
+      magic-string: 1.1.0
       obug: 2.1.3
       pathe: 2.0.3
       picomatch: 4.0.5
