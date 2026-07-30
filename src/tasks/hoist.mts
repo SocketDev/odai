@@ -118,18 +118,18 @@ export function decideHoistVerdict(
     change =>
       !change.isNodeDrop ||
       (change.droppedNodeMajor !== undefined &&
-        change.droppedNodeMajor > minNodeSupported),
+        change.droppedNodeMajor >= minNodeSupported),
   )
   if (unsafeChange !== undefined) {
     return {
       breakingChanges,
-      reason: `"${unsafeChange.text}" affects this project (a real API change or a drop of a Node.js major above the project minimum of ${minNodeSupported}), so the hoist is unsafe.`,
+      reason: `"${unsafeChange.text}" affects this project (a real API change or a drop of a Node.js major at or above the project minimum of ${minNodeSupported}), so the hoist is unsafe.`,
       verdict: 'unsafe',
     }
   }
   return {
     breakingChanges,
-    reason: `Every breaking change only drops Node.js majors at or below the project minimum of ${minNodeSupported}, so the hoist is safe.`,
+    reason: `Every breaking change only drops Node.js majors below the project minimum of ${minNodeSupported}, so the hoist is safe.`,
     verdict: 'safe',
   }
 }

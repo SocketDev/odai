@@ -80,6 +80,19 @@ describe('decideHoistVerdict', () => {
     expect(decideHoistVerdict(changes, 22).verdict).toBe('unsafe')
   })
 
+  it('is unsafe when a Node drop reaches the project minimum itself', () => {
+    // Dropping Node 22 when the project minimum IS 22 removes a version we
+    // still support — the >= boundary, robust to a 22-vs-23 extraction read.
+    const changes: HoistBreakingChange[] = [
+      {
+        droppedNodeMajor: 22,
+        isNodeDrop: true,
+        text: 'Drop Node.js 22 and below',
+      },
+    ]
+    expect(decideHoistVerdict(changes, 22).verdict).toBe('unsafe')
+  })
+
   it('is unsafe when any change is a real API break, not a Node drop', () => {
     const changes: HoistBreakingChange[] = [
       {
