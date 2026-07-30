@@ -55,6 +55,13 @@ export interface PromptOptions {
 // the exported interface or reshaping the bag is a breaking change.
 export interface StructuredPromptOptions<T> extends PromptOptions {
   prefill: string
+  /**
+   * How many times to re-prompt when the reply is empty or unparseable. Total
+   * attempts are `retries + 1`; a small on-device model drops an empty or
+   * malformed first reply often enough that one deterministic re-ask recovers
+   * most of them. Defaults to 2 (up to 3 attempts).
+   */
+  retries?: number | undefined
   schema: SchemaLike<T>
   synonymMap?: Record<string, string[]> | undefined
 }

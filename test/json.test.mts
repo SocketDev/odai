@@ -2,14 +2,31 @@ import { describe, expect, it } from 'vitest'
 
 import {
   buildPrefixedMessages,
+  isParseableJson,
   mergePrefill,
   normalizeKeys,
   parseJsonWithFallback,
+  promptStructured,
 } from '../src/json.mts'
+import type { Message, SessionLike } from '../src/types.mts'
 
 const identitySchema = {
   parse(value: unknown): unknown {
     return value
+  },
+}
+
+const requireNumericASchema = {
+  parse(value: unknown): { a: number } {
+    if (
+      typeof value === 'object' &&
+      value !== null &&
+      'a' in value &&
+      typeof (value as Record<string, unknown>)['a'] === 'number'
+    ) {
+      return value as { a: number }
+    }
+    throw new Error('expected { a: number }')
   },
 }
 
@@ -29,6 +46,19 @@ describe('json', () => {
 
   it('does not duplicate prefill', () => {
     expect(mergePrefill('{"a":', '{"a":1}')).toBe('{"a":1}')
+  })
+
+  it('wraps an array-element continuation of a nested-array prefill', () => {
+    // The model continued from `{"updates":[` without echoing it, so raw alone
+    // is unbalanced (`{…}]}`) but prefill+raw parses.
+    expect(mergePrefill('{"updates":[', '{"name":"x"}]}')).toBe(
+      '{"updates":[{"name":"x"}]}',
+    )
+  })
+
+  it('isParseableJson distinguishes valid from broken JSON', () => {
+    expect(isParseableJson('{"a":1}')).toBe(true)
+    expect(isParseableJson('{"a":1}]}')).toBe(false)
   })
 
   it('normalizes synonymous keys', () => {
@@ -55,6 +85,17 @@ describe('json', () => {
       undefined,
     )
     expect(data).toEqual({ a: 1 })
+  })
+
+  it('recovers a double-escaped (string-encoded) object', () => {
+    // Verbatim failure shape observed from real Gemini Nano: every structural
+    // quote backslash-escaped, as if the object were JSON.stringify'd once more.
+    const data = parseJsonWithFallback(
+      '{\\"summary\\": \\"multiple versions\\"}',
+      identitySchema,
+      undefined,
+    )
+    expect(data).toEqual({ summary: 'multiple versions' })
   })
 
   it('repairs fullwidth punctuation and curly quotes', () => {
@@ -87,5 +128,54 @@ describe('json', () => {
       undefined,
     )
     expect(data).toEqual({ quote: 'a \u{201C}quoted\u{201D} word' })
+  })
+
+  it('retries when the first reply is empty and succeeds on the next', async () => {
+    let calls = 0
+    const replies = ['', '{"a":1}']
+    const session: SessionLike = {
+      async prompt(messages: Message[]): Promise<string> {
+        void messages
+        const reply = replies[calls] ?? ''
+        calls += 1
+        return reply
+      },
+      promptStreaming(): AsyncIterable<string> {
+        return (async function* generate(): AsyncGenerator<string> {
+          yield ''
+        })()
+      },
+    }
+    const result = await promptStructured(session, 'go', {
+      prefill: '',
+      schema: identitySchema,
+    })
+    expect(calls).toBe(2)
+    expect(result.ok).toBe(true)
+    expect(result.data).toEqual({ a: 1 })
+  })
+
+  it('gives up after exhausting retries and reports the last error', async () => {
+    let calls = 0
+    const session: SessionLike = {
+      async prompt(messages: Message[]): Promise<string> {
+        void messages
+        calls += 1
+        return 'not json at all'
+      },
+      promptStreaming(): AsyncIterable<string> {
+        return (async function* generate(): AsyncGenerator<string> {
+          yield ''
+        })()
+      },
+    }
+    const result = await promptStructured(session, 'go', {
+      prefill: '',
+      retries: 1,
+      schema: requireNumericASchema,
+    })
+    expect(calls).toBe(2)
+    expect(result.ok).toBe(false)
+    expect(result.error).toBeDefined()
   })
 })
