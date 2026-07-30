@@ -5,6 +5,7 @@
  *   always yields a working model here.
  */
 
+import { majorityResult } from './best-of-n.mts'
 import {
   createAppleFmBackend,
   ODAI_APPLE_FM_SHIM_ENV_VAR,
@@ -148,6 +149,7 @@ export {
   isLanguageModelFactory,
   LanguageModelSimulator,
   LanguageModelSessionSimulator,
+  majorityResult,
   ODAI_APPLE_FM_SHIM_ENV_VAR,
   ODAI_BACKEND_ENV_VAR,
   ODAI_LLAMA_MODEL_ENV_VAR,
@@ -179,6 +181,9 @@ export type {
 } from './backends/types.mts'
 export type { CreateOdaiModelOptions, OdaiModel } from './model.mts'
 export type { ModelIdentity } from './model-identity.mts'
+export type { HoistAssessOptions } from './tasks/hoist.mts'
+export type { SecurityFixAssessOptions } from './tasks/security-fix.mts'
+export type { WeeklyUpdatePlanOptions } from './tasks/weekly-update.mts'
 export type { Message } from './types.mts'
 export type { DepClassification } from './prompts/classify-deps.mts'
 export type { CommitMessage } from './prompts/commit.mts'

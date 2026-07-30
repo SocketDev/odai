@@ -46,6 +46,19 @@ describe('planWeeklyUpdate', () => {
     expect(result.ok).toBe(true)
     expect(result.data?.updates.map(entry => entry.name)).toEqual(['chalk'])
   })
+
+  it('yields the same plan under best-of-N agreement', async () => {
+    const result = await planWeeklyUpdate(
+      createMockModel(CHALK_RESPONSE),
+      {
+        outdated: 'chalk current 5.2.0 latest 5.3.0 published 10 days ago',
+        soakWindowDays: 7,
+      },
+      { samples: 3 },
+    )
+    expect(result.ok).toBe(true)
+    expect(result.data?.updates.map(entry => entry.name)).toEqual(['chalk'])
+  })
 })
 
 describe('decideWeeklyUpdate', () => {

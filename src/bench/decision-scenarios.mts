@@ -31,6 +31,8 @@ import {
   WEEKLY_UPDATE_PAST_SOAK_INPUT,
 } from './fixtures.mts'
 
+export const DECISION_SAMPLES = 5
+
 export function hoistScenario(
   name: string,
   changelog: string,
@@ -40,12 +42,16 @@ export function hoistScenario(
   return {
     name,
     async run(model) {
-      const result = await assessHoistSafety(model, {
-        changelog,
-        currentVersion: '2.0.0',
-        minNodeSupported: HOIST_MIN_NODE_MAJOR,
-        targetVersion,
-      })
+      const result = await assessHoistSafety(
+        model,
+        {
+          changelog,
+          currentVersion: '2.0.0',
+          minNodeSupported: HOIST_MIN_NODE_MAJOR,
+          targetVersion,
+        },
+        { samples: DECISION_SAMPLES },
+      )
       return scoreTaskResult(result, value => {
         const ok = value.verdict === expected
         return {
@@ -68,7 +74,9 @@ export function securityFixScenario(
   return {
     name,
     async run(model) {
-      const result = await assessSecurityFix(model, input)
+      const result = await assessSecurityFix(model, input, {
+        samples: DECISION_SAMPLES,
+      })
       return scoreTaskResult(result, value => {
         const ok =
           value.verdict === expectedVerdict &&
@@ -92,7 +100,9 @@ export function weeklyUpdateScenario(
   return {
     name,
     async run(model) {
-      const result = await planWeeklyUpdate(model, input)
+      const result = await planWeeklyUpdate(model, input, {
+        samples: DECISION_SAMPLES,
+      })
       return scoreTaskResult(result, value => {
         const names = value.updates.map(entry => entry.name)
         const missing = expectedNames.filter(n => !names.includes(n))

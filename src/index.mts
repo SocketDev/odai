@@ -5,6 +5,7 @@
  */
 
 import { probeAvailability } from './availability.mts'
+import { majorityResult } from './best-of-n.mts'
 import {
   createAppleFmBackend,
   ODAI_APPLE_FM_SHIM_ENV_VAR,
@@ -82,6 +83,7 @@ export {
   isLanguageModelFactory,
   LanguageModelSimulator,
   LanguageModelSessionSimulator,
+  majorityResult,
   ODAI_APPLE_FM_SHIM_ENV_VAR,
   ODAI_BACKEND_ENV_VAR,
   ODAI_LLAMA_MODEL_ENV_VAR,
@@ -96,6 +98,9 @@ export {
 }
 
 export type { AvailabilityResult } from './availability.mts'
+export type { HoistAssessOptions } from './tasks/hoist.mts'
+export type { SecurityFixAssessOptions } from './tasks/security-fix.mts'
+export type { WeeklyUpdatePlanOptions } from './tasks/weekly-update.mts'
 export type {
   LanguageModelAvailability,
   LanguageModelFactory,

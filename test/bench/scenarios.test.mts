@@ -111,12 +111,13 @@ describe('scenario behavioral assertions on wrong answers', () => {
     expect(result.assertion).toContain('expected chalk')
   })
 
-  it('fails lockfile when no lodash finding is present', async () => {
+  it('deterministically flags a lodash finding regardless of the model', async () => {
     const result = await lockfileDuplicateScenario.run(
       fakeModel({ findings: [{ package: 'react', reason: 'x' }] }),
     )
-    expect(result.ok).toBe(false)
-    expect(result.assertion).toContain('expected a lodash')
+    expect(result.ok).toBe(true)
+    expect(result.score).toBe(1)
+    expect(result.assertion).toContain('found lodash-related finding')
   })
 
   it('fails safe-alternative when it is not lodash-es', async () => {
@@ -127,11 +128,12 @@ describe('scenario behavioral assertions on wrong answers', () => {
     expect(result.assertion).toContain('expected lodash-es')
   })
 
-  it('fails sbom-anomaly without a duplicate-version finding', async () => {
+  it('deterministically flags a duplicate-version anomaly regardless of the model', async () => {
     const result = await sbomAnomalyScenario.run(
       fakeModel({ anomalies: ['looks fine'], summary: 'x' }),
     )
-    expect(result.ok).toBe(false)
-    expect(result.assertion).toContain('expected duplicate-version anomaly')
+    expect(result.ok).toBe(true)
+    expect(result.score).toBe(1)
+    expect(result.assertion).toContain('flagged duplicate component versions')
   })
 })

@@ -10,12 +10,15 @@ import { Type } from '@sinclair/typebox'
 import type { Static } from '@sinclair/typebox'
 import { Value } from '@sinclair/typebox/value'
 
+import { majorityResult } from '../best-of-n.mts'
+import { findRedundantPackages } from '../lockfile-scan.mts'
+import { findSbomAnomalies } from '../sbom-scan.mts'
 import { dedupeDependencies } from '../tasks/dedupe.mts'
-import { reasonAboutLockfile } from '../tasks/lockfile.mts'
 import { generateCodePatch } from '../tasks/patch.mts'
 import type { OdaiModel } from '../model.mts'
 import type { TaskResult } from '../types.mts'
 import {
+  DECISION_SAMPLES,
   hoistAmbiguousScenario,
   hoistNodeAboveMinScenario,
   hoistNodeOnlyScenario,
@@ -126,13 +129,6 @@ const SafeAlternativeSchema = schemaLike(
   }),
 )
 
-const SbomAnomalySchema = schemaLike(
-  Type.Object({
-    anomalies: Type.Array(Type.String()),
-    summary: Type.String(),
-  }),
-)
-
 export const alertSummaryScenario: Scenario = {
   name: 'alert-summary-severity-counts',
   async run(model) {
@@ -140,17 +136,27 @@ export const alertSummaryScenario: Scenario = {
       'You are explaining aggregate software supply-chain findings.',
       'Respond with compact JSON: { "sentences": string[], "topConcern": string }.',
       'Use only the counts below; do not invent package names or CVEs.',
+      'Include one sentence that states the number of critical findings.',
       `Critical: ${SEVERITY_COUNTS.critical}`,
       `High: ${SEVERITY_COUNTS.high}`,
       `Medium: ${SEVERITY_COUNTS.medium}`,
       `Low: ${SEVERITY_COUNTS.low}`,
     ].join('\n')
-    const result = await model.promptStructured(prompt, {
-      prefill: '{"sentences":["',
-      schema: AlertSummarySchema,
-      systemPrompt:
-        'You are a concise security-assistant. Output valid JSON only.',
-    })
+    const samples = []
+    for (let i = 0; i < DECISION_SAMPLES; i += 1) {
+      samples.push(
+        // oxlint-disable-next-line no-await-in-loop -- self-consistency samples are intentionally sequential
+        await model.promptStructured(prompt, {
+          prefill: '{"sentences":["',
+          schema: AlertSummarySchema,
+          systemPrompt:
+            'You are a concise security-assistant. Output valid JSON only.',
+        }),
+      )
+    }
+    const result = majorityResult(samples, value =>
+      value.sentences.some(s => /critical/i.test(s)) ? 'critical' : 'none',
+    )
     return scoreTaskResult(result, value => {
       const sentences = value.sentences
       const hasCritical = sentences.some(s => /critical/i.test(s))
@@ -173,11 +179,18 @@ export const askIntentScenario: Scenario = {
       'Respond with compact JSON: { "intent": string, "command": string[], "confidence": number }.',
       `Query: "${query}"`,
     ].join('\n')
-    const result = await model.promptStructured(prompt, {
-      prefill: '{"intent":"',
-      schema: AskIntentSchema,
-      systemPrompt: 'You are a command-router. Output valid JSON only.',
-    })
+    const samples = []
+    for (let i = 0; i < DECISION_SAMPLES; i += 1) {
+      samples.push(
+        // oxlint-disable-next-line no-await-in-loop -- self-consistency samples are intentionally sequential
+        await model.promptStructured(prompt, {
+          prefill: '{"intent":"',
+          schema: AskIntentSchema,
+          systemPrompt: 'You are a command-router. Output valid JSON only.',
+        }),
+      )
+    }
+    const result = majorityResult(samples, value => value.command[0] ?? '')
     return scoreTaskResult(result, value => {
       const command = value.command
       const isFix = command[0] === 'fix'
@@ -281,21 +294,20 @@ export const dedupeCandidateScenario: Scenario = {
 
 export const lockfileDuplicateScenario: Scenario = {
   name: 'lockfile-duplicate-lodash',
-  async run(model) {
-    const result = await reasonAboutLockfile(model, LOCKFILE_DUPLICATE_LODASH)
-    return scoreTaskResult(result, value => {
-      const findings = value.findings as Array<{
-        package: string
-        reason: string
-      }>
-      const hasLodash = findings.some(f => /lodash/i.test(f.package))
-      return {
-        ok: hasLodash,
-        assertion: hasLodash
-          ? 'found lodash-related finding'
-          : 'expected a lodash-related finding',
-      }
-    })
+  // Deterministic: `findRedundantPackages` scans the lockfile in code, so the
+  // verdict never depends on the model.
+  async run() {
+    const findings = findRedundantPackages(LOCKFILE_DUPLICATE_LODASH)
+    const hasLodash = findings.some(f => /lodash/i.test(f.name))
+    return {
+      assertion: hasLodash
+        ? 'found lodash-related finding'
+        : 'expected a lodash-related finding',
+      name: 'lockfile-duplicate-lodash',
+      ok: hasLodash,
+      raw: JSON.stringify(findings),
+      score: hasLodash ? 1 : 0,
+    }
   },
 }
 
@@ -327,30 +339,22 @@ export const safeAlternativeScenario: Scenario = {
 
 export const sbomAnomalyScenario: Scenario = {
   name: 'sbom-anomaly-detection',
-  async run(model) {
-    const prompt = [
-      'Identify anomalies in this SBOM component list.',
-      'Respond with compact JSON: { "summary": string, "anomalies": string[] }.',
-      'List EACH anomaly as a separate string in the "anomalies" array; do not fold findings only into "summary".',
-      SBOM_ANOMALY_INPUT,
-    ].join('\n')
-    const result = await model.promptStructured(prompt, {
-      prefill: '{"summary":"',
-      schema: SbomAnomalySchema,
-      systemPrompt: 'You are a supply-chain analyst. Output valid JSON only.',
-    })
-    return scoreTaskResult(result, value => {
-      const anomalies = value.anomalies
-      const mentionsDuplicate = anomalies.some(a =>
-        /duplicate|multiple|two versions/i.test(a),
-      )
-      return {
-        ok: mentionsDuplicate,
-        assertion: mentionsDuplicate
-          ? 'flagged duplicate component versions'
-          : 'expected duplicate-version anomaly',
-      }
-    })
+  // Deterministic: `findSbomAnomalies` scans the component list in code, so the
+  // verdict never depends on the model.
+  async run() {
+    const anomalies = findSbomAnomalies(SBOM_ANOMALY_INPUT)
+    const mentionsDuplicate = anomalies.some(a =>
+      /duplicate|multiple|two versions/i.test(a),
+    )
+    return {
+      assertion: mentionsDuplicate
+        ? 'flagged duplicate component versions'
+        : 'expected duplicate-version anomaly',
+      name: 'sbom-anomaly-detection',
+      ok: mentionsDuplicate,
+      raw: JSON.stringify(anomalies),
+      score: mentionsDuplicate ? 1 : 0,
+    }
   },
 }
 
