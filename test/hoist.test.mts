@@ -51,6 +51,21 @@ describe('assessHoistSafety', () => {
     expect(result.data?.verdict).toBe('safe')
     expect(result.data?.breakingChanges).toEqual(['Drop Node 18 and 20'])
   })
+
+  it('yields the same verdict under best-of-N agreement', async () => {
+    const result = await assessHoistSafety(
+      createMockModel(SAFE_RESPONSE),
+      {
+        changelog: '## 3.0.0\n- drop node 18',
+        currentVersion: '2.0.0',
+        minNodeSupported: 22,
+        targetVersion: '3.0.0',
+      },
+      { samples: 3 },
+    )
+    expect(result.ok).toBe(true)
+    expect(result.data?.verdict).toBe('safe')
+  })
 })
 
 describe('decideHoistVerdict', () => {

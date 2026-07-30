@@ -10,6 +10,7 @@ import { Type } from '@sinclair/typebox'
 import { Value } from '@sinclair/typebox/value'
 import type { Static } from '@sinclair/typebox'
 
+import { majorityResult } from '../best-of-n.mts'
 import {
   createWeeklyUpdatePrompt,
   WEEKLY_UPDATE_FEW_SHOT,
@@ -102,28 +103,53 @@ export function decideWeeklyUpdate(
   return { updates }
 }
 
+export interface WeeklyUpdatePlanOptions {
+  samples?: number | undefined
+}
+
 export async function planWeeklyUpdate(
   model: OdaiModel,
   input: WeeklyUpdateInput,
+  options?: WeeklyUpdatePlanOptions | undefined,
 ): Promise<TaskResult<WeeklyUpdatePlan>> {
-  const extraction = await model.promptStructured<WeeklyUpdateExtraction>(
-    createWeeklyUpdatePrompt(input),
-    {
-      initialPrompts: [
-        { content: WEEKLY_UPDATE_SYSTEM_PROMPT, role: 'system' },
-        ...WEEKLY_UPDATE_FEW_SHOT,
-      ],
-      prefill: WEEKLY_UPDATE_PREFILL,
-      schema: WeeklyUpdateExtractionSchemaLike,
-      synonymMap: WEEKLY_UPDATE_SYNONYM_MAP,
-    },
+  const opts = { __proto__: null, ...options } as typeof options
+  async function runOnce(): Promise<TaskResult<WeeklyUpdatePlan>> {
+    const extraction = await model.promptStructured<WeeklyUpdateExtraction>(
+      createWeeklyUpdatePrompt(input),
+      {
+        initialPrompts: [
+          { content: WEEKLY_UPDATE_SYSTEM_PROMPT, role: 'system' },
+          ...WEEKLY_UPDATE_FEW_SHOT,
+        ],
+        prefill: WEEKLY_UPDATE_PREFILL,
+        schema: WeeklyUpdateExtractionSchemaLike,
+        synonymMap: WEEKLY_UPDATE_SYNONYM_MAP,
+      },
+    )
+    if (!extraction.ok || extraction.data === undefined) {
+      return { error: extraction.error, ok: false, raw: extraction.raw }
+    }
+    return {
+      data: decideWeeklyUpdate(
+        extraction.data.candidates,
+        input.soakWindowDays,
+      ),
+      ok: true,
+      raw: extraction.raw,
+    }
+  }
+  const samples = opts?.samples ?? 1
+  if (samples <= 1) {
+    return runOnce()
+  }
+  const results: Array<TaskResult<WeeklyUpdatePlan>> = []
+  for (let i = 0; i < samples; i += 1) {
+    results.push(await runOnce())
+  }
+  return majorityResult(results, data =>
+    data.updates
+      .map(u => u.name)
+      .toSorted()
+      .join(','),
   )
-  if (!extraction.ok || extraction.data === undefined) {
-    return { error: extraction.error, ok: false, raw: extraction.raw }
-  }
-  return {
-    data: decideWeeklyUpdate(extraction.data.candidates, input.soakWindowDays),
-    ok: true,
-    raw: extraction.raw,
-  }
 }

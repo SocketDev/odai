@@ -11,6 +11,7 @@ import { Type } from '@sinclair/typebox'
 import { Value } from '@sinclair/typebox/value'
 import type { Static } from '@sinclair/typebox'
 
+import { majorityResult } from '../best-of-n.mts'
 import {
   createHoistPrompt,
   HOIST_FEW_SHOT,
@@ -66,33 +67,50 @@ const HoistExtractionSchemaLike = {
   },
 }
 
+export interface HoistAssessOptions {
+  samples?: number | undefined
+}
+
 export async function assessHoistSafety(
   model: OdaiModel,
   input: HoistInput,
+  options?: HoistAssessOptions | undefined,
 ): Promise<TaskResult<HoistAssessment>> {
-  const extraction = await model.promptStructured<HoistExtraction>(
-    createHoistPrompt(input),
-    {
-      initialPrompts: [
-        { content: HOIST_SYSTEM_PROMPT, role: 'system' },
-        ...HOIST_FEW_SHOT,
-      ],
-      prefill: HOIST_PREFILL,
-      schema: HoistExtractionSchemaLike,
-      synonymMap: HOIST_SYNONYM_MAP,
-    },
-  )
-  if (!extraction.ok || extraction.data === undefined) {
-    return { error: extraction.error, ok: false, raw: extraction.raw }
+  const opts = { __proto__: null, ...options } as typeof options
+  async function runOnce(): Promise<TaskResult<HoistAssessment>> {
+    const extraction = await model.promptStructured<HoistExtraction>(
+      createHoistPrompt(input),
+      {
+        initialPrompts: [
+          { content: HOIST_SYSTEM_PROMPT, role: 'system' },
+          ...HOIST_FEW_SHOT,
+        ],
+        prefill: HOIST_PREFILL,
+        schema: HoistExtractionSchemaLike,
+        synonymMap: HOIST_SYNONYM_MAP,
+      },
+    )
+    if (!extraction.ok || extraction.data === undefined) {
+      return { error: extraction.error, ok: false, raw: extraction.raw }
+    }
+    return {
+      data: decideHoistVerdict(
+        extraction.data.breakingChanges,
+        input.minNodeSupported,
+      ),
+      ok: true,
+      raw: extraction.raw,
+    }
   }
-  return {
-    data: decideHoistVerdict(
-      extraction.data.breakingChanges,
-      input.minNodeSupported,
-    ),
-    ok: true,
-    raw: extraction.raw,
+  const samples = opts?.samples ?? 1
+  if (samples <= 1) {
+    return runOnce()
   }
+  const results: Array<TaskResult<HoistAssessment>> = []
+  for (let i = 0; i < samples; i += 1) {
+    results.push(await runOnce())
+  }
+  return majorityResult(results, data => data.verdict)
 }
 
 /**

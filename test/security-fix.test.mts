@@ -52,6 +52,22 @@ describe('assessSecurityFix', () => {
     expect(result.data?.verdict).toBe('fixed')
     expect(result.data?.fixedVersion).toBe('4.17.21')
   })
+
+  it('yields the same target under best-of-N agreement', async () => {
+    const result = await assessSecurityFix(
+      createMockModel(FIXED_RESPONSE),
+      {
+        advisory: 'Prototype pollution; upgrade to 4.17.21 or later.',
+        affectedRange: '<4.17.21',
+        availableVersions: ['4.17.20', '4.17.21', '5.0.0'],
+        currentVersion: '4.17.15',
+      },
+      { samples: 3 },
+    )
+    expect(result.ok).toBe(true)
+    expect(result.data?.verdict).toBe('fixed')
+    expect(result.data?.fixedVersion).toBe('4.17.21')
+  })
 })
 
 describe('decideSecurityFix', () => {

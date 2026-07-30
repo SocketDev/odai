@@ -10,6 +10,7 @@ import { Type } from '@sinclair/typebox'
 import { Value } from '@sinclair/typebox/value'
 import type { Static } from '@sinclair/typebox'
 
+import { majorityResult } from '../best-of-n.mts'
 import {
   createSecurityFixPrompt,
   SECURITY_FIX_FEW_SHOT,
@@ -45,30 +46,50 @@ const SecurityFixExtractionSchemaLike = {
   },
 }
 
+export interface SecurityFixAssessOptions {
+  samples?: number | undefined
+}
+
 export async function assessSecurityFix(
   model: OdaiModel,
   input: SecurityFixInput,
+  options?: SecurityFixAssessOptions | undefined,
 ): Promise<TaskResult<SecurityFixAssessment>> {
-  const extraction = await model.promptStructured<SecurityFixExtraction>(
-    createSecurityFixPrompt(input),
-    {
-      initialPrompts: [
-        { content: SECURITY_FIX_SYSTEM_PROMPT, role: 'system' },
-        ...SECURITY_FIX_FEW_SHOT,
-      ],
-      prefill: SECURITY_FIX_PREFILL,
-      schema: SecurityFixExtractionSchemaLike,
-      synonymMap: SECURITY_FIX_SYNONYM_MAP,
-    },
+  const opts = { __proto__: null, ...options } as typeof options
+  async function runOnce(): Promise<TaskResult<SecurityFixAssessment>> {
+    const extraction = await model.promptStructured<SecurityFixExtraction>(
+      createSecurityFixPrompt(input),
+      {
+        initialPrompts: [
+          { content: SECURITY_FIX_SYSTEM_PROMPT, role: 'system' },
+          ...SECURITY_FIX_FEW_SHOT,
+        ],
+        prefill: SECURITY_FIX_PREFILL,
+        schema: SecurityFixExtractionSchemaLike,
+        synonymMap: SECURITY_FIX_SYNONYM_MAP,
+      },
+    )
+    if (!extraction.ok || extraction.data === undefined) {
+      return { error: extraction.error, ok: false, raw: extraction.raw }
+    }
+    return {
+      data: decideSecurityFix(input, extraction.data.alsoVulnerable),
+      ok: true,
+      raw: extraction.raw,
+    }
+  }
+  const samples = opts?.samples ?? 1
+  if (samples <= 1) {
+    return runOnce()
+  }
+  const results: Array<TaskResult<SecurityFixAssessment>> = []
+  for (let i = 0; i < samples; i += 1) {
+    results.push(await runOnce())
+  }
+  return majorityResult(
+    results,
+    data => `${data.verdict}|${data.fixedVersion ?? ''}`,
   )
-  if (!extraction.ok || extraction.data === undefined) {
-    return { error: extraction.error, ok: false, raw: extraction.raw }
-  }
-  return {
-    data: decideSecurityFix(input, extraction.data.alsoVulnerable),
-    ok: true,
-    raw: extraction.raw,
-  }
 }
 
 /**
