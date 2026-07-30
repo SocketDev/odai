@@ -10,6 +10,7 @@ import { Type } from '@sinclair/typebox'
 import type { Static } from '@sinclair/typebox'
 import { Value } from '@sinclair/typebox/value'
 
+import { majorityResult } from '../best-of-n.mts'
 import { findRedundantPackages } from '../lockfile-scan.mts'
 import { findSbomAnomalies } from '../sbom-scan.mts'
 import { dedupeDependencies } from '../tasks/dedupe.mts'
@@ -17,6 +18,7 @@ import { generateCodePatch } from '../tasks/patch.mts'
 import type { OdaiModel } from '../model.mts'
 import type { TaskResult } from '../types.mts'
 import {
+  DECISION_SAMPLES,
   hoistAmbiguousScenario,
   hoistNodeAboveMinScenario,
   hoistNodeOnlyScenario,
@@ -134,17 +136,27 @@ export const alertSummaryScenario: Scenario = {
       'You are explaining aggregate software supply-chain findings.',
       'Respond with compact JSON: { "sentences": string[], "topConcern": string }.',
       'Use only the counts below; do not invent package names or CVEs.',
+      'Include one sentence that states the number of critical findings.',
       `Critical: ${SEVERITY_COUNTS.critical}`,
       `High: ${SEVERITY_COUNTS.high}`,
       `Medium: ${SEVERITY_COUNTS.medium}`,
       `Low: ${SEVERITY_COUNTS.low}`,
     ].join('\n')
-    const result = await model.promptStructured(prompt, {
-      prefill: '{"sentences":["',
-      schema: AlertSummarySchema,
-      systemPrompt:
-        'You are a concise security-assistant. Output valid JSON only.',
-    })
+    const samples = []
+    for (let i = 0; i < DECISION_SAMPLES; i += 1) {
+      samples.push(
+        // oxlint-disable-next-line no-await-in-loop -- self-consistency samples are intentionally sequential
+        await model.promptStructured(prompt, {
+          prefill: '{"sentences":["',
+          schema: AlertSummarySchema,
+          systemPrompt:
+            'You are a concise security-assistant. Output valid JSON only.',
+        }),
+      )
+    }
+    const result = majorityResult(samples, value =>
+      value.sentences.some(s => /critical/i.test(s)) ? 'critical' : 'none',
+    )
     return scoreTaskResult(result, value => {
       const sentences = value.sentences
       const hasCritical = sentences.some(s => /critical/i.test(s))
@@ -167,11 +179,18 @@ export const askIntentScenario: Scenario = {
       'Respond with compact JSON: { "intent": string, "command": string[], "confidence": number }.',
       `Query: "${query}"`,
     ].join('\n')
-    const result = await model.promptStructured(prompt, {
-      prefill: '{"intent":"',
-      schema: AskIntentSchema,
-      systemPrompt: 'You are a command-router. Output valid JSON only.',
-    })
+    const samples = []
+    for (let i = 0; i < DECISION_SAMPLES; i += 1) {
+      samples.push(
+        // oxlint-disable-next-line no-await-in-loop -- self-consistency samples are intentionally sequential
+        await model.promptStructured(prompt, {
+          prefill: '{"intent":"',
+          schema: AskIntentSchema,
+          systemPrompt: 'You are a command-router. Output valid JSON only.',
+        }),
+      )
+    }
+    const result = majorityResult(samples, value => value.command[0] ?? '')
     return scoreTaskResult(result, value => {
       const command = value.command
       const isFix = command[0] === 'fix'
