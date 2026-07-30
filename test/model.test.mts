@@ -11,7 +11,7 @@ import {
 } from '../src/model.mts'
 import type { LanguageModelState } from '../src/model.mts'
 import type { OdaiBackend } from '../src/backends/types.mts'
-import type { SessionLike } from '../src/types.mts'
+import type { Message, SessionLike } from '../src/types.mts'
 
 describe('createOdaiModel', () => {
   it('drives structured prompts through the simulator backend', async () => {
@@ -188,5 +188,54 @@ describe('createModelFromState', () => {
     })
     expect(result.ok).toBe(true)
     expect(destroyed).toBe(1)
+  })
+})
+
+describe('createModelFromState retry', () => {
+  it('clones a fresh session per attempt so a stateful backend never re-prompts', async () => {
+    const responses = ['', '{"ok":true}']
+    let attempt = 0
+    let clones = 0
+    const makeSession = (): SessionLike => {
+      let used = false
+      return {
+        clone(): SessionLike {
+          clones += 1
+          return makeSession()
+        },
+        async prompt(messages: Message[]): Promise<string> {
+          void messages
+          // A stateful backend (Chrome's Nano) rejects a second prompt on the
+          // same session; each retry MUST land on a fresh clone.
+          if (used) {
+            throw new Error('session already used')
+          }
+          used = true
+          const reply = responses[attempt] ?? '{"ok":true}'
+          attempt += 1
+          return reply
+        },
+        promptStreaming(): AsyncIterable<string> {
+          return (async function* generate(): AsyncGenerator<string> {
+            yield ''
+          })()
+        },
+      }
+    }
+    const model = createModelFromState({
+      cloneCapable: true,
+      namespace: 'modern',
+      session: makeSession(),
+    })
+    const result = await model.promptStructured<{ ok: boolean }>('go', {
+      prefill: '',
+      schema: {
+        parse(value: unknown): { ok: boolean } {
+          return value as { ok: boolean }
+        },
+      },
+    })
+    expect(result.ok).toBe(true)
+    expect(clones).toBeGreaterThanOrEqual(2)
   })
 })
