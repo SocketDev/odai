@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   buildPrefixedMessages,
+  isParseableJson,
   mergePrefill,
   normalizeKeys,
   parseJsonWithFallback,
@@ -31,6 +32,19 @@ describe('json', () => {
     expect(mergePrefill('{"a":', '{"a":1}')).toBe('{"a":1}')
   })
 
+  it('wraps an array-element continuation of a nested-array prefill', () => {
+    // The model continued from `{"updates":[` without echoing it, so raw alone
+    // is unbalanced (`{…}]}`) but prefill+raw parses.
+    expect(mergePrefill('{"updates":[', '{"name":"x"}]}')).toBe(
+      '{"updates":[{"name":"x"}]}',
+    )
+  })
+
+  it('isParseableJson distinguishes valid from broken JSON', () => {
+    expect(isParseableJson('{"a":1}')).toBe(true)
+    expect(isParseableJson('{"a":1}]}')).toBe(false)
+  })
+
   it('normalizes synonymous keys', () => {
     const result = normalizeKeys(
       { reason: 'x', tone: 'y', unknown: 'z' },
@@ -55,6 +69,17 @@ describe('json', () => {
       undefined,
     )
     expect(data).toEqual({ a: 1 })
+  })
+
+  it('recovers a double-escaped (string-encoded) object', () => {
+    // Verbatim failure shape observed from real Gemini Nano: every structural
+    // quote backslash-escaped, as if the object were JSON.stringify'd once more.
+    const data = parseJsonWithFallback(
+      '{\\"summary\\": \\"multiple versions\\"}',
+      identitySchema,
+      undefined,
+    )
+    expect(data).toEqual({ summary: 'multiple versions' })
   })
 
   it('repairs fullwidth punctuation and curly quotes', () => {

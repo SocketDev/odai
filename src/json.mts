@@ -45,11 +45,27 @@ export function findCanonicalKey(
   return key
 }
 
+export function isParseableJson(text: string): boolean {
+  try {
+    JSON.parse(text)
+    return true
+  } catch {
+    return false
+  }
+}
+
 export function mergePrefill(prefill: string, raw: string): string {
   const trimmed = raw.trimStart()
   const trimmedPrefill = prefill.trimEnd()
   if (trimmed.startsWith(trimmedPrefill)) {
     return raw
+  }
+  // The model continued from the prefill's open bracket without echoing it, so
+  // raw alone is unbalanced but prefill+raw parses — e.g. prefill `{"updates":[`
+  // + raw `{…}]}`. A small model does this with a nested-array prefill. Prefer
+  // the combination only when it actually repairs the structure.
+  if (!isParseableJson(trimmed) && isParseableJson(prefill + raw)) {
+    return prefill + raw
   }
   if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
     return raw
@@ -112,11 +128,20 @@ export function parseJsonWithFallback<T>(
   try {
     parsed = JSON.parse(trimmed)
   } catch {
+    const normalized = normalizeJsonPunctuation(trimmed)
     try {
-      parsed = JSON.parse(normalizeJsonPunctuation(trimmed))
+      parsed = JSON.parse(normalized)
     } catch {
-      const repaired = repairJson(normalizeJsonPunctuation(trimmed))
-      parsed = JSON.parse(repaired)
+      // Double-escaped output: some models emit `{\"k\": \"v\"}` — a
+      // string-encoded object. Unescaping only helps when it then parses; a
+      // false unescape (no `\"` present, or a genuinely broken reply) leaves
+      // it as unparseable as it started and falls through to the repair pass.
+      const unescaped = unescapeJsonQuotes(normalized)
+      try {
+        parsed = JSON.parse(unescaped)
+      } catch {
+        parsed = JSON.parse(repairJson(unescaped))
+      }
     }
   }
 
@@ -171,4 +196,14 @@ export function repairJson(raw: string): string {
     }
   }
   return '{}'
+}
+
+/**
+ * Undo backslash-escaped quotes (`\"` → `"`). Only meaningful on the repair
+ * path, after a strict parse already failed: a reply with no `\"` is returned
+ * unchanged, so this is a no-op for well-formed JSON and only rescues the
+ * string-encoded-object shape a small model occasionally emits.
+ */
+export function unescapeJsonQuotes(raw: string): string {
+  return raw.replaceAll('\\"', '"')
 }
