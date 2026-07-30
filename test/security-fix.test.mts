@@ -7,6 +7,8 @@ import {
   assessSecurityFix,
   decideSecurityFix,
 } from '../src/tasks/security-fix.mts'
+import type { OdaiModel } from '../src/model.mts'
+import type { TaskResult } from '../src/types.mts'
 
 const FIXED_RESPONSE = '{"alsoVulnerable":[]}'
 
@@ -67,6 +69,89 @@ describe('assessSecurityFix', () => {
     expect(result.ok).toBe(true)
     expect(result.data?.verdict).toBe('fixed')
     expect(result.data?.fixedVersion).toBe('4.17.21')
+  })
+
+  it('decides deterministically from an OSV advisory without a model call', async () => {
+    let called = false
+    const model: OdaiModel = {
+      async promptStructured<T>(): Promise<TaskResult<T>> {
+        called = true
+        return {
+          error: 'should not be called',
+          ok: false,
+          raw: '',
+        } as TaskResult<T>
+      },
+      async promptStreaming(): Promise<{ raw: string }> {
+        return { raw: '' }
+      },
+      rawSession() {
+        return { prompt: async () => '' }
+      },
+    }
+    const result = await assessSecurityFix(model, {
+      advisory: 'ReDoS in minimatch; upgrade to 9.0.0 or later.',
+      affectedRange: '<9.0.0',
+      availableVersions: ['8.0.0', '8.0.1', '9.0.0', '10.0.0'],
+      currentVersion: '7.4.6',
+      osvAdvisory: {
+        affected: [
+          {
+            ranges: [
+              {
+                events: [{ introduced: '0' }, { fixed: '9.0.0' }],
+                type: 'SEMVER',
+              },
+            ],
+          },
+        ],
+      },
+    })
+    expect(called).toBe(false)
+    expect(result.ok).toBe(true)
+    expect(result.data?.verdict).toBe('fixed')
+    expect(result.data?.fixedVersion).toBe('9.0.0')
+  })
+
+  it('skips an OSV-flagged still-vulnerable patch release', async () => {
+    const result = await assessSecurityFix(createMockModel(FIXED_RESPONSE), {
+      advisory: 'Path traversal in tar; 6.2.1 also affected, upgrade to 6.2.2.',
+      affectedRange: '<6.2.1',
+      availableVersions: ['6.2.0', '6.2.1', '6.2.2'],
+      currentVersion: '6.1.0',
+      osvAdvisory: {
+        affected: [
+          {
+            ranges: [
+              {
+                events: [{ introduced: '0' }, { fixed: '6.2.2' }],
+                type: 'SEMVER',
+              },
+            ],
+          },
+        ],
+      },
+    })
+    expect(result.ok).toBe(true)
+    expect(result.data?.verdict).toBe('fixed')
+    expect(result.data?.fixedVersion).toBe('6.2.2')
+  })
+
+  it('reports no-safe-version when the OSV advisory covers every version', async () => {
+    const result = await assessSecurityFix(createMockModel(FIXED_RESPONSE), {
+      advisory: 'Prototype pollution in qs-legacy; no patched release yet.',
+      affectedRange: '<=1.4.0',
+      availableVersions: ['1.3.0', '1.4.0'],
+      currentVersion: '1.3.0',
+      osvAdvisory: {
+        affected: [
+          { ranges: [{ events: [{ introduced: '0' }], type: 'SEMVER' }] },
+        ],
+      },
+    })
+    expect(result.ok).toBe(true)
+    expect(result.data?.verdict).toBe('no-safe-version')
+    expect(result.data?.fixedVersion).toBeUndefined()
   })
 })
 

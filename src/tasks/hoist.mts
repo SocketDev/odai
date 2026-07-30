@@ -3,8 +3,11 @@
  *   changes from the target changelog (each flagged as a Node.js-drop or not,
  *   with the highest Node major it drops); deterministic code
  *   (`decideHoistVerdict`) applies the safety rule to those facts and builds
- *   the assessment. Keeping the version arithmetic in code makes the on-device
- *   verdict reliable.
+ *   the assessment. Extracted changes are first passed through `isVagueChange`
+ *   so filler the model over-extracts ("various changes", "see the migration
+ *   guide") is dropped, leaving an ambiguous changelog on the abstain path.
+ *   Keeping the version arithmetic in code makes the on-device verdict
+ *   reliable.
  */
 
 import { Type } from '@sinclair/typebox'
@@ -93,11 +96,11 @@ export async function assessHoistSafety(
     if (!extraction.ok || extraction.data === undefined) {
       return { error: extraction.error, ok: false, raw: extraction.raw }
     }
+    const concreteChanges = extraction.data.breakingChanges.filter(
+      change => !isVagueChange(change.text),
+    )
     return {
-      data: decideHoistVerdict(
-        extraction.data.breakingChanges,
-        input.minNodeSupported,
-      ),
+      data: decideHoistVerdict(concreteChanges, input.minNodeSupported),
       ok: true,
       raw: extraction.raw,
     }
@@ -150,4 +153,23 @@ export function decideHoistVerdict(
     reason: `Every breaking change only drops Node.js majors below the project minimum of ${minNodeSupported}, so the hoist is safe.`,
     verdict: 'safe',
   }
+}
+
+const VAGUE_CHANGE_PHRASES = [
+  'various changes',
+  'internal changes',
+  'see the migration guide',
+  'refactor',
+  'misc',
+]
+
+/**
+ * Test whether an extracted "breaking change" is too vague to act on. A small
+ * model over-extracts filler like "various changes" or "see the migration
+ * guide"; dropping these before the verdict keeps an ambiguous changelog on the
+ * empty-extraction abstain path instead of letting noise force a verdict.
+ */
+export function isVagueChange(text: string): boolean {
+  const normalized = text.toLowerCase()
+  return VAGUE_CHANGE_PHRASES.some(phrase => normalized.includes(phrase))
 }

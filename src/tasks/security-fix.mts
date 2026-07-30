@@ -1,9 +1,13 @@
 /**
- * @file Dependabot security-fix decision task. The model EXTRACTS which versions
- *   the advisory names as still vulnerable beyond the machine-readable affected
- *   range; deterministic code (`decideSecurityFix`) picks the safest minimal
- *   upgrade target with a pure semver compare. Keeping the version selection in
- *   code makes the on-device verdict reliable.
+ * @file Dependabot security-fix decision task. Data-source-agnostic: when a
+ *   machine-readable OSV advisory is supplied (`input.osvAdvisory`) the
+ *   affected version set is computed deterministically
+ *   (`osvVulnerableVersions`) with no model call at all. Only when no OSV
+ *   record is present does the model EXTRACT which versions the advisory text
+ *   names as still vulnerable beyond the affected range. Either way
+ *   deterministic code (`decideSecurityFix`) picks the safest minimal upgrade
+ *   target with a pure semver compare, so the on-device verdict stays
+ *   reliable.
  */
 
 import { Type } from '@sinclair/typebox'
@@ -23,6 +27,7 @@ import type {
   SecurityFixExtraction,
   SecurityFixInput,
 } from '../prompts/security-fix.mts'
+import { osvVulnerableVersions } from '../osv.mts'
 import { compareSemverVersions, isVersionInAffectedRange } from '../semver.mts'
 import type { OdaiModel } from '../model.mts'
 import type { TaskResult } from '../types.mts'
@@ -56,6 +61,17 @@ export async function assessSecurityFix(
   options?: SecurityFixAssessOptions | undefined,
 ): Promise<TaskResult<SecurityFixAssessment>> {
   const opts = { __proto__: null, ...options } as typeof options
+  if (input.osvAdvisory !== undefined) {
+    const alsoVulnerable = osvVulnerableVersions(
+      input.osvAdvisory,
+      input.availableVersions,
+    )
+    return {
+      data: decideSecurityFix(input, alsoVulnerable),
+      ok: true,
+      raw: JSON.stringify({ alsoVulnerable }),
+    }
+  }
   async function runOnce(): Promise<TaskResult<SecurityFixAssessment>> {
     const extraction = await model.promptStructured<SecurityFixExtraction>(
       createSecurityFixPrompt(input),

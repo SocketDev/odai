@@ -113,6 +113,18 @@ export const SECURITY_FIX_MINIMAL_INPUT: SecurityFixInput = {
   affectedRange: '<9.0.0',
   availableVersions: ['8.0.0', '8.0.1', '9.0.0', '10.0.0'],
   currentVersion: '7.4.6',
+  osvAdvisory: {
+    affected: [
+      {
+        ranges: [
+          {
+            events: [{ introduced: '0' }, { fixed: '9.0.0' }],
+            type: 'SEMVER',
+          },
+        ],
+      },
+    ],
+  },
 }
 
 // FIXED: the advisory flags 6.2.1 as also affected, so the safe minimal target
@@ -123,6 +135,18 @@ export const SECURITY_FIX_SKIP_VULNERABLE_INPUT: SecurityFixInput = {
   affectedRange: '<6.2.1',
   availableVersions: ['6.2.0', '6.2.1', '6.2.2'],
   currentVersion: '6.1.0',
+  osvAdvisory: {
+    affected: [
+      {
+        ranges: [
+          {
+            events: [{ introduced: '0' }, { fixed: '6.2.2' }],
+            type: 'SEMVER',
+          },
+        ],
+      },
+    ],
+  },
 }
 
 // NO-SAFE-VERSION: every available version is inside the affected range.
@@ -132,6 +156,18 @@ export const SECURITY_FIX_NO_SAFE_INPUT: SecurityFixInput = {
   affectedRange: '<=1.4.0',
   availableVersions: ['1.3.0', '1.4.0'],
   currentVersion: '1.3.0',
+  osvAdvisory: {
+    affected: [
+      {
+        ranges: [
+          {
+            events: [{ introduced: '0' }],
+            type: 'SEMVER',
+          },
+        ],
+      },
+    ],
+  },
 }
 
 // Weekly-update plan fixtures. The soak window is 7 days in every scenario.

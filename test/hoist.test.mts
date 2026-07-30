@@ -3,7 +3,11 @@ import { describe, expect, it } from 'vitest'
 import { hoistScenario } from '../src/bench/scenarios.mts'
 import { createMockModel } from '../src/node.mts'
 import { createHoistPrompt } from '../src/prompts/hoist.mts'
-import { assessHoistSafety, decideHoistVerdict } from '../src/tasks/hoist.mts'
+import {
+  assessHoistSafety,
+  decideHoistVerdict,
+  isVagueChange,
+} from '../src/tasks/hoist.mts'
 import type { HoistBreakingChange } from '../src/tasks/hoist.mts'
 
 const SAFE_RESPONSE =
@@ -126,6 +130,36 @@ describe('decideHoistVerdict', () => {
 
   it('abstains when nothing concrete was extracted', () => {
     expect(decideHoistVerdict([], 22).verdict).toBe('abstain')
+  })
+})
+
+describe('isVagueChange', () => {
+  it('flags vague filler phrases', () => {
+    expect(isVagueChange('Various changes')).toBe(true)
+    expect(isVagueChange('Some internal changes')).toBe(true)
+    expect(isVagueChange('See the migration guide for details')).toBe(true)
+    expect(isVagueChange('Large refactor of the core')).toBe(true)
+    expect(isVagueChange('Misc cleanups')).toBe(true)
+  })
+
+  it('keeps a concrete breaking change', () => {
+    expect(isVagueChange('Remove the deprecated parse() export')).toBe(false)
+    expect(isVagueChange('Drop support for Node.js 18')).toBe(false)
+  })
+})
+
+describe('assessHoistSafety vague filtering', () => {
+  it('abstains when the model only extracts vague filler', async () => {
+    const vagueResponse =
+      '{"breakingChanges":[{"text":"Various internal changes","isNodeDrop":false,"droppedNodeMajor":null}]}'
+    const result = await assessHoistSafety(createMockModel(vagueResponse), {
+      changelog: '## 2.0.0\nVarious internal changes.',
+      currentVersion: '1.0.0',
+      minNodeSupported: 22,
+      targetVersion: '2.0.0',
+    })
+    expect(result.ok).toBe(true)
+    expect(result.data?.verdict).toBe('abstain')
   })
 })
 

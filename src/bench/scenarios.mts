@@ -10,8 +10,9 @@ import { Type } from '@sinclair/typebox'
 import type { Static } from '@sinclair/typebox'
 import { Value } from '@sinclair/typebox/value'
 
+import { findRedundantPackages } from '../lockfile-scan.mts'
+import { findSbomAnomalies } from '../sbom-scan.mts'
 import { dedupeDependencies } from '../tasks/dedupe.mts'
-import { reasonAboutLockfile } from '../tasks/lockfile.mts'
 import { generateCodePatch } from '../tasks/patch.mts'
 import type { OdaiModel } from '../model.mts'
 import type { TaskResult } from '../types.mts'
@@ -123,13 +124,6 @@ const SafeAlternativeSchema = schemaLike(
   Type.Object({
     alternative: Type.String(),
     reasoning: Type.String(),
-  }),
-)
-
-const SbomAnomalySchema = schemaLike(
-  Type.Object({
-    anomalies: Type.Array(Type.String()),
-    summary: Type.String(),
   }),
 )
 
@@ -281,21 +275,20 @@ export const dedupeCandidateScenario: Scenario = {
 
 export const lockfileDuplicateScenario: Scenario = {
   name: 'lockfile-duplicate-lodash',
-  async run(model) {
-    const result = await reasonAboutLockfile(model, LOCKFILE_DUPLICATE_LODASH)
-    return scoreTaskResult(result, value => {
-      const findings = value.findings as Array<{
-        package: string
-        reason: string
-      }>
-      const hasLodash = findings.some(f => /lodash/i.test(f.package))
-      return {
-        ok: hasLodash,
-        assertion: hasLodash
-          ? 'found lodash-related finding'
-          : 'expected a lodash-related finding',
-      }
-    })
+  // Deterministic: `findRedundantPackages` scans the lockfile in code, so the
+  // verdict never depends on the model.
+  async run() {
+    const findings = findRedundantPackages(LOCKFILE_DUPLICATE_LODASH)
+    const hasLodash = findings.some(f => /lodash/i.test(f.name))
+    return {
+      assertion: hasLodash
+        ? 'found lodash-related finding'
+        : 'expected a lodash-related finding',
+      name: 'lockfile-duplicate-lodash',
+      ok: hasLodash,
+      raw: JSON.stringify(findings),
+      score: hasLodash ? 1 : 0,
+    }
   },
 }
 
@@ -327,30 +320,22 @@ export const safeAlternativeScenario: Scenario = {
 
 export const sbomAnomalyScenario: Scenario = {
   name: 'sbom-anomaly-detection',
-  async run(model) {
-    const prompt = [
-      'Identify anomalies in this SBOM component list.',
-      'Respond with compact JSON: { "summary": string, "anomalies": string[] }.',
-      'List EACH anomaly as a separate string in the "anomalies" array; do not fold findings only into "summary".',
-      SBOM_ANOMALY_INPUT,
-    ].join('\n')
-    const result = await model.promptStructured(prompt, {
-      prefill: '{"summary":"',
-      schema: SbomAnomalySchema,
-      systemPrompt: 'You are a supply-chain analyst. Output valid JSON only.',
-    })
-    return scoreTaskResult(result, value => {
-      const anomalies = value.anomalies
-      const mentionsDuplicate = anomalies.some(a =>
-        /duplicate|multiple|two versions/i.test(a),
-      )
-      return {
-        ok: mentionsDuplicate,
-        assertion: mentionsDuplicate
-          ? 'flagged duplicate component versions'
-          : 'expected duplicate-version anomaly',
-      }
-    })
+  // Deterministic: `findSbomAnomalies` scans the component list in code, so the
+  // verdict never depends on the model.
+  async run() {
+    const anomalies = findSbomAnomalies(SBOM_ANOMALY_INPUT)
+    const mentionsDuplicate = anomalies.some(a =>
+      /duplicate|multiple|two versions/i.test(a),
+    )
+    return {
+      assertion: mentionsDuplicate
+        ? 'flagged duplicate component versions'
+        : 'expected duplicate-version anomaly',
+      name: 'sbom-anomaly-detection',
+      ok: mentionsDuplicate,
+      raw: JSON.stringify(anomalies),
+      score: mentionsDuplicate ? 1 : 0,
+    }
   },
 }
 
