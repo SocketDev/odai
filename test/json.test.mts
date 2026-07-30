@@ -6,11 +6,27 @@ import {
   mergePrefill,
   normalizeKeys,
   parseJsonWithFallback,
+  promptStructured,
 } from '../src/json.mts'
+import type { Message, SessionLike } from '../src/types.mts'
 
 const identitySchema = {
   parse(value: unknown): unknown {
     return value
+  },
+}
+
+const requireNumericASchema = {
+  parse(value: unknown): { a: number } {
+    if (
+      typeof value === 'object' &&
+      value !== null &&
+      'a' in value &&
+      typeof (value as Record<string, unknown>)['a'] === 'number'
+    ) {
+      return value as { a: number }
+    }
+    throw new Error('expected { a: number }')
   },
 }
 
@@ -112,5 +128,54 @@ describe('json', () => {
       undefined,
     )
     expect(data).toEqual({ quote: 'a \u{201C}quoted\u{201D} word' })
+  })
+
+  it('retries when the first reply is empty and succeeds on the next', async () => {
+    let calls = 0
+    const replies = ['', '{"a":1}']
+    const session: SessionLike = {
+      async prompt(messages: Message[]): Promise<string> {
+        void messages
+        const reply = replies[calls] ?? ''
+        calls += 1
+        return reply
+      },
+      promptStreaming(): AsyncIterable<string> {
+        return (async function* generate(): AsyncGenerator<string> {
+          yield ''
+        })()
+      },
+    }
+    const result = await promptStructured(session, 'go', {
+      prefill: '',
+      schema: identitySchema,
+    })
+    expect(calls).toBe(2)
+    expect(result.ok).toBe(true)
+    expect(result.data).toEqual({ a: 1 })
+  })
+
+  it('gives up after exhausting retries and reports the last error', async () => {
+    let calls = 0
+    const session: SessionLike = {
+      async prompt(messages: Message[]): Promise<string> {
+        void messages
+        calls += 1
+        return 'not json at all'
+      },
+      promptStreaming(): AsyncIterable<string> {
+        return (async function* generate(): AsyncGenerator<string> {
+          yield ''
+        })()
+      },
+    }
+    const result = await promptStructured(session, 'go', {
+      prefill: '',
+      retries: 1,
+      schema: requireNumericASchema,
+    })
+    expect(calls).toBe(2)
+    expect(result.ok).toBe(false)
+    expect(result.error).toBeDefined()
   })
 })

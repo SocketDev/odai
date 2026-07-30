@@ -166,15 +166,29 @@ export async function promptStructured<T>(
   if (opts.initialPrompts !== undefined && opts.initialPrompts.length > 0) {
     messages.unshift(...opts.initialPrompts)
   }
-  const raw = await session.prompt(messages)
-  const merged = mergePrefill(opts.prefill, raw)
-  try {
-    const data = parseJsonWithFallback<T>(merged, opts.schema, opts.synonymMap)
-    return { data, ok: true, raw: merged }
-  } catch (error) {
-    const message = errorMessage(error)
-    return { error: message, ok: false, raw: merged }
+  const attempts = (opts.retries ?? 2) + 1
+  let lastError = 'model returned no parseable response'
+  let lastRaw = ''
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    const raw = await session.prompt(messages)
+    const merged = mergePrefill(opts.prefill, raw)
+    lastRaw = merged
+    if (merged.trim() === '') {
+      lastError = 'model returned an empty response'
+      continue
+    }
+    try {
+      const data = parseJsonWithFallback<T>(
+        merged,
+        opts.schema,
+        opts.synonymMap,
+      )
+      return { data, ok: true, raw: merged }
+    } catch (error) {
+      lastError = errorMessage(error)
+    }
   }
+  return { error: lastError, ok: false, raw: lastRaw }
 }
 
 export function repairJson(raw: string): string {
