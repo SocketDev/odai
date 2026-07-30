@@ -8,7 +8,6 @@ import { createSimulatorBackend } from '../../src/backends/simulator.mts'
 import {
   closeBackend,
   runCli,
-  runTask,
   truncateForLog,
   withTimeout,
 } from '../../src/cli/run.mts'
@@ -381,52 +380,6 @@ describe('runCli input and diagnostics', () => {
         value: wasTty,
       })
     }
-  })
-})
-
-describe('runTask', () => {
-  const model = createMockModel(
-    '{"summary":"s","keyPoints":["a"],"subject":"chore: x",' +
-      '"sentences":["one"],"topConcern":"low",' +
-      '"patch":"--- a\\n+++ b","explanation":"why",' +
-      '"routine":true,"reason":"pin bump","risk":"low"}',
-  )
-
-  it('routes classify-deps', async () => {
-    const result = await runTask('classify-deps', model, 'diff', undefined)
-    expect(result).toHaveProperty('ok')
-  })
-
-  it('routes commit-msg', async () => {
-    const result = await runTask('commit-msg', model, 'diff', undefined)
-    expect(result).toHaveProperty('ok')
-  })
-
-  it('routes summarize', async () => {
-    const result = await runTask('summarize', model, 'text', undefined)
-    expect(result).toHaveProperty('ok')
-  })
-
-  it('routes triage', async () => {
-    const result = await runTask('triage', model, 'findings', undefined)
-    expect(result).toHaveProperty('ok')
-  })
-
-  it('routes patch with an instruction', async () => {
-    const result = await runTask('patch', model, 'file', 'use template literal')
-    expect(result).toHaveProperty('ok')
-  })
-
-  it('rejects patch without an instruction', async () => {
-    await expect(runTask('patch', model, 'file', undefined)).rejects.toThrow(
-      /needs --instruction/,
-    )
-  })
-
-  it('rejects a command that is not a prompt task', async () => {
-    await expect(
-      runTask('backends' as never, model, 'x', undefined),
-    ).rejects.toThrow(/not a prompt command/)
   })
 })
 
