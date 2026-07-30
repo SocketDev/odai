@@ -166,11 +166,15 @@ export async function promptStructured<T>(
   if (opts.initialPrompts !== undefined && opts.initialPrompts.length > 0) {
     messages.unshift(...opts.initialPrompts)
   }
+  const promptOptions =
+    opts.responseConstraint !== undefined
+      ? { responseConstraint: opts.responseConstraint }
+      : undefined
   const attempts = (opts.retries ?? 2) + 1
   let lastError = 'model returned no parseable response'
   let lastRaw = ''
   for (let attempt = 0; attempt < attempts; attempt += 1) {
-    const raw = await session.prompt(messages)
+    const raw = await session.prompt(messages, promptOptions)
     const merged = mergePrefill(opts.prefill, raw)
     lastRaw = merged
     if (merged.trim() === '') {

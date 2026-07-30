@@ -89,6 +89,7 @@ export async function assessHoistSafety(
           ...HOIST_FEW_SHOT,
         ],
         prefill: HOIST_PREFILL,
+        responseConstraint: HoistExtractionSchema,
         schema: HoistExtractionSchemaLike,
         synonymMap: HOIST_SYNONYM_MAP,
       },

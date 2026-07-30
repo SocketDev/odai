@@ -11,6 +11,7 @@ import type { Static } from '@sinclair/typebox'
 import { Value } from '@sinclair/typebox/value'
 
 import { majorityResult } from '../best-of-n.mts'
+import { generateVerified } from '../generate-verify.mts'
 import { findRedundantPackages } from '../lockfile-scan.mts'
 import { findSbomAnomalies } from '../sbom-scan.mts'
 import { dedupeDependencies } from '../tasks/dedupe.mts'
@@ -42,6 +43,10 @@ import {
   SBOM_ANOMALY_INPUT,
   SEVERITY_COUNTS,
 } from './fixtures.mts'
+import {
+  isTemplateLiteralPatch,
+  repairResolvesLintErrors,
+} from './verify-oracles.mts'
 
 export {
   hoistScenario,
@@ -100,20 +105,29 @@ export function scoreTaskResult<T>(
   }
 }
 
-const AlertSummarySchema = schemaLike(
-  Type.Object({
-    sentences: Type.Array(Type.String()),
-    topConcern: Type.String(),
-  }),
-)
+const AlertSummarySchemaObject = Type.Object({
+  sentences: Type.Array(Type.String()),
+  topConcern: Type.String(),
+})
 
-const AskIntentSchema = schemaLike(
-  Type.Object({
-    command: Type.Array(Type.String()),
-    confidence: Type.Number(),
-    intent: Type.String(),
-  }),
-)
+const AlertSummarySchema = schemaLike(AlertSummarySchemaObject)
+
+// The command field is grounded to the real intent set so a constrained-decoding
+// backend cannot drift off the CLI's command vocabulary.
+const AskIntentSchemaObject = Type.Object({
+  command: Type.Array(
+    Type.Union([
+      Type.Literal('fix'),
+      Type.Literal('scan'),
+      Type.Literal('optimize'),
+      Type.Literal('info'),
+    ]),
+  ),
+  confidence: Type.Number(),
+  intent: Type.String(),
+})
+
+const AskIntentSchema = schemaLike(AskIntentSchemaObject)
 
 const CodeRepairSchema = schemaLike(
   Type.Object({
@@ -122,12 +136,12 @@ const CodeRepairSchema = schemaLike(
   }),
 )
 
-const SafeAlternativeSchema = schemaLike(
-  Type.Object({
-    alternative: Type.String(),
-    reasoning: Type.String(),
-  }),
-)
+const SafeAlternativeSchemaObject = Type.Object({
+  alternative: Type.String(),
+  reasoning: Type.String(),
+})
+
+const SafeAlternativeSchema = schemaLike(SafeAlternativeSchemaObject)
 
 export const alertSummaryScenario: Scenario = {
   name: 'alert-summary-severity-counts',
@@ -148,6 +162,7 @@ export const alertSummaryScenario: Scenario = {
         // oxlint-disable-next-line no-await-in-loop -- self-consistency samples are intentionally sequential
         await model.promptStructured(prompt, {
           prefill: '{"sentences":["',
+          responseConstraint: AlertSummarySchemaObject,
           schema: AlertSummarySchema,
           systemPrompt:
             'You are a concise security-assistant. Output valid JSON only.',
@@ -185,6 +200,7 @@ export const askIntentScenario: Scenario = {
         // oxlint-disable-next-line no-await-in-loop -- self-consistency samples are intentionally sequential
         await model.promptStructured(prompt, {
           prefill: '{"intent":"',
+          responseConstraint: AskIntentSchemaObject,
           schema: AskIntentSchema,
           systemPrompt: 'You are a command-router. Output valid JSON only.',
         }),
@@ -207,10 +223,11 @@ export const askIntentScenario: Scenario = {
 export const codePatchScenario: Scenario = {
   name: 'code-patch-template-literal',
   async run(model) {
-    const result = await generateCodePatch(
-      model,
-      CODE_PATCH_INPUT,
-      'use a template literal',
+    const result = await generateVerified(
+      () =>
+        generateCodePatch(model, CODE_PATCH_INPUT, 'use a template literal'),
+      isTemplateLiteralPatch,
+      5,
     )
     return scoreTaskResult(result, value => {
       const patch = value.patch
@@ -237,11 +254,17 @@ export const codeRepairScenario: Scenario = {
       'Lint errors:',
       CODE_REPAIR_LINT_ERRORS,
     ].join('\n')
-    const result = await model.promptStructured(prompt, {
-      prefill: '{"fixed":"',
-      schema: CodeRepairSchema,
-      systemPrompt: 'You are a code-repair assistant. Output valid JSON only.',
-    })
+    const result = await generateVerified(
+      () =>
+        model.promptStructured(prompt, {
+          prefill: '{"fixed":"',
+          schema: CodeRepairSchema,
+          systemPrompt:
+            'You are a code-repair assistant. Output valid JSON only.',
+        }),
+      value => repairResolvesLintErrors(value, CODE_REPAIR_LINT_ERRORS),
+      5,
+    )
     return scoreTaskResult(result, value => {
       const fixed = value.fixed
       const usesStrictEquality = /name\s*===\s*(""|'')/.test(fixed)
@@ -272,10 +295,23 @@ export const codeRepairScenario: Scenario = {
 export const dedupeCandidateScenario: Scenario = {
   name: 'dedupe-chalk-gradient',
   async run(model) {
-    const result = await dedupeDependencies(
-      model,
-      MANIFEST_DEDUPE_CANDIDATE,
-      LOCKFILE_DEDUPE_CANDIDATE,
+    const samples = []
+    for (let i = 0; i < DECISION_SAMPLES; i += 1) {
+      samples.push(
+        // oxlint-disable-next-line no-await-in-loop -- self-consistency samples are intentionally sequential
+        await dedupeDependencies(
+          model,
+          MANIFEST_DEDUPE_CANDIDATE,
+          LOCKFILE_DEDUPE_CANDIDATE,
+        ),
+      )
+    }
+    const result = majorityResult(samples, value =>
+      (value.suggestions as Array<{ packages: string[] }>).some(s =>
+        s.packages.some(p => /chalk/i.test(p)),
+      )
+        ? 'chalk'
+        : 'none',
     )
     return scoreTaskResult(result, value => {
       const suggestions = value.suggestions as Array<{ packages: string[] }>
@@ -321,6 +357,7 @@ export const safeAlternativeScenario: Scenario = {
     ].join('\n')
     const result = await model.promptStructured(prompt, {
       prefill: '{"alternative":"',
+      responseConstraint: SafeAlternativeSchemaObject,
       schema: SafeAlternativeSchema,
       systemPrompt: 'You are a dependency-advisor. Output valid JSON only.',
     })

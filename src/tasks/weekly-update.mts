@@ -122,6 +122,7 @@ export async function planWeeklyUpdate(
           ...WEEKLY_UPDATE_FEW_SHOT,
         ],
         prefill: WEEKLY_UPDATE_PREFILL,
+        responseConstraint: WeeklyUpdateExtractionSchema,
         schema: WeeklyUpdateExtractionSchemaLike,
         synonymMap: WEEKLY_UPDATE_SYNONYM_MAP,
       },

@@ -21,7 +21,10 @@ export interface Message {
 export interface SessionLike {
   clone?(): SessionLike | Promise<SessionLike>
   destroy?(): void
-  prompt(messages: Message[]): Promise<string>
+  prompt(
+    messages: Message[],
+    options?: { responseConstraint?: object | undefined } | undefined,
+  ): Promise<string>
   promptStreaming(
     messages: Message[],
   ): AsyncIterable<string> | ReadableStream<string>
@@ -46,6 +49,14 @@ export interface PromptOptions {
   onEarlyField?:
     | ((field: { name: string; raw: string; value: unknown }) => void)
     | undefined
+  /**
+   * A JSON Schema passed to a backend that supports constrained decoding
+   * (Chrome's Prompt API `responseConstraint`). Backends that cannot honor it
+   * ignore the option; the Chrome backends feature-detect it and fall back to
+   * an unconstrained prompt. A TypeBox schema is valid JSON Schema, so a task
+   * can pass its own `Type.Object(...)` here.
+   */
+  responseConstraint?: object | undefined
   systemPrompt?: string | undefined
   temperature?: number | undefined
   topK?: number | undefined
