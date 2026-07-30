@@ -44,13 +44,13 @@ import {
 } from './simulator.mts'
 import { suggestCommitMessage } from './tasks/commit.mts'
 import { dedupeDependencies } from './tasks/dedupe.mts'
-import { assessHoistSafety } from './tasks/hoist.mts'
+import { assessHoistSafety, decideHoistVerdict } from './tasks/hoist.mts'
 import { reasonAboutLockfile } from './tasks/lockfile.mts'
 import { generateCodePatch } from './tasks/patch.mts'
-import { assessSecurityFix } from './tasks/security-fix.mts'
+import { assessSecurityFix, decideSecurityFix } from './tasks/security-fix.mts'
 import { summarizeText } from './tasks/summarize.mts'
 import { triageAlerts } from './tasks/triage.mts'
-import { planWeeklyUpdate } from './tasks/weekly-update.mts'
+import { decideWeeklyUpdate, planWeeklyUpdate } from './tasks/weekly-update.mts'
 
 export {
   backendNames,
@@ -71,6 +71,9 @@ export {
   createOdaiModel,
   createSimulatorBackend,
   createWindowsPhiSilicaBackend,
+  decideHoistVerdict,
+  decideSecurityFix,
+  decideWeeklyUpdate,
   dedupeDependencies,
   DEFAULT_LLAMA_URL,
   defaultProbeOrder,
@@ -114,15 +117,23 @@ export type { DepClassification } from './prompts/classify-deps.mts'
 export type { CommitMessage } from './prompts/commit.mts'
 export type { CodePatch } from './prompts/patch.mts'
 export type { DedupeResult } from './prompts/dedupe.mts'
-export type { HoistAssessment, HoistInput } from './prompts/hoist.mts'
+export type {
+  HoistAssessment,
+  HoistBreakingChange,
+  HoistExtraction,
+  HoistInput,
+} from './prompts/hoist.mts'
 export type { LockfileReasoning } from './prompts/lockfile.mts'
 export type {
   SecurityFixAssessment,
+  SecurityFixExtraction,
   SecurityFixInput,
 } from './prompts/security-fix.mts'
 export type { TextSummary } from './prompts/summarize.mts'
 export type { AlertTriage } from './prompts/triage.mts'
 export type {
+  WeeklyUpdateCandidate,
+  WeeklyUpdateExtraction,
   WeeklyUpdateInput,
   WeeklyUpdatePlan,
 } from './prompts/weekly-update.mts'

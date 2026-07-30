@@ -3,10 +3,14 @@ import { describe, expect, it } from 'vitest'
 import { weeklyUpdateScenario } from '../src/bench/scenarios.mts'
 import { createMockModel } from '../src/node.mts'
 import { createWeeklyUpdatePrompt } from '../src/prompts/weekly-update.mts'
-import { planWeeklyUpdate } from '../src/tasks/weekly-update.mts'
+import {
+  decideWeeklyUpdate,
+  planWeeklyUpdate,
+} from '../src/tasks/weekly-update.mts'
+import type { WeeklyUpdateCandidate } from '../src/tasks/weekly-update.mts'
 
 const CHALK_RESPONSE =
-  '{"updates":[{"name":"chalk","from":"5.2.0","to":"5.3.0","reason":"soaked 10 days, past the window"}]}'
+  '{"candidates":[{"name":"chalk","from":"5.2.0","to":"5.3.0","daysSincePublished":10}]}'
 
 describe('createWeeklyUpdatePrompt', () => {
   it('includes the soak window', () => {
@@ -34,13 +38,48 @@ describe('createWeeklyUpdatePrompt', () => {
 })
 
 describe('planWeeklyUpdate', () => {
-  it('parses a structured plan from the model', async () => {
+  it('extracts candidates and lets code apply the soak gate', async () => {
     const result = await planWeeklyUpdate(createMockModel(CHALK_RESPONSE), {
       outdated: 'chalk current 5.2.0 latest 5.3.0 published 10 days ago',
       soakWindowDays: 7,
     })
     expect(result.ok).toBe(true)
     expect(result.data?.updates.map(entry => entry.name)).toEqual(['chalk'])
+  })
+})
+
+describe('decideWeeklyUpdate', () => {
+  it('keeps a candidate that has cleared the soak window', () => {
+    const candidates: WeeklyUpdateCandidate[] = [
+      { daysSincePublished: 10, from: '5.2.0', name: 'chalk', to: '5.3.0' },
+    ]
+    const plan = decideWeeklyUpdate(candidates, 7)
+    expect(plan.updates.map(entry => entry.name)).toEqual(['chalk'])
+  })
+
+  it('drops a candidate still inside the soak window', () => {
+    const candidates: WeeklyUpdateCandidate[] = [
+      { daysSincePublished: 1, from: '3.22.0', name: 'zod', to: '3.23.0' },
+    ]
+    expect(decideWeeklyUpdate(candidates, 7).updates).toEqual([])
+  })
+
+  it('notes a major-version crossing in the kept reason', () => {
+    const candidates: WeeklyUpdateCandidate[] = [
+      { daysSincePublished: 20, from: '5.9.0', name: 'vitest', to: '6.0.0' },
+    ]
+    const [entry] = decideWeeklyUpdate(candidates, 7).updates
+    expect(entry?.reason).toContain('major')
+    expect(entry?.reason).toContain('from 5 to 6')
+  })
+
+  it('filters a mixed batch to only the soaked candidate', () => {
+    const candidates: WeeklyUpdateCandidate[] = [
+      { daysSincePublished: 12, from: '6.0.0', name: 'undici', to: '6.1.0' },
+      { daysSincePublished: 1, from: '3.22.0', name: 'zod', to: '3.23.0' },
+    ]
+    const plan = decideWeeklyUpdate(candidates, 7)
+    expect(plan.updates.map(entry => entry.name)).toEqual(['undici'])
   })
 })
 

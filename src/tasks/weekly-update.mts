@@ -1,7 +1,9 @@
 /**
- * @file Weekly dependency-update plan task. Asks the model which outdated
- *   dependencies to bump this week, honoring the project's soak window and
- *   flagging major-crossing bumps.
+ * @file Weekly dependency-update plan task. The model EXTRACTS each outdated
+ *   dependency into a structured candidate (name, from, to,
+ *   days-since-published); deterministic code (`decideWeeklyUpdate`) applies
+ *   the soak gate and flags major crossings. Keeping the day-count and major
+ *   comparisons in code makes the on-device plan reliable.
  */
 
 import { Type } from '@sinclair/typebox'
@@ -16,42 +18,95 @@ import {
   WEEKLY_UPDATE_SYSTEM_PROMPT,
 } from '../prompts/weekly-update.mts'
 import type {
+  WeeklyUpdateCandidate,
+  WeeklyUpdateEntry,
+  WeeklyUpdateExtraction,
   WeeklyUpdateInput,
   WeeklyUpdatePlan,
 } from '../prompts/weekly-update.mts'
+import { parseSemverParts } from '../semver.mts'
 import type { OdaiModel } from '../model.mts'
 import type { TaskResult } from '../types.mts'
 
-export type { WeeklyUpdateInput, WeeklyUpdatePlan }
+export type {
+  WeeklyUpdateCandidate,
+  WeeklyUpdateExtraction,
+  WeeklyUpdateInput,
+  WeeklyUpdatePlan,
+}
 
-const WeeklyUpdateEntrySchema = Type.Object(
+const WeeklyUpdateExtractionSchema = Type.Object(
   {
-    from: Type.String(),
-    name: Type.String(),
-    reason: Type.String(),
-    to: Type.String(),
+    candidates: Type.Array(
+      Type.Object(
+        {
+          daysSincePublished: Type.Number(),
+          from: Type.String(),
+          name: Type.String(),
+          to: Type.String(),
+        },
+        { additionalProperties: false },
+      ),
+    ),
   },
   { additionalProperties: false },
 )
 
-const WeeklyUpdatePlanSchema = Type.Object(
-  {
-    updates: Type.Array(WeeklyUpdateEntrySchema),
+const WeeklyUpdateExtractionSchemaLike = {
+  parse(value: unknown): WeeklyUpdateExtraction {
+    const parsed: Static<typeof WeeklyUpdateExtractionSchema> = Value.Parse(
+      WeeklyUpdateExtractionSchema,
+      value,
+    )
+    return {
+      candidates: parsed.candidates.map(candidate => ({
+        daysSincePublished: candidate.daysSincePublished,
+        from: candidate.from,
+        name: candidate.name,
+        to: candidate.to,
+      })),
+    }
   },
-  { additionalProperties: false },
-)
+}
 
-const WeeklyUpdatePlanSchemaLike = {
-  parse(value: unknown): Static<typeof WeeklyUpdatePlanSchema> {
-    return Value.Parse(WeeklyUpdatePlanSchema, value)
-  },
+/**
+ * Apply the soak gate to the extracted candidates. Pure: the model never
+ * compares the day count to the window or the majors to each other. Keeps a
+ * candidate only when it has soaked at least `soakWindowDays`; a kept bump
+ * whose target major exceeds its source major is called out in the reason.
+ */
+export function decideWeeklyUpdate(
+  candidates: WeeklyUpdateCandidate[],
+  soakWindowDays: number,
+): WeeklyUpdatePlan {
+  const updates: WeeklyUpdateEntry[] = []
+  for (let i = 0, { length } = candidates; i < length; i += 1) {
+    const candidate = candidates[i]!
+    if (candidate.daysSincePublished < soakWindowDays) {
+      continue
+    }
+    const fromMajor = parseSemverParts(candidate.from).major
+    const toMajor = parseSemverParts(candidate.to).major
+    const soakNote = `latest ${candidate.to} has soaked ${candidate.daysSincePublished} days, past the ${soakWindowDays}-day window`
+    const reason =
+      toMajor > fromMajor
+        ? `${soakNote}; crosses a major version from ${fromMajor} to ${toMajor}.`
+        : `${soakNote}.`
+    updates.push({
+      from: candidate.from,
+      name: candidate.name,
+      reason,
+      to: candidate.to,
+    })
+  }
+  return { updates }
 }
 
 export async function planWeeklyUpdate(
   model: OdaiModel,
   input: WeeklyUpdateInput,
 ): Promise<TaskResult<WeeklyUpdatePlan>> {
-  return model.promptStructured<Static<typeof WeeklyUpdatePlanSchema>>(
+  const extraction = await model.promptStructured<WeeklyUpdateExtraction>(
     createWeeklyUpdatePrompt(input),
     {
       initialPrompts: [
@@ -59,8 +114,16 @@ export async function planWeeklyUpdate(
         ...WEEKLY_UPDATE_FEW_SHOT,
       ],
       prefill: WEEKLY_UPDATE_PREFILL,
-      schema: WeeklyUpdatePlanSchemaLike,
+      schema: WeeklyUpdateExtractionSchemaLike,
       synonymMap: WEEKLY_UPDATE_SYNONYM_MAP,
     },
   )
+  if (!extraction.ok || extraction.data === undefined) {
+    return { error: extraction.error, ok: false, raw: extraction.raw }
+  }
+  return {
+    data: decideWeeklyUpdate(extraction.data.candidates, input.soakWindowDays),
+    ok: true,
+    raw: extraction.raw,
+  }
 }

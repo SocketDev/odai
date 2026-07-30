@@ -3,10 +3,12 @@ import { describe, expect, it } from 'vitest'
 import { securityFixScenario } from '../src/bench/scenarios.mts'
 import { createMockModel } from '../src/node.mts'
 import { createSecurityFixPrompt } from '../src/prompts/security-fix.mts'
-import { assessSecurityFix } from '../src/tasks/security-fix.mts'
+import {
+  assessSecurityFix,
+  decideSecurityFix,
+} from '../src/tasks/security-fix.mts'
 
-const FIXED_RESPONSE =
-  '{"verdict":"fixed","fixedVersion":"4.17.21","reason":"lowest available version outside the affected range"}'
+const FIXED_RESPONSE = '{"alsoVulnerable":[]}'
 
 describe('createSecurityFixPrompt', () => {
   it('includes the versions and the affected range', () => {
@@ -39,7 +41,7 @@ describe('createSecurityFixPrompt', () => {
 })
 
 describe('assessSecurityFix', () => {
-  it('parses a structured verdict from the model', async () => {
+  it('extracts also-vulnerable versions and lets code pick the target', async () => {
     const result = await assessSecurityFix(createMockModel(FIXED_RESPONSE), {
       advisory: 'Prototype pollution; upgrade to 4.17.21 or later.',
       affectedRange: '<4.17.21',
@@ -49,6 +51,63 @@ describe('assessSecurityFix', () => {
     expect(result.ok).toBe(true)
     expect(result.data?.verdict).toBe('fixed')
     expect(result.data?.fixedVersion).toBe('4.17.21')
+  })
+})
+
+describe('decideSecurityFix', () => {
+  it('picks the lowest available version outside the affected range', () => {
+    const assessment = decideSecurityFix(
+      {
+        advisory: 'x',
+        affectedRange: '<9.0.0',
+        availableVersions: ['8.0.0', '8.0.1', '9.0.0', '10.0.0'],
+        currentVersion: '7.4.6',
+      },
+      [],
+    )
+    expect(assessment.verdict).toBe('fixed')
+    expect(assessment.fixedVersion).toBe('9.0.0')
+  })
+
+  it('skips a version the advisory flags as still vulnerable', () => {
+    const assessment = decideSecurityFix(
+      {
+        advisory: 'x',
+        affectedRange: '<6.2.1',
+        availableVersions: ['6.2.0', '6.2.1', '6.2.2'],
+        currentVersion: '6.1.0',
+      },
+      ['6.2.1'],
+    )
+    expect(assessment.verdict).toBe('fixed')
+    expect(assessment.fixedVersion).toBe('6.2.2')
+  })
+
+  it('reports no-safe-version when every available version is affected', () => {
+    const assessment = decideSecurityFix(
+      {
+        advisory: 'x',
+        affectedRange: '<=1.4.0',
+        availableVersions: ['1.3.0', '1.4.0'],
+        currentVersion: '1.3.0',
+      },
+      [],
+    )
+    expect(assessment.verdict).toBe('no-safe-version')
+    expect(assessment.fixedVersion).toBeUndefined()
+  })
+
+  it('sorts numerically, not lexically, when choosing the minimum', () => {
+    const assessment = decideSecurityFix(
+      {
+        advisory: 'x',
+        affectedRange: '<9.0.0',
+        availableVersions: ['10.0.0', '9.0.0'],
+        currentVersion: '8.0.0',
+      },
+      [],
+    )
+    expect(assessment.fixedVersion).toBe('9.0.0')
   })
 })
 
@@ -70,7 +129,7 @@ describe('securityFixScenario rubric', () => {
     expect(scored.score).toBe(1)
   })
 
-  it('scores not-ok when the fixedVersion misses the expected target', async () => {
+  it('scores not-ok when the decided fixedVersion misses the expected target', async () => {
     const scenario = securityFixScenario(
       't',
       {
@@ -80,7 +139,7 @@ describe('securityFixScenario rubric', () => {
         currentVersion: '4.17.15',
       },
       'fixed',
-      '4.17.22',
+      '4.17.21',
     )
     const scored = await scenario.run(createMockModel(FIXED_RESPONSE))
     expect(scored.ok).toBe(false)
