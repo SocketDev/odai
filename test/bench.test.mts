@@ -9,7 +9,7 @@ describe('bench evaluator', () => {
       '{"summary":"found duplicate lodash versions","findings":[{"severity":"low","package":"lodash","reason":"duplicate version 4.17.15 alongside lodash-es 4.17.21"}],"suggestions":[{"packages":["chalk"],"recommendedVersion":"5.3.0","reasoning":"align on chalk 5"}],"patch":"--- a/greet.js\\n+++ b/greet.js\\n@@ -1,3 +1,3 @@\\n function greet(name) {\\n-  console.log(\\"Hello \\" + name);\\n+  console.log(`Hello ${name}`);\\n }","explanation":"use template literal","fixed":"import { join } from \'node:path\'\\n\\nexport function resolveConfigPath(root, name) {\\n  if (name === \'\') {\\n    return join(root, \'default.json\')\\n  }\\n  return join(root, name)\\n}","sentences":["There are 2 critical and 5 high findings."],"topConcern":"critical","intent":"fix","command":["fix"],"confidence":0.95,"alternative":"lodash-es","reasoning":"lodash-es is the ESM build","anomalies":["duplicate component: chalk appears as 5.3.0 and 4.1.2"]}',
     )
     const report = await runEval({ model })
-    expect(report.total).toBe(8)
+    expect(report.total).toBe(18)
     expect(report.passed).toBeGreaterThan(0)
     expect(report.score).toBeGreaterThan(0)
     expect(formatReport(report)).toContain('passed')

@@ -1,6 +1,9 @@
 /**
  * @file Scenario definitions for the bench evaluator. Each scenario
  *   pairs a real-world fixture with a task function and lightweight assertions.
+ *   The decision-task scenarios (hoist, security-fix, weekly-update) and their
+ *   factories live in `decision-scenarios.mts`; this module owns the shared
+ *   rubric, the inline scenarios, and the aggregate `allScenarios`.
  */
 
 import { Type } from '@sinclair/typebox'
@@ -13,6 +16,18 @@ import { generateCodePatch } from '../tasks/patch.mts'
 import type { OdaiModel } from '../model.mts'
 import type { TaskResult } from '../types.mts'
 import {
+  hoistAmbiguousScenario,
+  hoistNodeAboveMinScenario,
+  hoistNodeOnlyScenario,
+  hoistRealBreakingScenario,
+  securityFixMinimalScenario,
+  securityFixNoSafeScenario,
+  securityFixSkipVulnerableScenario,
+  weeklyUpdateInSoakScenario,
+  weeklyUpdateMixedScenario,
+  weeklyUpdatePastSoakScenario,
+} from './decision-scenarios.mts'
+import {
   ALTERNATIVE_PACKAGE_PROMPT,
   ASK_QUERIES,
   CODE_PATCH_INPUT,
@@ -24,6 +39,12 @@ import {
   SBOM_ANOMALY_INPUT,
   SEVERITY_COUNTS,
 } from './fixtures.mts'
+
+export {
+  hoistScenario,
+  securityFixScenario,
+  weeklyUpdateScenario,
+} from './decision-scenarios.mts'
 
 export interface ScenarioResult {
   assertion?: string | undefined
@@ -338,7 +359,17 @@ export const allScenarios: Scenario[] = [
   codePatchScenario,
   codeRepairScenario,
   dedupeCandidateScenario,
+  hoistAmbiguousScenario,
+  hoistNodeAboveMinScenario,
+  hoistNodeOnlyScenario,
+  hoistRealBreakingScenario,
   lockfileDuplicateScenario,
   safeAlternativeScenario,
   sbomAnomalyScenario,
+  securityFixMinimalScenario,
+  securityFixNoSafeScenario,
+  securityFixSkipVulnerableScenario,
+  weeklyUpdateInSoakScenario,
+  weeklyUpdateMixedScenario,
+  weeklyUpdatePastSoakScenario,
 ]

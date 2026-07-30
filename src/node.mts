@@ -54,10 +54,13 @@ import {
 import { classifyDependencyChange } from './tasks/classify-deps.mts'
 import { suggestCommitMessage } from './tasks/commit.mts'
 import { dedupeDependencies } from './tasks/dedupe.mts'
+import { assessHoistSafety } from './tasks/hoist.mts'
 import { reasonAboutLockfile } from './tasks/lockfile.mts'
 import { generateCodePatch } from './tasks/patch.mts'
+import { assessSecurityFix } from './tasks/security-fix.mts'
 import { summarizeText } from './tasks/summarize.mts'
 import { triageAlerts } from './tasks/triage.mts'
+import { planWeeklyUpdate } from './tasks/weekly-update.mts'
 import type { OdaiModel } from './model.mts'
 import type {
   Message,
@@ -119,6 +122,8 @@ export {
   matchModelName,
   parseControlTokens,
   classifyDependencyChange,
+  assessHoistSafety,
+  assessSecurityFix,
   createAppleFmBackend,
   createBackend,
   createChromeBuiltinBackend,
@@ -145,6 +150,7 @@ export {
   ODAI_LLAMA_MODEL_ENV_VAR,
   ODAI_LLAMA_URL_ENV_VAR,
   ODAI_TIMEOUT_ENV_VAR,
+  planWeeklyUpdate,
   reasonAboutLockfile,
   runCli,
   selectBackend,
@@ -173,5 +179,14 @@ export type { ModelIdentity } from './model-identity.mts'
 export type { Message } from './types.mts'
 export type { DepClassification } from './prompts/classify-deps.mts'
 export type { CommitMessage } from './prompts/commit.mts'
+export type { HoistAssessment, HoistInput } from './prompts/hoist.mts'
+export type {
+  SecurityFixAssessment,
+  SecurityFixInput,
+} from './prompts/security-fix.mts'
 export type { TextSummary } from './prompts/summarize.mts'
 export type { AlertTriage } from './prompts/triage.mts'
+export type {
+  WeeklyUpdateInput,
+  WeeklyUpdatePlan,
+} from './prompts/weekly-update.mts'
