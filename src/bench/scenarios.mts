@@ -295,10 +295,23 @@ export const codeRepairScenario: Scenario = {
 export const dedupeCandidateScenario: Scenario = {
   name: 'dedupe-chalk-gradient',
   async run(model) {
-    const result = await dedupeDependencies(
-      model,
-      MANIFEST_DEDUPE_CANDIDATE,
-      LOCKFILE_DEDUPE_CANDIDATE,
+    const samples = []
+    for (let i = 0; i < DECISION_SAMPLES; i += 1) {
+      samples.push(
+        // oxlint-disable-next-line no-await-in-loop -- self-consistency samples are intentionally sequential
+        await dedupeDependencies(
+          model,
+          MANIFEST_DEDUPE_CANDIDATE,
+          LOCKFILE_DEDUPE_CANDIDATE,
+        ),
+      )
+    }
+    const result = majorityResult(samples, value =>
+      (value.suggestions as Array<{ packages: string[] }>).some(s =>
+        s.packages.some(p => /chalk/i.test(p)),
+      )
+        ? 'chalk'
+        : 'none',
     )
     return scoreTaskResult(result, value => {
       const suggestions = value.suggestions as Array<{ packages: string[] }>
