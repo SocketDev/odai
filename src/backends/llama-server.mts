@@ -97,11 +97,14 @@ export function assertLoopbackUrl(url: string): string {
         `${ODAI_LLAMA_URL_ENV_VAR} at 127.0.0.1, ::1, or localhost.`,
     )
   }
-  if (!LOOPBACK_HOSTNAMES.has(parsed.hostname)) {
+  // RFC 6761: `localhost` and any `*.localhost` name always resolve to the
+  // loopback interface, so a portless `<name>.localhost` URL is loopback-safe.
+  const { hostname } = parsed
+  if (!LOOPBACK_HOSTNAMES.has(hostname) && !hostname.endsWith('.localhost')) {
     throw new Error(
       `llama-server URL "${url}" is not loopback. odai is local-only — ` +
         'no cloud, no remote endpoints, no keys; the llama-server backend ' +
-        'only speaks to 127.0.0.1, ::1, or localhost.',
+        'only speaks to 127.0.0.1, ::1, localhost, or a *.localhost name.',
     )
   }
   return url
