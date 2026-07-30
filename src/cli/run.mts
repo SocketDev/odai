@@ -1,6 +1,8 @@
 /**
- * @file Odai CLI core. Single-shot subcommands over the backend seam:
- *   summarize, commit-msg, triage, patch, plus a backends availability probe.
+ * @file Odai CLI core. Single-shot prompt subcommands over the backend seam
+ *   (see CLI_COMMANDS — text tasks take stdin; the structured dep-update tasks
+ *   dedupe / hoist / security-fix / weekly-update take a JSON object on stdin),
+ *   plus a backends availability probe.
  *   Node-only — the bin entry wraps `runCli`, tests call it directly with
  *   injected writers and backends. Failure modes are loud and bounded: a
  *   missing model prints exactly how to provision one and exits 69, the
@@ -8,7 +10,6 @@
  *   engine can never hang a CI job.
  */
 
-import { joinOr } from '@socketsecurity/lib/arrays/join'
 import { errorMessage } from '@socketsecurity/lib/errors/message'
 import { getDefaultLogger } from '@socketsecurity/lib/logger/default'
 
@@ -18,20 +19,14 @@ import {
   selectBackend,
 } from '../backends/registry.mts'
 import { createOdaiModel } from '../model.mts'
-import { classifyDependencyChange } from '../tasks/classify-deps.mts'
-import { suggestCommitMessage } from '../tasks/commit.mts'
-import { generateCodePatch } from '../tasks/patch.mts'
-import { summarizeText } from '../tasks/summarize.mts'
-import { triageAlerts } from '../tasks/triage.mts'
 import { CliUsageError, parseCliArgs, usageText } from './args.mts'
-import type { CliArgs, CliCommand } from './args.mts'
+import { runTask } from './dispatch.mts'
+import type { CliArgs } from './args.mts'
 import type {
   BackendAvailability,
   BackendName,
   OdaiBackend,
 } from '../backends/types.mts'
-import type { OdaiModel } from '../model.mts'
-import type { TaskResult } from '../types.mts'
 
 export const EXIT_OK = 0
 export const EXIT_TASK_FAILURE = 1
@@ -279,37 +274,6 @@ export async function runCli(
     return EXIT_TASK_FAILURE
   } finally {
     await closeBackend(backend)
-  }
-}
-
-export async function runTask(
-  command: CliCommand,
-  model: OdaiModel,
-  input: string,
-  instruction: string | undefined,
-): Promise<TaskResult<unknown>> {
-  switch (command) {
-    case 'classify-deps':
-      return await classifyDependencyChange(model, input)
-    case 'commit-msg':
-      return await suggestCommitMessage(model, input)
-    case 'patch': {
-      if (instruction === undefined) {
-        throw new CliUsageError(
-          'odai: patch needs --instruction <text> describing the change.',
-        )
-      }
-      return await generateCodePatch(model, input, instruction)
-    }
-    case 'summarize':
-      return await summarizeText(model, input)
-    case 'triage':
-      return await triageAlerts(model, input)
-    default:
-      throw new CliUsageError(
-        `odai: "${command}" is not a prompt command; expected ` +
-          `${joinOr(['classify-deps', 'commit-msg', 'patch', 'summarize', 'triage'])}.`,
-      )
   }
 }
 
