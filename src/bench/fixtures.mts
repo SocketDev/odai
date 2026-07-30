@@ -4,6 +4,9 @@
  *   representative of the Socket product surface.
  */
 
+import type { SecurityFixInput } from '../prompts/security-fix.mts'
+import type { WeeklyUpdateInput } from '../prompts/weekly-update.mts'
+
 export const LOCKFILE_DUPLICATE_LODASH = `{
   "name": "demo",
   "lockfileVersion": 3,
@@ -97,3 +100,61 @@ export const HOIST_NODE_ABOVE_MIN_CHANGELOG = `## 4.0.0
 // ABSTAIN: the changelog is truncated and lists no concrete breaking changes.
 export const HOIST_AMBIGUOUS_CHANGELOG = `## 2.0.0
 See the migration guide for details. Various internal changes and`
+
+// Security-fix decision fixtures. Deliberately use packages DIFFERENT from the
+// few-shot examples (lodash / the 1.0.1 command-injection case) so the eval
+// measures the model's reasoning, not recall of the few-shot.
+
+// FIXED: 9.0.0 is the lowest available version outside the affected range; a
+// jump to 10.0.0 would be a needless major bump.
+export const SECURITY_FIX_MINIMAL_INPUT: SecurityFixInput = {
+  advisory:
+    'ReDoS in minimatch. All versions before 9.0.0 are affected. Upgrade to 9.0.0 or later.',
+  affectedRange: '<9.0.0',
+  availableVersions: ['8.0.0', '8.0.1', '9.0.0', '10.0.0'],
+  currentVersion: '7.4.6',
+}
+
+// FIXED: the advisory flags 6.2.1 as also affected, so the safe minimal target
+// moves up to 6.2.2.
+export const SECURITY_FIX_SKIP_VULNERABLE_INPUT: SecurityFixInput = {
+  advisory:
+    'Path traversal in tar. Versions before 6.2.1 are affected. The 6.2.1 release does not fully address the issue and is also affected; upgrade to 6.2.2 or later.',
+  affectedRange: '<6.2.1',
+  availableVersions: ['6.2.0', '6.2.1', '6.2.2'],
+  currentVersion: '6.1.0',
+}
+
+// NO-SAFE-VERSION: every available version is inside the affected range.
+export const SECURITY_FIX_NO_SAFE_INPUT: SecurityFixInput = {
+  advisory:
+    'Prototype pollution in qs-legacy affecting all published versions through 1.4.0. No patched release is available yet.',
+  affectedRange: '<=1.4.0',
+  availableVersions: ['1.3.0', '1.4.0'],
+  currentVersion: '1.3.0',
+}
+
+// Weekly-update plan fixtures. The soak window is 7 days in every scenario.
+// Uses packages DIFFERENT from the few-shot (chalk / vitest) so the eval is not
+// memorization.
+export const WEEKLY_UPDATE_SOAK_WINDOW_DAYS = 7
+
+// PAST-SOAK: the only dependency's latest has soaked 12 days, past the window.
+export const WEEKLY_UPDATE_PAST_SOAK_INPUT: WeeklyUpdateInput = {
+  outdated: `undici current 6.0.0  latest 6.1.0  published 12 days ago`,
+  soakWindowDays: WEEKLY_UPDATE_SOAK_WINDOW_DAYS,
+}
+
+// IN-SOAK: the only dependency's latest is 1 day old, still inside the window.
+export const WEEKLY_UPDATE_IN_SOAK_INPUT: WeeklyUpdateInput = {
+  outdated: `zod    current 3.22.0  latest 3.23.0  published 1 days ago`,
+  soakWindowDays: WEEKLY_UPDATE_SOAK_WINDOW_DAYS,
+}
+
+// MIXED: one past-soak dependency and one still inside the window; only the
+// past-soak one should be proposed.
+export const WEEKLY_UPDATE_MIXED_INPUT: WeeklyUpdateInput = {
+  outdated: `undici current 6.0.0  latest 6.1.0  published 12 days ago
+zod    current 3.22.0  latest 3.23.0  published 1 days ago`,
+  soakWindowDays: WEEKLY_UPDATE_SOAK_WINDOW_DAYS,
+}

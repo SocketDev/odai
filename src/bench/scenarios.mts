@@ -1,6 +1,9 @@
 /**
  * @file Scenario definitions for the bench evaluator. Each scenario
  *   pairs a real-world fixture with a task function and lightweight assertions.
+ *   The decision-task scenarios (hoist, security-fix, weekly-update) and their
+ *   factories live in `decision-scenarios.mts`; this module owns the shared
+ *   rubric, the inline scenarios, and the aggregate `allScenarios`.
  */
 
 import { Type } from '@sinclair/typebox'
@@ -8,29 +11,40 @@ import type { Static } from '@sinclair/typebox'
 import { Value } from '@sinclair/typebox/value'
 
 import { dedupeDependencies } from '../tasks/dedupe.mts'
-import { assessHoistSafety } from '../tasks/hoist.mts'
 import { reasonAboutLockfile } from '../tasks/lockfile.mts'
 import { generateCodePatch } from '../tasks/patch.mts'
-import type { HoistVerdict } from '../prompts/hoist.mts'
 import type { OdaiModel } from '../model.mts'
 import type { TaskResult } from '../types.mts'
+import {
+  hoistAmbiguousScenario,
+  hoistNodeAboveMinScenario,
+  hoistNodeOnlyScenario,
+  hoistRealBreakingScenario,
+  securityFixMinimalScenario,
+  securityFixNoSafeScenario,
+  securityFixSkipVulnerableScenario,
+  weeklyUpdateInSoakScenario,
+  weeklyUpdateMixedScenario,
+  weeklyUpdatePastSoakScenario,
+} from './decision-scenarios.mts'
 import {
   ALTERNATIVE_PACKAGE_PROMPT,
   ASK_QUERIES,
   CODE_PATCH_INPUT,
   CODE_REPAIR_INPUT,
   CODE_REPAIR_LINT_ERRORS,
-  HOIST_AMBIGUOUS_CHANGELOG,
-  HOIST_MIN_NODE_MAJOR,
-  HOIST_NODE_ABOVE_MIN_CHANGELOG,
-  HOIST_NODE_ONLY_CHANGELOG,
-  HOIST_REAL_BREAKING_CHANGELOG,
   LOCKFILE_DEDUPE_CANDIDATE,
   LOCKFILE_DUPLICATE_LODASH,
   MANIFEST_DEDUPE_CANDIDATE,
   SBOM_ANOMALY_INPUT,
   SEVERITY_COUNTS,
 } from './fixtures.mts'
+
+export {
+  hoistScenario,
+  securityFixScenario,
+  weeklyUpdateScenario,
+} from './decision-scenarios.mts'
 
 export interface ScenarioResult {
   assertion?: string | undefined
@@ -48,34 +62,6 @@ export interface ScenarioResult {
 export interface Scenario {
   name: string
   run(model: OdaiModel): Promise<ScenarioResult>
-}
-
-export function hoistScenario(
-  name: string,
-  changelog: string,
-  targetVersion: string,
-  expected: HoistVerdict,
-): Scenario {
-  return {
-    name,
-    async run(model) {
-      const result = await assessHoistSafety(model, {
-        changelog,
-        currentVersion: '2.0.0',
-        minNodeSupported: HOIST_MIN_NODE_MAJOR,
-        targetVersion,
-      })
-      return scoreTaskResult(result, value => {
-        const ok = value.verdict === expected
-        return {
-          assertion: ok
-            ? `verdict "${value.verdict}" matches expected`
-            : `expected "${expected}", got "${value.verdict}"`,
-          ok,
-        }
-      })
-    },
-  }
 }
 
 export function schemaLike<T extends ReturnType<typeof Type.Object>>(
@@ -367,34 +353,6 @@ export const sbomAnomalyScenario: Scenario = {
   },
 }
 
-export const hoistNodeOnlyScenario = hoistScenario(
-  'hoist-node-only-drop-safe',
-  HOIST_NODE_ONLY_CHANGELOG,
-  '3.0.0',
-  'safe',
-)
-
-export const hoistRealBreakingScenario = hoistScenario(
-  'hoist-real-breaking-unsafe',
-  HOIST_REAL_BREAKING_CHANGELOG,
-  '5.0.0',
-  'unsafe',
-)
-
-export const hoistNodeAboveMinScenario = hoistScenario(
-  'hoist-node-above-min-unsafe',
-  HOIST_NODE_ABOVE_MIN_CHANGELOG,
-  '4.0.0',
-  'unsafe',
-)
-
-export const hoistAmbiguousScenario = hoistScenario(
-  'hoist-ambiguous-abstain',
-  HOIST_AMBIGUOUS_CHANGELOG,
-  '2.0.0',
-  'abstain',
-)
-
 export const allScenarios: Scenario[] = [
   alertSummaryScenario,
   askIntentScenario,
@@ -408,4 +366,10 @@ export const allScenarios: Scenario[] = [
   lockfileDuplicateScenario,
   safeAlternativeScenario,
   sbomAnomalyScenario,
+  securityFixMinimalScenario,
+  securityFixNoSafeScenario,
+  securityFixSkipVulnerableScenario,
+  weeklyUpdateInSoakScenario,
+  weeklyUpdateMixedScenario,
+  weeklyUpdatePastSoakScenario,
 ]
