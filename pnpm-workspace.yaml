@@ -68,23 +68,25 @@ overrides:
   'isexe@>=3': '4.0.0'
   'js-yaml@>=5.0.0 <5.2.2': '5.2.2'
   'lru-cache@>=10': '11.5.2'
-  'magic-string': '1.0.0'
+  'magic-string': '1.1.0'
   'mime-db': '1.54.0'
   'mime-types@>=3': '3.0.2'
   'minipass@>=4': '7.1.3'
   'safe-buffer': 'npm:@socketregistry/safe-buffer@1.0.9'
   'safer-buffer': 'npm:@socketregistry/safer-buffer@1.0.10'
-  'semver@>=5.0.0 <7.6.0': '7.8.1'
+  'semver@>=5.0.0 <7.6.0': '7.8.5'
   'side-channel': 'npm:@socketregistry/side-channel@1.0.10'
   'ssri@>=12': '13.0.1'
   'string-width@>=5': '8.2.2'
-  'rolldown': 'catalog:'
   'update-notifier@>=4.0.0': '7.3.1'
   'uuid': '11.1.1'
-  'vite': 'catalog:'
   'which': '7.0.0'
   'wrap-ansi@>=8': '9.0.2'
   'yaml@2': '2.9.0'
+
+  # Repo-specific overrides below.
+  'rolldown': 'catalog:'
+  'vite': 'catalog:'
 
 patchedDependencies:
   # single-registry: routes taze version resolution through its own bundled
