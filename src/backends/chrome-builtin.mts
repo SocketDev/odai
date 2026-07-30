@@ -308,13 +308,12 @@ export function wrapSessionWithConstraintFallback(
       return session.promptStreaming(messages)
     },
   }
-  const { clone, destroy } = session
-  if (typeof clone === 'function') {
+  if (typeof session.clone === 'function') {
     wrapped.clone = async (): Promise<SessionLike> =>
-      wrapSessionWithConstraintFallback(await clone.call(session))
+      wrapSessionWithConstraintFallback(await session.clone!())
   }
-  if (typeof destroy === 'function') {
-    wrapped.destroy = (): void => destroy.call(session)
+  if (typeof session.destroy === 'function') {
+    wrapped.destroy = (): void => session.destroy!()
   }
   return wrapped
 }
