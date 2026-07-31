@@ -33,13 +33,13 @@ import type { TaskResult } from '../types.mts'
  * JSON — the structured commands (dedupe, hoist, security-fix, weekly-update)
  * take an object, not a plain string.
  */
-export function parseJsonInput<T>(
+export function parseJsonInput(
   input: string,
   command: CliCommand,
   shape: string,
-): T {
+): unknown {
   try {
-    return JSON.parse(input) as T
+    return JSON.parse(input)
   } catch {
     throw new CliUsageError(
       `odai: ${command} expects JSON on stdin shaped ${shape}.`,
@@ -59,21 +59,21 @@ export async function runTask(
     case 'commit-msg':
       return await suggestCommitMessage(model, input)
     case 'dedupe': {
-      const parsed = parseJsonInput<{ lockfile: string; manifest: string }>(
+      const parsed = parseJsonInput(
         input,
         'dedupe',
         '{ "manifest": "<package.json>", "lockfile": "<lock excerpt>" }',
-      )
+      ) as { lockfile: string; manifest: string }
       return await dedupeDependencies(model, parsed.manifest, parsed.lockfile)
     }
     case 'hoist':
       return await assessHoistSafety(
         model,
-        parseJsonInput<HoistInput>(
+        parseJsonInput(
           input,
           'hoist',
           '{ "changelog", "currentVersion", "targetVersion", "minNodeSupported" }',
-        ),
+        ) as HoistInput,
       )
     case 'lockfile':
       return await reasonAboutLockfile(model, input)
@@ -88,11 +88,11 @@ export async function runTask(
     case 'security-fix':
       return await assessSecurityFix(
         model,
-        parseJsonInput<SecurityFixInput>(
+        parseJsonInput(
           input,
           'security-fix',
           '{ "advisory", "affectedRange", "availableVersions", "currentVersion" }',
-        ),
+        ) as SecurityFixInput,
       )
     case 'summarize':
       return await summarizeText(model, input)
@@ -101,11 +101,11 @@ export async function runTask(
     case 'weekly-update':
       return await planWeeklyUpdate(
         model,
-        parseJsonInput<WeeklyUpdateInput>(
+        parseJsonInput(
           input,
           'weekly-update',
           '{ "outdated": "<dep list>", "soakWindowDays": 7 }',
-        ),
+        ) as WeeklyUpdateInput,
       )
     default:
       throw new CliUsageError(
