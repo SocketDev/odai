@@ -12,8 +12,6 @@
 
 odai — pronounced like the trickster; it lives in your machine and does your chores.
 
-## Why this repo exists
-
 odai is local-only — the primary backend is Chrome's built-in AI (the Prompt
 API, stable since Chrome 148) via installed Google Chrome on every platform;
 llama-server (loopback) is the local fallback; Apple FM and Phi Silica
@@ -116,8 +114,8 @@ MIT
 <br/>
 <div align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/fleet/socket-lockup-dark.svg">
-    <source media="(prefers-color-scheme: light)" srcset="assets/fleet/socket-lockup-light.svg">
-    <img width="420" height="120" alt="Socket" src="assets/fleet/socket-lockup-light.svg">
+    <source media="(prefers-color-scheme: dark)" srcset="assets/fleet/socket-combomark-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="assets/fleet/socket-combomark-light.svg">
+    <img width="420" height="120" alt="Socket" src="assets/fleet/socket-combomark-light.svg">
   </picture>
 </div>
