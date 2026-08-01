@@ -44,6 +44,7 @@ export const FLEET_SKILL_CATALOG: Readonly<Record<string, SkillDefinition>> = {
   'diagnosing-bugs': { family: 'build', mode: 'read-only' },
   'driving-cursor-bugbot': { family: 'review', mode: 'mutating' },
   'extracting-design-systems': { family: 'design', mode: 'mutating' },
+  'gh-stack': { family: 'ship', mode: 'mutating' },
   'greening-ci': { family: 'ship', mode: 'mutating' },
   'greening-ci-local': { family: 'ship', mode: 'mutating' },
   'grilling-plan': { family: 'plan', mode: 'read-only' },
@@ -57,6 +58,7 @@ export const FLEET_SKILL_CATALOG: Readonly<Record<string, SkillDefinition>> = {
   'managing-pnpm-workspaces': { family: 'maintain', mode: 'mutating' },
   'managing-worktrees': { family: 'fleet', mode: 'mutating' },
   map: { family: 'orient', mode: 'read-only' },
+  'measuring-ecosystem-impact': { family: 'maintain', mode: 'read-only' },
   'migrating-rule-packs': { family: 'build', mode: 'mutating' },
   'onboarding-fleet-member': { family: 'fleet', mode: 'mutating' },
   'opening-pr': { family: 'ship', mode: 'mutating' },
@@ -104,6 +106,7 @@ export const FLEET_SKILL_CATALOG: Readonly<Record<string, SkillDefinition>> = {
   'updating-lockstep': { family: 'maintain', mode: 'mutating' },
   'updating-pricing': { family: 'maintain', mode: 'mutating' },
   'updating-security': { family: 'security', mode: 'mutating' },
+  'writing-disclosures': { family: 'ship', mode: 'mutating' },
   'writing-fast-tests': { family: 'build', mode: 'mutating' },
 }
 

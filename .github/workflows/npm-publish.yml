@@ -25,6 +25,15 @@ name: 📦 npm publish
 # gate is bypassed; hard gap-fill-only guards replace it (never-published
 # version, lower than latest, non-latest dist-tag, content declares its own
 # version) — see scripts/fleet/publish-infra/npm/backfill.mts.
+#
+# NAPI ADDON PATH: not here. A member that declares a `napi` block in
+# .config/repo/socket-wheelhouse.json receives a SEPARATE, conditionally
+# cascaded `.github/workflows/npm-publish-napi.yml` carrying the per-platform
+# `.node` build + platform-package publish. GitHub parses a workflow against
+# the repo's Actions allowlist BEFORE evaluating any job-level `if:`, so addon
+# jobs living in this fleet-wide file would force the Rust toolchain actions
+# onto every member's allowlist — and a strict-allowlist member that lacks them
+# fails the whole file at startup with zero jobs and no logs.
 
 on:
   workflow_dispatch:

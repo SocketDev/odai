@@ -64,6 +64,21 @@ export function classifyMarkdownPath(absPath: string): Verdict {
     return { ok: true }
   }
 
+  // A seed under `template/presets/` is named for where it LANDS, not where it
+  // sits. The preset that seeds a member's root CLAUDE.md has to be called
+  // CLAUDE.md; judging it by its position in the template tree would demand a
+  // lowercase name that would then be wrong in every member it seeds.
+  if (payloadNorm.includes('/template/presets/')) {
+    return { ok: true }
+  }
+
+  // A markdown file under a test `fixtures/` dir is INPUT to a test, not a doc
+  // — its name describes the case it exercises, and forcing it under docs/ or
+  // .claude/ would separate it from the test that reads it.
+  if (/\/(?:__fixtures__|fixtures)\//.test(payloadNorm)) {
+    return { ok: true }
+  }
+
   // Anything under a `.claude/` segment is off-limits to doc-filename
   // rules: that tree is owned by Claude Code (auto-memory, skills,
   // hooks, settings) and each tool inside picks its own filename

@@ -29,21 +29,26 @@ on:
 
 engine:
   id: claude
-  # Dated snapshot id ON PURPOSE — do not "simplify" back to the bare alias.
-  # Anthropic's live /v1/models lists Haiku 4.5 only in dated form, so the bare
-  # `claude-haiku-4-5` never direct-matches in the AWF api-proxy model resolver
-  # and every request falls through to token steering's middle-power MEDIAN of
-  # the live model list. That median silently served claude-opus-4-8 for weeks,
-  # then broke fleet-wide on 2026-07-25 when Anthropic added claude-opus-5 to
-  # the live list: the median shifted onto an id absent from AWF's frozen
-  # ai-credits pricing table and, with max-ai-credits set and no default
-  # pricing, every first model request 400'd (unknown_model_ai_credits). The
-  # dated id direct-matches, prices at haiku rates ($1/$5 per Mtok) in the AWF
-  # table, and keeps this workflow on the tier the routing doctrine assigns
-  # (haiku = mechanical). It is also registered in
-  # scripts/fleet/constants/model-pricing.json via update-model-pricing.mts so
-  # the gh-aw-workflow-models-are-canonical gate recognizes it.
-  model: claude-haiku-4-5-20251001
+
+# Top-level, not `engine.model` — gh-aw deprecated the nested key in v0.83.x and
+# the compiler warns on every build until it moves. The pin itself is unchanged;
+# only the key location moved.
+#
+# Dated snapshot id ON PURPOSE — do not "simplify" back to the bare alias.
+# Anthropic's live /v1/models lists Haiku 4.5 only in dated form, so the bare
+# `claude-haiku-4-5` never direct-matches in the AWF api-proxy model resolver
+# and every request falls through to token steering's middle-power MEDIAN of
+# the live model list. That median silently served claude-opus-4-8 for weeks,
+# then broke fleet-wide on 2026-07-25 when Anthropic added claude-opus-5 to
+# the live list: the median shifted onto an id absent from AWF's frozen
+# ai-credits pricing table and, with max-ai-credits set and no default
+# pricing, every first model request 400'd (unknown_model_ai_credits). The
+# dated id direct-matches, prices at haiku rates ($1/$5 per Mtok) in the AWF
+# table, and keeps this workflow on the tier the routing doctrine assigns
+# (haiku = mechanical). It is also registered in
+# scripts/fleet/constants/model-pricing.json via update-model-pricing.mts so
+# the gh-aw-workflow-models-are-canonical gate recognizes it.
+model: claude-haiku-4-5-20251001
 
 permissions:
   contents: read
@@ -309,7 +314,6 @@ safe-outputs:
       - 'pnpm-workspace.yaml'
       - '.gitmodules'
       - '.config/repo/lockstep.json'
-      - '.config/lockstep.json'
       # update.mts pass 3a — fleet-pin lockstep + `-stable` alias reconcile —
       # mirrors catalog bumps into the cascaded fleet catalog every member
       # carries, in the same wave as the live bump.
@@ -438,19 +442,33 @@ guess ships the wrong change.
 
 ## Steps
 
-1. Run the cadence-appropriate skill above. Work in CI mode: skip builds/tests
-   during the update. Make **atomic commits** (one logical change per commit) so
-   the PR history is reviewable. Do NOT push or open a PR yourself — the
-   workflow's safe outputs handle that.
+1. Run the deterministic chain FIRST, before touching anything yourself:
 
-2. Build the project if it has a `build` script, then run its tests:
+   ```bash
+   pnpm run weekly-update -- --no-agent
+   ```
+
+   That is the judgment-free part of the update — lockstep version-pin bumps,
+   the submodule remainder note, npm deps, package-manager pins, and gh-aw
+   action pins — and it produces the same result here as on a maintainer's
+   laptop. `--no-agent` stops it invoking its own agent, since you ARE the
+   agent leg. Do not hand-roll any step it already owns; if it gets something
+   wrong, the fix belongs in `weekly-update.mts`, not in a one-off command here.
+
+2. Then run the cadence-appropriate skill above for whatever the chain could
+   NOT decide — the residue that needs judgment. Work in CI mode: skip
+   builds/tests during the update. Make **atomic commits** (one logical change
+   per commit) so the PR history is reviewable. Do NOT push or open a PR
+   yourself — the workflow's safe outputs handle that.
+
+3. Build the project if it has a `build` script, then run its tests:
 
    ```bash
    pnpm run build   # skip if the repo has no build script
    pnpm test
    ```
 
-3. Constrain the branch to the PR surface — one out-of-surface path makes the
+4. Constrain the branch to the PR surface — one out-of-surface path makes the
    `create_pull_request` safe output refuse the WHOLE patch:
 
    ```bash
@@ -460,12 +478,12 @@ guess ships the wrong change.
    It reverts every change outside this workflow's `allowed-files` globs into
    a shed commit and prints the shed list. Do not re-apply a shed change.
 
-4. **If tests pass:** open a pull request via the `create_pull_request` safe
+5. **If tests pass:** open a pull request via the `create_pull_request` safe
    output, titled per the cadence above. Body: a short intro naming the skill that
    ran, then a `<details><summary>View commit history</summary>` block with the
-   commit list — and, when step 3 shed anything, a `### Shed (needs its own PR)`
+   commit list — and, when step 4 shed anything, a `### Shed (needs its own PR)`
    section listing the shed paths verbatim.
 
-5. **If tests fail:** do NOT open a PR. Call the `dispatch_get_green` tool with
+6. **If tests fail:** do NOT open a PR. Call the `dispatch_get_green` tool with
    the branch and the last 100 lines of the failing build and test logs, so the
    stronger model attempts the fix in the dispatched `get-green` workflow.

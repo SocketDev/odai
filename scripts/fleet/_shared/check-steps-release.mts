@@ -44,15 +44,6 @@ export function buildReleaseAndDocsSteps(): CheckStep[] {
     // hole). Vacuous pass where the allowlist or a gh-aw lock is absent.
     () =>
       run('node', ['scripts/fleet/check/egress-allowlist-is-gh-aw-subset.mts']),
-    // The non-gh-aw weekly-update fallback ships disabled-only
-    // (`weekly-update-non-gh-aw.yml.disabled`); the ENABLED `.yml` is transient +
-    // untracked. If it were committed it auto-runs weekly in every cascaded repo —
-    // this gate fails when the enabled form is git-tracked, so the accident can't
-    // land.
-    () =>
-      run('node', [
-        'scripts/fleet/check/weekly-update-fallback-is-disabled.mts',
-      ]),
     // CLAUDE.md informativeness audit. Every `###` section in the fleet
     // block must anchor to one of: a hook citation
     // (`.claude/hooks/...` reference), a docs link
@@ -83,6 +74,15 @@ export function buildReleaseAndDocsSteps(): CheckStep[] {
     // ~200 dangling entries across 10 repos. Auto-fixable with
     // `node scripts/fleet/check/claude-dirs-are-segmented.mts --fix`.
     () => run('node', ['scripts/fleet/check/claude-dirs-are-segmented.mts']),
+    // Every fleet subagent definition points at the repo's rules. A subagent
+    // runs in its OWN context and inherits none of the main session's memory
+    // of CLAUDE.md, so an uncited definition produces an actor who learns the
+    // conventions one tool-refusal at a time. pr-feedback.md was the real
+    // miss on 2026-08-01, and it is the broadest-privileged agent in the
+    // fleet: it commits, pushes, and comments as the operator. The hooks bind
+    // subagents regardless, because they fire at the tool layer for every
+    // caller. This is about knowing the rule before spending a turn on it.
+    () => run('node', ['scripts/fleet/check/agents-have-rule-citations.mts']),
     // Every file under template/base is classified into exactly one distribution
     // channel (mirror / optional / preset / conditional / expected / carveOut /
     // overrides / native handler) — Assertion A (blocking) fails when a file
@@ -119,6 +119,19 @@ export function buildReleaseAndDocsSteps(): CheckStep[] {
     // See docs/agents.md/fleet/copyleft-boundaries.md.
     releaseStep([
       'scripts/fleet/check/copyleft-licenses-are-current.mts',
+      '--quiet',
+    ]),
+    // Detect an npm publish-time review hold: since 2026-07-28 npm scans
+    // every publish, and a HELD package is live on the registry (installable)
+    // while npmjs.com withholds its page with a 403 — a split-brain that
+    // reads as "not published" to humans and sent agents chasing phantom
+    // causes (@socketsecurity/odai@0.1.0). Report-mode: a hold is npm-side
+    // and no commit clears it; the check names the state and the playbook
+    // (support ticket; contentPolicy + DISCLOSURE dual-use metadata on future
+    // publishes). Network-bound → release/CI tier.
+    // See docs/agents.md/fleet/npm-publish-scanning.md.
+    releaseStep([
+      'scripts/fleet/check/npm-package-page-is-visible.mts',
       '--quiet',
     ]),
     // No `catalog:` pin resolves to a version npm marks DEPRECATED. The belt to

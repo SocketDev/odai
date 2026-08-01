@@ -94,28 +94,46 @@ function computeSha256(buf) {
   return crypto.createHash('sha256').update(buf).digest('hex')
 }
 /**
- * The open marker line for a given comment style — canonical bare-tag form,
- * matching the grammar used by fleet-markers.mts on the producer side. Inlined
- * here so this file stays dep-0 — it cannot import the wheelhouse's
- * fleet-markers module.
+ * The open marker line for a given comment style — canonical short-tag
+ * bare-tag form, matching the grammar used by fleet-markers.mts on the
+ * producer side. Inlined here so this file stays dep-0 — it cannot import
+ * the wheelhouse's fleet-markers module.
  */
 function beginMarker(style) {
+  if (style === 'html') return '<!-- <fleet> -->'
+  if (style === 'slash') return '// <fleet>'
+  return '# <fleet>'
+}
+/**
+ * The close marker line for a given comment style — canonical short-tag
+ * bare-tag form.
+ */
+function endMarker(style) {
+  if (style === 'html') return '<!-- </fleet> -->'
+  if (style === 'slash') return '// </fleet>'
+  return '# </fleet>'
+}
+/**
+ * The transitional long-form tag, bare form — every existing fleet member's
+ * CLAUDE.md / .gitignore / .gitattributes still carries this pre-rename.
+ * spliceFleetBlock matches it alongside the short-tag form, so a
+ * not-yet-recascaded member is still found and re-spliced in one pass.
+ */
+function legacyTagBeginMarker(style) {
   if (style === 'html') return '<!-- <fleet-canonical> -->'
   if (style === 'slash') return '// <fleet-canonical>'
   return '# <fleet-canonical>'
 }
-/**
- * The close marker line for a given comment style — canonical bare-tag form.
- */
-function endMarker(style) {
+function legacyTagEndMarker(style) {
   if (style === 'html') return '<!-- </fleet-canonical> -->'
   if (style === 'slash') return '// </fleet-canonical>'
   return '# </fleet-canonical>'
 }
 /**
- * Returns the BEGIN/END marker form for a style. spliceFleetBlock matches it
- * alongside the bare-tag form, so a file carrying either form is re-spliced in
- * one pass.
+ * Returns the BEGIN/END keyword marker form (long-form tag) for a style — an
+ * older transition, predating the short-tag rename. spliceFleetBlock matches
+ * it alongside the bare-tag forms, so a file carrying any of the three forms
+ * is re-spliced in one pass.
  */
 function legacyBeginMarker(style) {
   if (style === 'html') return '<!-- BEGIN <fleet-canonical> -->'
@@ -129,8 +147,9 @@ function legacyEndMarker(style) {
 }
 /**
  * Splice the canonical fleet block into `target`. If `target` already contains
- * the open/close markers (bare-tag or legacy BEGIN/END form), the content
- * between them (markers inclusive) is replaced. If markers are absent:
+ * the open/close markers (short-tag bare, long-form tag bare, or legacy
+ * BEGIN/END form), the content between them (markers inclusive) is replaced.
+ * If markers are absent:
  * - `html` style (CLAUDE.md, README): insert before the first level-2 heading
  * (`## `) with i > 0, or append at end.
  * - other styles: append with a leading blank line separator.
@@ -142,11 +161,17 @@ function spliceFleetBlock(config) {
   }
   const begin = beginMarker(commentStyle)
   const end = endMarker(commentStyle)
+  const legacyTag0 = legacyTagBeginMarker(commentStyle)
+  const legacyTag1 = legacyTagEndMarker(commentStyle)
   const legacy0 = legacyBeginMarker(commentStyle)
   const legacy1 = legacyEndMarker(commentStyle)
   const lines = target.split('\n')
-  const startIdx = lines.findIndex(l => l === begin || l === legacy0)
-  const endIdx = lines.findIndex(l => l === end || l === legacy1)
+  const startIdx = lines.findIndex(
+    l => l === begin || l === legacyTag0 || l === legacy0,
+  )
+  const endIdx = lines.findIndex(
+    l => l === end || l === legacyTag1 || l === legacy1,
+  )
   if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
     const before = lines.slice(0, startIdx)
     const after = lines.slice(endIdx + 1)
@@ -356,6 +381,34 @@ function fleetCanonicalEndBoundary(content) {
 function hasFleetCanonicalEndSentinel(content) {
   return content.includes(FLEET_CANONICAL_END_SENTINEL)
 }
+const REPO_REGION_BEGIN_TOKEN = '<repo>'
+const REPO_REGION_END_TOKEN = '</repo>'
+/**
+ * True when `tail` (the bytes after a file's end-sentinel boundary) already
+ * carries a `<repo>` wrapper — the seeded, host-owned carve-out
+ * `.claude/hooks/fleet/_shared/fleet-markers.mts` defines. A tail with no
+ * wrapper at all is either a not-yet-seeded target or a segment file that
+ * never uses the wrapper at all, e.g. `.prettierignore`, in which case there
+ * is nothing to seed.
+ */
+function tailHasRepoRegion(tail) {
+  return tail.includes(REPO_REGION_BEGIN_TOKEN)
+}
+/**
+ * The seed fragment a source tail carries for a not-yet-migrated target:
+ * everything from the start of `sourceTail`, right after the sentinel,
+ * through the end of its `</repo>` marker, closing quote included when
+ * present. Returns `''` when `sourceTail` has no `</repo>` to anchor on —
+ * defensive; callers only reach here after confirming `sourceTail` has a
+ * `<repo>` begin marker.
+ */
+function repoSeedFragment(sourceTail) {
+  const idx = sourceTail.indexOf(REPO_REGION_END_TOKEN)
+  if (idx === -1) return ''
+  let end = idx + 7
+  if (sourceTail.charAt(end) === '"') end += 1
+  return sourceTail.slice(0, end)
+}
 /**
  * Compute the placement result for a designated segment file: the canonical
  * source's bytes through its end sentinel, followed by the target's bytes
@@ -363,13 +416,26 @@ function hasFleetCanonicalEndSentinel(content) {
  * A target with no tail round-trips to exactly the source bytes. When either
  * side lacks the end sentinel the source wins whole — the plain mirror-copy
  * behavior, which also seeds a first placement.
+ *
+ * When the source seeds a `<repo>` wrapper right after the sentinel but the
+ * target's own tail has none at all, graft the source's seed onto the FRONT
+ * of the target's tail — the empty, "written but not yet populated" carve-out
+ * a target that predates the seed, or was cascaded before this seeding
+ * existed, never got. A target whose tail already carries a `<repo>` marker
+ * anywhere keeps that tail completely untouched, whatever else it holds.
  */
 function spliceFleetCanonicalContent(source, target) {
   const sourceBoundary = fleetCanonicalEndBoundary(source)
   if (sourceBoundary === -1) return source
   const targetBoundary = fleetCanonicalEndBoundary(target)
   if (targetBoundary === -1) return source
-  return source.slice(0, sourceBoundary) + target.slice(targetBoundary)
+  const sourceTail = source.slice(sourceBoundary)
+  const targetTail = target.slice(targetBoundary)
+  const seed =
+    tailHasRepoRegion(sourceTail) && !tailHasRepoRegion(targetTail)
+      ? repoSeedFragment(sourceTail)
+      : ''
+  return source.slice(0, sourceBoundary) + seed + targetTail
 }
 
 //#endregion
@@ -2248,6 +2314,7 @@ export {
   GHCR_HOST,
   MANIFEST_ACCEPT,
   PREPARE_FETCH,
+  SETTINGS_CANDIDATES,
   SYNC_FLEET_SCRIPT,
   UPDATE_NOTIFIER_OPT_OUT_ENV,
   applyMovedPaths,
@@ -2278,6 +2345,8 @@ export {
   isMainModule,
   legacyBeginMarker,
   legacyEndMarker,
+  legacyTagBeginMarker,
+  legacyTagEndMarker,
   lockStepExitCode,
   maybeShowUpdateNotice,
   mergeWorkspaceYaml,
