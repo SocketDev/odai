@@ -4,9 +4,14 @@
 // Blocks Edit/Write of the root README.md when the resulting content
 // violates the canonical fleet skeleton:
 //
-//   (a) Missing or out-of-order canonical section. The 5 level-2
-//       sections must appear in this order:
-//         Why this repo exists / Install / Usage / Development / License
+//   (a) Missing or out-of-order canonical section. The README must open by
+//       answering why the repo exists — either as the lead paragraph under
+//       the title and badges, or as a `## Why this repo exists` section — and
+//       then carry these 4 level-2 sections in order:
+//         Install / Usage / Development / License
+//       The lead-paragraph form is the preferred one: a reader who has just
+//       read the title wants the answer immediately, and a heading between
+//       the two adds a step without adding information.
 //
 //   (b) Mentions `socket-wheelhouse` outside fenced code blocks.
 //       socket-wheelhouse is a private repo; the link 404s for outside
@@ -69,13 +74,63 @@ const BYPASS_PHRASE = 'Allow readme-fleet-shape bypass'
 const OPT_IN_PHRASE = 'Opt-in readme-fleet-shape'
 const OPT_IN_MARKER = '.config/readme-fleet-shape.json'
 
+// The opening "why" is LEAD PROSE between the title/badges and the first
+// `##` — never a heading (owner directive, 2026-07-31): a reader arriving at
+// the title wants the answer immediately, and a `## Why this repo exists`
+// heading between them adds a step without adding information. The legacy
+// heading still SATISFIES the lead check during the fleet-wide migration so
+// unswept READMEs stay editable, but new full writes should use lead prose.
+const LEAD_SECTION = 'Why this repo exists'
+
 const REQUIRED_SECTIONS = [
-  'Why this repo exists',
   'Install',
   'Usage',
   'Development',
   'License',
 ] as const
+
+/**
+ * True when the README answers "why does this exist" before its first `##`,
+ * either as lead prose or as the optional heading. Badges, HTML, comments, and
+ * blank lines do not count as prose.
+ */
+export function hasLeadAnswer(body: string): boolean {
+  const lines = body.split('\n')
+  let sawTitle = false
+  let inFence = false
+  for (let i = 0, { length } = lines; i < length; i += 1) {
+    const line = lines[i]!
+    const trimmed = line.trim()
+    if (trimmed.startsWith('```')) {
+      inFence = !inFence
+      continue
+    }
+    if (inFence) {
+      continue
+    }
+    if (!sawTitle) {
+      if (trimmed.startsWith('# ')) {
+        sawTitle = true
+      }
+      continue
+    }
+    if (trimmed.startsWith('## ')) {
+      // Reached the first section without lead prose; the LEGACY heading form
+      // still satisfies during the migration (see LEAD_SECTION note).
+      return trimmed.slice(3).trim() === LEAD_SECTION
+    }
+    if (
+      trimmed === '' ||
+      trimmed.startsWith('<') ||
+      trimmed.startsWith('[!') ||
+      trimmed.startsWith('[![')
+    ) {
+      continue
+    }
+    return true
+  }
+  return false
+}
 
 const WHEELHOUSE_LEAK_RE = /socket-wheelhouse/i
 const SIBLING_PATH_RES: readonly RegExp[] = [
@@ -279,6 +334,15 @@ export function findShapeViolations(
         headings.push(m.groups['heading'])
       }
     }
+    if (!hasLeadAnswer(text)) {
+      findings.push({
+        kind: 'missing-section',
+        detail:
+          `README does not say why the repo exists before its first "##". ` +
+          `Add a lead paragraph directly under the title and badges (the ` +
+          `legacy "## ${LEAD_SECTION}" heading is deprecated — jump into it).`,
+      })
+    }
     let cursor = 0
     for (let r = 0, { length } = REQUIRED_SECTIONS; r < length; r += 1) {
       const want = REQUIRED_SECTIONS[r]
@@ -440,7 +504,10 @@ export const check = editGuard((filePath, content, payload) => {
   lines.push(`root README.md must follow the skeleton at:`)
   lines.push(`  socket-wheelhouse/template/README.md`)
   lines.push(``)
-  lines.push(`Required sections in order:`)
+  lines.push(
+    `Open with why the repo exists: a lead paragraph directly under the`,
+  )
+  lines.push(`title and badges (no "## ${LEAD_SECTION}" heading). Then, in order:`)
   for (let i = 0, { length } = REQUIRED_SECTIONS; i < length; i += 1) {
     lines.push(`  ${i + 1}. ## ${REQUIRED_SECTIONS[i]}`)
   }
