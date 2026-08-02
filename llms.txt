@@ -1,0 +1,10 @@
+# @socketsecurity/odai
+
+> Local on-device AI library for browser and Node, with the bench evaluation harness. 2 subpath exports, grouped by namespace.
+
+Import any namespace by its subpath, e.g. `import '@socketsecurity/odai/bench'`. Each link below points at the TypeScript declarations shipped in the package, where the full signature for that subpath lives.
+
+## Top-level
+
+- [@socketsecurity/odai/bench](./dist/bench/index.d.mts)
+- [@socketsecurity/odai/node](./dist/node.d.mts)
