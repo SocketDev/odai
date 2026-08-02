@@ -70,7 +70,6 @@
     "sync-oxlint-rules": "node scripts/fleet/sync-oxlint-rules.mts",
     "sync-package-manager-pins": "node scripts/fleet/sync-package-manager-pins.mts",
     "weekly-update": "node scripts/fleet/weekly-update.mts",
-    "weekly-update:ci": "node scripts/fleet/weekly-update-workflow.mts run",
     "doctor": "node scripts/fleet/doctor.mts",
     "gen:combomark": "node scripts/repo/gen-combomark.mts",
     "docs:llms": "node scripts/fleet/make-llms-txt.mts",
