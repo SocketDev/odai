@@ -4,11 +4,11 @@
  *   package exports, grouped by namespace, each row linking the SOURCE module
  *   under `src/` and showing the first sentence of its `@file` block. The
  *   publish-facing twin, which links the shipped declarations instead, is
- *   `scripts/fleet/make-llms-txt.mts`; one generator owns each path.
+ *   `scripts/fleet/gen/llms-txt.mts`; one generator owns each path.
  *   Opt-in: writes only when the member sets `docs.apiMd` in
  *   `.config/repo/socket-wheelhouse.json`. A member with no export surface is a
  *   named skip, never an empty file.
- *   Usage: node scripts/fleet/make-api-md.mts [--check] [--quiet]
+ *   Usage: node scripts/fleet/gen/api-md.mts [--check] [--quiet]
  *   --check  Compare the committed file against a fresh render; exit 1 when
  *   it is stale or missing. Writes nothing.
  *   --quiet  Suppress the skip / success line; failures still print.
@@ -18,22 +18,22 @@ import process from 'node:process'
 
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 
-import { isMainModule } from './_shared/is-main-module.mts'
-import { runMain } from './_shared/run-main.mts'
-import { runDocsArtifact } from './lib/api-docs/docs-artifact.mts'
-import { sortApiGroupKeys } from './lib/api-docs/export-rows.mts'
+import { isMainModule } from '../_shared/is-main-module.mts'
+import { runMain } from '../_shared/run-main.mts'
+import { runDocsArtifact } from '../lib/api-docs/docs-artifact.mts'
+import { sortApiGroupKeys } from '../lib/api-docs/export-rows.mts'
 
 import type {
   DocsArtifactSpec,
   DocsRenderContext,
-} from './lib/api-docs/docs-artifact.mts'
+} from '../lib/api-docs/docs-artifact.mts'
 
 const logger = getDefaultLogger()
 
 /**
  * The command every skip and staleness message names.
  */
-export const MAKE_API_MD_COMMAND = 'node scripts/fleet/make-api-md.mts'
+export const MAKE_API_MD_COMMAND = 'node scripts/fleet/gen/api-md.mts'
 
 // Characters a GitHub heading anchor keeps; everything else collapses to a
 // single hyphen, matching how GitHub slugifies a heading into a fragment id.

@@ -5,11 +5,11 @@
  *   shipped `.d.mts` declaration rather than `src/`, because a published
  *   tarball has no `src/` and the declaration is where an agent finds the
  *   signature. The human-facing twin, which links `src/`, is
- *   `scripts/fleet/make-api-md.mts`; one generator owns each path.
+ *   `scripts/fleet/gen/api-md.mts`; one generator owns each path.
  *   Opt-in: writes only when the member sets `docs.llmsTxt` in
  *   `.config/repo/socket-wheelhouse.json`. A member with no export surface is a
  *   named skip, never an empty file.
- *   Usage: node scripts/fleet/make-llms-txt.mts [--check] [--quiet]
+ *   Usage: node scripts/fleet/gen/llms-txt.mts [--check] [--quiet]
  *   --check  Compare the committed file against a fresh render; exit 1 when
  *   it is stale or missing. Writes nothing.
  *   --quiet  Suppress the skip / success line; failures still print.
@@ -19,22 +19,22 @@ import process from 'node:process'
 
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 
-import { isMainModule } from './_shared/is-main-module.mts'
-import { runMain } from './_shared/run-main.mts'
-import { runDocsArtifact } from './lib/api-docs/docs-artifact.mts'
-import { sortApiGroupKeys } from './lib/api-docs/export-rows.mts'
+import { isMainModule } from '../_shared/is-main-module.mts'
+import { runMain } from '../_shared/run-main.mts'
+import { runDocsArtifact } from '../lib/api-docs/docs-artifact.mts'
+import { sortApiGroupKeys } from '../lib/api-docs/export-rows.mts'
 
 import type {
   DocsArtifactSpec,
   DocsRenderContext,
-} from './lib/api-docs/docs-artifact.mts'
+} from '../lib/api-docs/docs-artifact.mts'
 
 const logger = getDefaultLogger()
 
 /**
  * The command every skip and staleness message names.
  */
-export const MAKE_LLMS_TXT_COMMAND = 'node scripts/fleet/make-llms-txt.mts'
+export const MAKE_LLMS_TXT_COMMAND = 'node scripts/fleet/gen/llms-txt.mts'
 
 /**
  * The blockquote lead: the package description, then the export count that
