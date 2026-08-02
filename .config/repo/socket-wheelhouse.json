@@ -11,5 +11,21 @@
   },
   "docs": {
     "llmsTxt": true
+  },
+  "release": {
+    "provenanceOrphanBaseline": [
+      {
+        "id": "@socketsecurity/odai@0.1.0",
+        "reason": "Published before the provenance pipeline was wired up: the npm attestation endpoint answers 404 for this version, so it carries no SLSA statement at all. npm mints attestations at publish time and they are immutable, so no tag and no commit can repair it."
+      },
+      {
+        "id": "@socketsecurity/odai@0.0.1",
+        "reason": "Published before the provenance pipeline was wired up: the npm attestation endpoint answers 404 for this version, so it carries no SLSA statement at all. Same frozen-history shape as 0.1.0."
+      },
+      {
+        "id": "@socketsecurity/odai@0.0.0",
+        "reason": "Published before the provenance pipeline was wired up: the npm attestation endpoint answers 404 for this version, so it carries no SLSA statement at all. Same frozen-history shape as 0.1.0."
+      }
+    ]
   }
 }
