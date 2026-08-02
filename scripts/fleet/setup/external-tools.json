@@ -92,19 +92,19 @@
     },
     "smithers": {
       "notes": [
-        "smithers-orchestrator — AI orchestration framework (durable long-horizon coding-agent workflows). npm registry tarball (pure JS run via node), so a single top-level integrity (npm-shape, like npm itself); install-smithers.mjs downloads + SRI-verifies + racks it, with a bin/smithers shim that runs src/bin/smithers.js through system node.",
-        "0.23.0 published 2026-06-08, inside the 7-day soak — rides a dated soakBypass (auto-disarms 2026-06-15)."
+        "smthrs — AI orchestration framework (durable long-horizon coding-agent workflows). npm registry tarball (pure JS run via node), so a single top-level integrity (npm-shape, like npm itself); install-smithers.mjs downloads + SRI-verifies + racks it, with a bin/smithers shim that runs src/bin/smithers.js through system node.",
+        "0.33.0 published 2026-08-02, inside the 7-day soak — rides a dated soakBypass (auto-disarms 2026-08-09)."
       ],
-      "description": "smithers-orchestrator — AI agent-workflow orchestrator (pinned, SRI-verified)",
-      "repository": "npm:smithers-orchestrator",
-      "version": "0.23.0",
+      "description": "smthrs — AI agent-workflow orchestrator (pinned, SRI-verified)",
+      "repository": "npm:smthrs",
+      "version": "0.33.0",
       "binaryName": "smithers",
       "soakBypass": {
-        "version": "0.23.0",
-        "published": "2026-06-08",
-        "removable": "2026-06-15"
+        "version": "0.33.0",
+        "published": "2026-08-02",
+        "removable": "2026-08-09"
       },
-      "integrity": "sha512-P7u1sr5IwPhL3ywKnK/n03R9vt1XvuKJ1pL8qhOH62+D1s3+A8m2OCig59ywx7m5DczwfGM1uFMZsD6HyXd3hQ=="
+      "integrity": "sha512-X2KvPu3Ly5jtgHoOns/YwwEFsGHxadJUk+OjW5mNx4VoYT6rl2gII+9FVGPKHC0cNYBDBoLzvYCX61IvYKWKpQ=="
     },
     "fff": {
       "notes": [
