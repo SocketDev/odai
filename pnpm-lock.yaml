@@ -215,8 +215,8 @@ catalogs:
       specifier: 0.34.52
       version: 0.34.52
     '@socketregistry/packageurl-js-stable':
-      specifier: npm:@socketregistry/packageurl-js@1.4.8
-      version: 1.4.8
+      specifier: npm:@socketregistry/packageurl-js@1.5.0
+      version: 1.5.0
     '@socketsecurity/lib-stable':
       specifier: npm:@socketsecurity/lib@6.5.2
       version: 6.5.2
@@ -375,7 +375,7 @@ importers:
         version: 1.5.0
       '@socketregistry/packageurl-js-stable':
         specifier: 'catalog:'
-        version: '@socketregistry/packageurl-js@1.4.8'
+        version: '@socketregistry/packageurl-js@1.5.0'
       '@socketsecurity/lib':
         specifier: 6.5.2
         version: 6.5.2(typescript@7.0.2)
@@ -686,7 +686,7 @@ importers:
     dependencies:
       '@socketregistry/packageurl-js-stable':
         specifier: 'catalog:'
-        version: '@socketregistry/packageurl-js@1.4.8'
+        version: '@socketregistry/packageurl-js@1.5.0'
       '@socketsecurity/lib-stable':
         specifier: 'catalog:'
         version: '@socketsecurity/lib@6.5.2(typescript@7.0.2)'
@@ -2201,7 +2201,7 @@ importers:
         version: 0.34.52
       '@socketregistry/packageurl-js-stable':
         specifier: 'catalog:'
-        version: '@socketregistry/packageurl-js@1.4.8'
+        version: '@socketregistry/packageurl-js@1.5.0'
       '@socketsecurity/lib-stable':
         specifier: 'catalog:'
         version: '@socketsecurity/lib@6.5.2(typescript@7.0.2)'
@@ -3268,10 +3268,6 @@ packages:
   '@socketregistry/es-define-property@1.0.7':
     resolution: {integrity: sha512-pCJr9kYvUKzIZQUbkSzHW/PlZ5cvm4DXmxFMBmGydScVKxri4/BBdh9ASW+38/82pdaE5lTK92AN+MYydJIQCw==}
     engines: {node: '>=18'}
-
-  '@socketregistry/packageurl-js@1.4.8':
-    resolution: {integrity: sha512-u9Mlg3zeiCr8FHdG6Sxd4T8dWS/zVzW270tS67JdDra2hrzPfgsmbWr7itlQc/0P9uWX6gslISs88YQvi3Z5SQ==}
-    engines: {node: '>=24', npm: '>=12.0.0', pnpm: '>=11.0.5'}
 
   '@socketregistry/packageurl-js@1.5.0':
     resolution: {integrity: sha512-Yqnq50McfKVqKCUKRIhW3XcnjxzFoysBDkUktOuLzOdy4cWi0smVqvLNSkS3f4sdDJYpRBjcxTlb2ajHr+cURQ==}
@@ -5262,8 +5258,6 @@ snapshots:
   '@sindresorhus/merge-streams@4.0.0': {}
 
   '@socketregistry/es-define-property@1.0.7': {}
-
-  '@socketregistry/packageurl-js@1.4.8': {}
 
   '@socketregistry/packageurl-js@1.5.0': {}
 
