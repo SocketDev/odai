@@ -67,6 +67,7 @@ odai summarize --input README.md
 odai patch --input src/greet.js --instruction "use a template literal"
 odai classify-deps --input narrowed-dep-diff.json
 odai backends
+printf '%s\n' '{"id":"a","task":"summarize","input":"release notes..."}' '{"id":"b","task":"commit-msg","input":"diff --git..."}' | odai batch
 ```
 
 Every prompt runs under a hard budget — `--timeout <ms>` or the
@@ -83,6 +84,8 @@ a job. Exit codes are the CI contract:
 When nothing is provisioned the CLI prints the exact provisioning steps for
 each backend and exits 69; `odai backends` prints per-backend availability
 JSON with the reason for every unavailable engine.
+
+`odai batch` reads a JSONL manifest (stdin or `--input`), runs every task over a single backend launch, and prints one JSON line per entry in manifest order — `{"id","ok":true,"value":…}` or `{"id","ok":false,"error":…}`. It exits 0 when the batch ran even if every task failed (failures are in-band lines), 2 on a malformed manifest (checked in full before any task runs), and 69 when no backend is available. `--timeout` is the per-task budget; `--raw` is not accepted.
 
 ### Bench
 

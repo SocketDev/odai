@@ -10,6 +10,7 @@ import type { BackendName } from '../backends/types.mts'
 
 export const CLI_COMMANDS = [
   'backends',
+  'batch',
   'classify-deps',
   'commit-msg',
   'dedupe',
@@ -156,6 +157,11 @@ export function parseCliArgs(argv: string[]): CliArgs {
       `odai: --instruction only applies to the patch command, not ${args.command}.`,
     )
   }
+  if (args.raw && args.command === 'batch') {
+    throw new CliUsageError(
+      'odai: --raw does not apply to the batch command — batch output is always JSONL.',
+    )
+  }
   return args
 }
 
@@ -168,6 +174,7 @@ export function usageText(): string {
     '',
     'Commands:',
     '  backends              probe every declared backend, print availability JSON',
+    '  batch                 run many tasks from a JSONL manifest over one backend launch',
     '  classify-deps         flag a narrowed dependency diff as routine or surprise',
     '  commit-msg            suggest a Conventional Commits subject for a diff',
     '  dedupe                which package versions collapse safely (JSON stdin)',

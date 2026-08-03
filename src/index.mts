@@ -98,6 +98,11 @@ export {
 }
 
 export type { AvailabilityResult } from './availability.mts'
+export type {
+  BatchEntry,
+  BatchResultLine,
+  BatchTaskCommand,
+} from './cli/batch.mts'
 export type { HoistAssessOptions } from './tasks/hoist.mts'
 export type { SecurityFixAssessOptions } from './tasks/security-fix.mts'
 export type { WeeklyUpdatePlanOptions } from './tasks/weekly-update.mts'

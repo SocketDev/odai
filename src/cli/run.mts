@@ -20,8 +20,10 @@ import {
 } from '../backends/registry.mts'
 import { createOdaiModel } from '../model.mts'
 import { CliUsageError, parseCliArgs, usageText } from './args.mts'
+import { parseBatchManifest, runBatchEntries } from './batch.mts'
 import { runTask } from './dispatch.mts'
 import type { CliArgs } from './args.mts'
+import type { BatchEntry } from './batch.mts'
 import type {
   BackendAvailability,
   BackendName,
@@ -185,6 +187,25 @@ export async function runBackendsCommand(
   return rows.some(row => row.available) ? EXIT_OK : EXIT_NO_BACKEND
 }
 
+export async function runBatchCommand(
+  backend: OdaiBackend,
+  entries: BatchEntry[],
+  timeoutMs: number,
+  stdout: LineWriter,
+  stderr: LineWriter,
+): Promise<number> {
+  try {
+    const model = await createOdaiModel({ backend, temperature: 0, topK: 1 })
+    await runBatchEntries(model, entries, timeoutMs, stdout)
+    return EXIT_OK
+  } catch (e) {
+    stderr(`odai batch: ${errorMessage(e)}`)
+    return EXIT_TASK_FAILURE
+  } finally {
+    await closeBackend(backend)
+  }
+}
+
 export async function runCli(
   argv: string[],
   options?: RunCliOptions | undefined,
@@ -236,16 +257,39 @@ export async function runCli(
     return EXIT_USAGE
   }
 
+  let batchEntries: BatchEntry[] | undefined
+  if (command === 'batch') {
+    try {
+      batchEntries = parseBatchManifest(input)
+    } catch (e) {
+      if (e instanceof CliUsageError) {
+        stderr(e.message)
+        return EXIT_USAGE
+      }
+      throw e
+    }
+  }
+
   let backend: OdaiBackend
   try {
     backend = await selectBackend({
       backend: opts.backend ?? args.backend,
       env,
     })
-  } catch (error) {
-    stderr(`odai ${command}: no usable backend — ${errorMessage(error)}`)
+  } catch (e) {
+    stderr(`odai ${command}: no usable backend — ${errorMessage(e)}`)
     stderr(provisioningHelp())
     return EXIT_NO_BACKEND
+  }
+
+  if (batchEntries !== undefined) {
+    return await runBatchCommand(
+      backend,
+      batchEntries,
+      timeoutMs,
+      stdout,
+      stderr,
+    )
   }
 
   try {

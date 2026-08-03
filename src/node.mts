@@ -24,6 +24,7 @@ import {
   ODAI_BACKEND_ENV_VAR,
   selectBackend,
 } from './backends/registry.mts'
+import { parseBatchManifest, runBatchEntries } from './cli/batch.mts'
 import {
   DEFAULT_PROMPT_TIMEOUT_MS,
   EXIT_NO_BACKEND,
@@ -155,8 +156,10 @@ export {
   ODAI_LLAMA_MODEL_ENV_VAR,
   ODAI_LLAMA_URL_ENV_VAR,
   ODAI_TIMEOUT_ENV_VAR,
+  parseBatchManifest,
   planWeeklyUpdate,
   reasonAboutLockfile,
+  runBatchEntries,
   runCli,
   selectBackend,
   suggestCommitMessage,
@@ -166,6 +169,11 @@ export {
 
 export type { AppleFmBackendOptions } from './backends/apple-fm.mts'
 export type { CliArgs, CliCommand } from './cli/args.mts'
+export type {
+  BatchEntry,
+  BatchResultLine,
+  BatchTaskCommand,
+} from './cli/batch.mts'
 export type { LineWriter, RunCliOptions } from './cli/run.mts'
 export type { LlamaServerBackendOptions } from './backends/llama-server.mts'
 export type { SelectBackendOptions } from './backends/registry.mts'
