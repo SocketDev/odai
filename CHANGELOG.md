@@ -5,6 +5,26 @@ All notable changes to `@socketsecurity/odai` will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1](https://github.com/SocketDev/odai/releases/tag/v0.2.1) - 2026-08-03
+
+### Added
+
+- **`cli`** — add the batch command — one backend launch, many tasks
+
+### Fixed
+
+- **`cli/batch`** — align catch bindings and remove underscore params in tests
+- **`json`** — never repair end-of-stream truncation — give up instead
+- **`json`** — repair an unclosed array at the object close, string-aware
+
+### Internal
+
+- **`hooks`** — allowlist dl.google.com for chrome-builtin provisioning
+- **`ci`** — neutral sample text — the verify prompt tripped the publish-doctrine scanner
+- **`ci`** — make the verify job the lean consumer reference shape
+- **`ci`** — cache only the model components + activation state, not profile litter
+- **`ci`** — add the on-device model cache fill + offline-verify workflow
+
 ## [0.2.0](https://github.com/SocketDev/odai/releases/tag/v0.2.0) - 2026-08-03
 
 ### Added
