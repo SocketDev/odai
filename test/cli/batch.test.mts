@@ -12,7 +12,7 @@ import { runCli } from '../../src/cli/run.mts'
 import { createMockModel } from '../../src/node.mts'
 import type { OdaiBackend } from '../../src/backends/types.mts'
 import type { OdaiModel } from '../../src/model.mts'
-import type { StructuredPromptOptions, TaskResult } from '../../src/types.mts'
+import type { TaskResult } from '../../src/types.mts'
 
 interface Capture {
   lines: string[]
@@ -189,10 +189,7 @@ describe('runBatchEntries', () => {
   it('records a failing entry in-band and still runs the next entry', async () => {
     let call = 0
     const model: OdaiModel = {
-      async promptStructured<T>(
-        _content: string,
-        _options: StructuredPromptOptions<T>,
-      ): Promise<TaskResult<T>> {
+      async promptStructured<T>(): Promise<TaskResult<T>> {
         call += 1
         if (call === 1) {
           return { ok: false, raw: 'bad', error: 'validation failed' }
@@ -239,10 +236,7 @@ describe('runBatchEntries', () => {
   it('reports a timeout as ok:false and still runs the next entry', async () => {
     let call = 0
     const model: OdaiModel = {
-      async promptStructured<T>(
-        _content: string,
-        _options: StructuredPromptOptions<T>,
-      ): Promise<TaskResult<T>> {
+      async promptStructured<T>(): Promise<TaskResult<T>> {
         call += 1
         if (call === 1) {
           return new Promise<TaskResult<T>>(() => {})

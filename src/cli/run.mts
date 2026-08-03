@@ -198,8 +198,8 @@ export async function runBatchCommand(
     const model = await createOdaiModel({ backend, temperature: 0, topK: 1 })
     await runBatchEntries(model, entries, timeoutMs, stdout)
     return EXIT_OK
-  } catch (e) {
-    stderr(`odai batch: ${errorMessage(e)}`)
+  } catch (error) {
+    stderr(`odai batch: ${errorMessage(error)}`)
     return EXIT_TASK_FAILURE
   } finally {
     await closeBackend(backend)
@@ -261,12 +261,12 @@ export async function runCli(
   if (command === 'batch') {
     try {
       batchEntries = parseBatchManifest(input)
-    } catch (e) {
-      if (e instanceof CliUsageError) {
-        stderr(e.message)
+    } catch (error) {
+      if (error instanceof CliUsageError) {
+        stderr(error.message)
         return EXIT_USAGE
       }
-      throw e
+      throw error
     }
   }
 
@@ -276,8 +276,8 @@ export async function runCli(
       backend: opts.backend ?? args.backend,
       env,
     })
-  } catch (e) {
-    stderr(`odai ${command}: no usable backend — ${errorMessage(e)}`)
+  } catch (error) {
+    stderr(`odai ${command}: no usable backend — ${errorMessage(error)}`)
     stderr(provisioningHelp())
     return EXIT_NO_BACKEND
   }
