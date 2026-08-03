@@ -67,8 +67,12 @@ describe('json', () => {
     })
   })
 
-  it('closes containers left open at end of input', () => {
-    expect(JSON.parse(repairJson('{"a":[1,2'))).toStrictEqual({ a: [1, 2] })
+  it('gives up on input truncated at end of stream', () => {
+    // Truncation is never repaired — closing an open string or container
+    // would fabricate content (a tool call cut off mid-string must stay
+    // rejectable downstream).
+    expect(repairJson('{"a":[1,2')).toBe('{}')
+    expect(repairJson('{"name":"Bash","input":{"command":"pw')).toBe('{}')
   })
 
   it('ignores braces inside string values while balancing', () => {

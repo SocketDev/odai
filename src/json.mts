@@ -196,14 +196,15 @@ export async function promptStructured<T>(
 }
 
 /**
- * Extract the first JSON object from `raw`, repairing the container-close
- * mistakes small models make. String-aware (a brace inside a string value
- * never miscounts depth). Repairs two shapes observed live from Gemini Nano:
- * a `}` closing over a still-open array gets the missing `]` injected first,
- * and containers (or a string) left open at end of input get their closers
- * appended. Well-formed input passes through byte-identical; the caller
- * still strict-parses the result, so a repair that guesses wrong fails
- * exactly like the original reply did.
+ * Extract the first JSON object from `raw`, repairing the one container-close
+ * mistake observed live from Gemini Nano: a `}` closing over a still-open
+ * array gets the missing `]` injected first. String-aware (a brace inside a
+ * string value never miscounts depth). Input that ENDS with an open string
+ * or open containers is NOT repaired — that shape is stream truncation, and
+ * closing it would fabricate content (a tool call cut off mid-string must
+ * stay rejectable), so the documented `{}` give-up applies exactly as it
+ * does when no object is found. Well-formed input passes through
+ * byte-identical; the caller still strict-parses the result.
  */
 export function repairJson(raw: string): string {
   const start = raw.indexOf('{')
@@ -255,13 +256,7 @@ export function repairJson(raw: string): string {
     }
     out.push(char)
   }
-  if (inString) {
-    out.push('"')
-  }
-  while (stack.length > 0) {
-    out.push(stack.pop() === '[' ? ']' : '}')
-  }
-  return out.join('')
+  return '{}'
 }
 
 /**
