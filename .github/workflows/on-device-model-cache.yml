@@ -246,10 +246,10 @@ jobs:
         run: |
           set -euo pipefail
           printf '%s\n' \
-            'A staged npm publish uploads the tarball under an OIDC exchange' \
-            'but keeps it private until a human approves. The approve step' \
-            'verifies the staged bytes against a local re-pack, then promotes,' \
-            'then cuts the git tag and the immutable GitHub release last.' \
+            'A worktree keeps branch work out of the primary checkout. Each' \
+            'worktree shares the same object store but holds its own files,' \
+            'so an agent can build and test a feature branch in isolation' \
+            'while the default branch stays clean for other sessions.' \
             > /tmp/on-device-model-cache-verify.txt
           START="$(date +%s)"
           node dist/cli.js summarize --backend chrome-builtin \
