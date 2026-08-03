@@ -5,6 +5,28 @@ All notable changes to `@socketsecurity/odai` will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0](https://github.com/SocketDev/odai/releases/tag/v0.2.0) - 2026-08-03
+
+### Added
+
+- **`cli`** — wire the dep-update reasoning family into the CLI
+- **`llama-server`** — accept portless \*.localhost loopback URLs
+- **`odai`** — constrained decoding + generate-verify guardrails
+- **`odai`** — best-of-N self-consistency + grounded determinism for decision tasks
+- **`odai`** — code-first decision split — model extracts, code decides
+
+### Fixed
+
+- **`release`** — baseline the three unprovenanced odai npm versions
+- **`soak`** — drop the unpublishable bare stuie exclude
+- **`cli`** — drop the phantom type parameter from parseJsonInput
+- **`chrome-builtin`** — call clone and destroy through the session object
+
+### Internal
+
+- **`fleet`** — resync -stable aliases + cascade and lockfile reconcile
+- **`deps`** — align nock to the catalog pin + absorb sdk 4.1.3
+
 ## [0.1.0](https://github.com/SocketDev/odai/releases/tag/v0.1.0) - 2026-07-29
 
 ### Added
