@@ -200,20 +200,21 @@ jobs:
           fi
           git checkout -q --detach FETCH_HEAD
 
-      # Chrome evicts the model below 10 GB free — the verify runner needs
-      # the same headroom or the restored profile self-deletes.
-      - name: Reclaim runner disk
+      # This job is the CONSUMER REFERENCE SHAPE: no disk reclaim (the 22 GB
+      # free-space need is download-time only; a restore-only job holds 4.2 GB
+      # against the image's ~88 GB free, comfortably over Chrome's 10 GB model
+      # retention floor) and no unconditional Chrome upgrade. One deliberate
+      # difference from a real consumer: this repo's verify builds the CLI
+      # from HEAD to validate the checkout; consumers install the published
+      # @socketsecurity/odai instead.
+      - name: Ensure Google Chrome stable
         shell: bash
         run: |
           set -euo pipefail
-          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc \
-            /usr/local/.ghcup /opt/hostedtoolcache/CodeQL
-          df -h / | tail -1
-
-      - name: Install Google Chrome stable
-        shell: bash
-        run: |
-          set -euo pipefail
+          if command -v google-chrome-stable >/dev/null 2>&1; then
+            echo "preinstalled: $(google-chrome-stable --version)"
+            exit 0
+          fi
           wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
           sudo apt-get install -y ./google-chrome-stable_current_amd64.deb
           rm google-chrome-stable_current_amd64.deb
