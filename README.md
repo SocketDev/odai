@@ -5,7 +5,7 @@
 </div>
 
 <a href="https://badge.socket.dev/npm/package/@socketsecurity/odai"><img src="https://badge.socket.dev/npm/package/@socketsecurity/odai" alt="Socket Badge" height="20"></a>
-<img src="assets/repo/badges/coverage.svg" width="97" height="20" alt="Coverage" />
+<img src="https://raw.githubusercontent.com/SocketDev/odai/HEAD/assets/repo/badges/coverage.svg" width="97" height="20" alt="Coverage" />
 
 [![Follow @SocketSecurity](assets/fleet/badge-follow-x.svg)](https://twitter.com/SocketSecurity)
 [![Follow @socket.dev on Bluesky](assets/fleet/badge-follow-bluesky.svg)](https://bsky.app/profile/socket.dev)
