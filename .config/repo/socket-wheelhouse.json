@@ -5,6 +5,9 @@
   "repo": {
     "type": "solo"
   },
+  "ai": {
+    "localAssist": true
+  },
   "build": {
     "from": "npm-registry",
     "type": "js"
