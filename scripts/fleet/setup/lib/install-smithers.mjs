@@ -1,5 +1,5 @@
 /**
- * @file Zero-dep bootstrap installer for smithers (smithers-orchestrator) — an
+ * @file Zero-dep bootstrap installer for smithers (smthrs) — an
  *   AI agent-workflow orchestrator. npm-registry tarball (pure JS run via
  *   node), the same shape as npm itself: a SINGLE top-level integrity.
  *   Downloaded + SRI-verified + extracted by lib/install-tool.mjs into
@@ -35,7 +35,7 @@ export function installSmithers() {
   const entry = path.join(pkgDir, 'src', 'bin', 'smithers.js')
   const shimPath = path.join(BIN_DIR, binName)
   if (!existsSync(entry)) {
-    const tarUrl = `https://registry.npmjs.org/smithers-orchestrator/-/smithers-orchestrator-${version}.tgz`
+    const tarUrl = `https://registry.npmjs.org/smthrs/-/smthrs-${version}.tgz`
     log(`Installing smithers@${version} → ${destDir}`)
     if (!installTool(tarUrl, integrity, destDir)) {
       warn('× smithers download/verify failed — skipping shim')
