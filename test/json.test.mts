@@ -7,6 +7,7 @@ import {
   normalizeKeys,
   parseJsonWithFallback,
   promptStructured,
+  repairJson,
 } from '../src/json.mts'
 import type { Message, SessionLike } from '../src/types.mts'
 
@@ -54,6 +55,27 @@ describe('json', () => {
     expect(mergePrefill('{"updates":[', '{"name":"x"}]}')).toBe(
       '{"updates":[{"name":"x"}]}',
     )
+  })
+
+  it('repairs a missing array close before the object close', () => {
+    // Observed live from Gemini Nano in CI: the reply closed the object
+    // while the points array was still open.
+    const raw = '{"summary":"s","points":["a","b"}'
+    expect(JSON.parse(repairJson(raw))).toStrictEqual({
+      points: ['a', 'b'],
+      summary: 's',
+    })
+  })
+
+  it('closes containers left open at end of input', () => {
+    expect(JSON.parse(repairJson('{"a":[1,2'))).toStrictEqual({ a: [1, 2] })
+  })
+
+  it('ignores braces inside string values while balancing', () => {
+    expect(JSON.parse(repairJson('{"a":"}","b":1}'))).toStrictEqual({
+      a: '}',
+      b: 1,
+    })
   })
 
   it('isParseableJson distinguishes valid from broken JSON', () => {

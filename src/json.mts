@@ -195,25 +195,73 @@ export async function promptStructured<T>(
   return { error: lastError, ok: false, raw: lastRaw }
 }
 
+/**
+ * Extract the first JSON object from `raw`, repairing the container-close
+ * mistakes small models make. String-aware (a brace inside a string value
+ * never miscounts depth). Repairs two shapes observed live from Gemini Nano:
+ * a `}` closing over a still-open array gets the missing `]` injected first,
+ * and containers (or a string) left open at end of input get their closers
+ * appended. Well-formed input passes through byte-identical; the caller
+ * still strict-parses the result, so a repair that guesses wrong fails
+ * exactly like the original reply did.
+ */
 export function repairJson(raw: string): string {
-  // Try to extract the first balanced JSON object.
   const start = raw.indexOf('{')
   if (start === -1) {
     return '{}'
   }
-  let depth = 0
+  const out: string[] = []
+  const stack: string[] = []
+  let inString = false
+  let escaped = false
   for (let i = start; i < raw.length; i += 1) {
-    const char = raw[i]
-    if (char === '{') {
-      depth += 1
-    } else if (char === '}') {
-      depth -= 1
-      if (depth === 0) {
-        return raw.slice(start, i + 1)
+    const char = raw[i]!
+    if (inString) {
+      out.push(char)
+      if (escaped) {
+        escaped = false
+      } else if (char === '\\') {
+        escaped = true
+      } else if (char === '"') {
+        inString = false
       }
+      continue
     }
+    if (char === '"') {
+      inString = true
+      out.push(char)
+      continue
+    }
+    if (char === '[' || char === '{') {
+      stack.push(char)
+      out.push(char)
+      continue
+    }
+    if (char === ']' || char === '}') {
+      const wanted = char === '}' ? '{' : '['
+      while (stack.length > 0 && stack[stack.length - 1] !== wanted) {
+        out.push(stack.pop() === '[' ? ']' : '}')
+      }
+      if (stack.length === 0) {
+        // An unmatched closer with nothing open — drop it.
+        continue
+      }
+      stack.pop()
+      out.push(char)
+      if (stack.length === 0) {
+        return out.join('')
+      }
+      continue
+    }
+    out.push(char)
   }
-  return '{}'
+  if (inString) {
+    out.push('"')
+  }
+  while (stack.length > 0) {
+    out.push(stack.pop() === '[' ? ']' : '}')
+  }
+  return out.join('')
 }
 
 /**
