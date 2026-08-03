@@ -89,10 +89,18 @@ jobs:
         with:
           socket-api-token: ${{ secrets.SOCKET_API_TOKEN_FOR_CLI_AND_SFW }}
 
+      # Cache the model components + activation state ONLY — the same set the
+      # bridge's clone mode copies from a system profile. The rest of the
+      # user-data-dir is Chrome litter (GPU/code caches, crashpad) that would
+      # grow the entry on every weekly refill without bounding benefit.
       - name: Restore any prior model profile
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0 (2026-06-26)
         with:
-          path: /home/runner/.cache/odai/chrome-builtin
+          path: |
+            /home/runner/.cache/odai/chrome-builtin/OptGuideOnDeviceModel
+            /home/runner/.cache/odai/chrome-builtin/optimization_guide_model_store
+            /home/runner/.cache/odai/chrome-builtin/OptGuideOnDeviceClassifierModel
+            /home/runner/.cache/odai/chrome-builtin/Local State
           key: odai-nano-Linux-x64-fill-anchor
           restore-keys: |
             odai-nano-Linux-x64-
@@ -157,7 +165,11 @@ jobs:
       - name: Save the profile cache
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0 (2026-06-26)
         with:
-          path: /home/runner/.cache/odai/chrome-builtin
+          path: |
+            /home/runner/.cache/odai/chrome-builtin/OptGuideOnDeviceModel
+            /home/runner/.cache/odai/chrome-builtin/optimization_guide_model_store
+            /home/runner/.cache/odai/chrome-builtin/OptGuideOnDeviceClassifierModel
+            /home/runner/.cache/odai/chrome-builtin/Local State
           key: ${{ steps.component.outputs.cache-key }}
 
   verify:
@@ -214,7 +226,11 @@ jobs:
       - name: Restore the filled profile (miss = failure)
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0 (2026-06-26)
         with:
-          path: /home/runner/.cache/odai/chrome-builtin
+          path: |
+            /home/runner/.cache/odai/chrome-builtin/OptGuideOnDeviceModel
+            /home/runner/.cache/odai/chrome-builtin/optimization_guide_model_store
+            /home/runner/.cache/odai/chrome-builtin/OptGuideOnDeviceClassifierModel
+            /home/runner/.cache/odai/chrome-builtin/Local State
           key: ${{ needs.fill.outputs.cache-key }}
           fail-on-cache-miss: true
 
