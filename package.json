@@ -91,6 +91,7 @@
     "@types/dom-chromium-ai": "0.0.17"
   },
   "devDependencies": {
+    "@actions/cache": "catalog:",
     "@redwoodjs/agent-ci": "catalog:",
     "@shadscan/cli": "catalog:",
     "@socketregistry/packageurl-js": "catalog:",
