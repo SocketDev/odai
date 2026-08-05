@@ -84,14 +84,14 @@
     "setup:sfw-ca": "node scripts/fleet/setup/sfw-ca.mts",
     "get-green": "node scripts/fleet/get-green.mts",
     "gen:llms-txt": "node scripts/fleet/gen/llms-txt.mts",
-    "weekly-update:ci": "gh workflow run weekly-update.lock.yml"
+    "weekly-update:ci": "gh workflow run weekly-update.lock.yml",
+    "prune:backups": "node scripts/fleet/backup-branches.mts prune"
   },
   "dependencies": {
     "@sinclair/typebox": "catalog:",
     "@types/dom-chromium-ai": "0.0.17"
   },
   "devDependencies": {
-    "@actions/cache": "catalog:",
     "@redwoodjs/agent-ci": "catalog:",
     "@shadscan/cli": "catalog:",
     "@socketregistry/packageurl-js": "catalog:",
@@ -127,6 +127,7 @@
     "semver": "catalog:",
     "shell-quote": "catalog:",
     "taze": "catalog:",
+    "typebox": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:",
     "vitiate": "catalog:"
@@ -148,7 +149,7 @@
   },
   "engines": {
     "node": ">=24",
-    "npm": ">=12.0.1",
+    "npm": ">=12.0.2",
     "pnpm": ">=11.0.5"
   },
   "allowScripts": {
