@@ -1,7 +1,7 @@
 # @socketsecurity/odai
 
 <div align="center">
-  <img src="assets/repo/brand/odai-combomark.svg" width="240" alt="odai — the odai badge: the odai wordmark, on disk AI, socket labs, and stacked storage layers inside the violet shield">
+  <img src="assets/repo/brand/odai-combomark.svg" width="240" alt="odai - the odai badge: the odai wordmark, on disk AI, socket labs, and stacked storage layers inside the violet shield">
 </div>
 
 <a href="https://badge.socket.dev/npm/package/@socketsecurity/odai"><img src="https://badge.socket.dev/npm/package/@socketsecurity/odai" alt="Socket Badge" height="20"></a>
@@ -10,9 +10,9 @@
 [![Follow @SocketSecurity](assets/fleet/badge-follow-x.svg)](https://twitter.com/SocketSecurity)
 [![Follow @socket.dev on Bluesky](assets/fleet/badge-follow-bluesky.svg)](https://bsky.app/profile/socket.dev)
 
-odai — pronounced like the trickster; it lives in your machine and does your chores.
+odai - pronounced like the trickster; it lives in your machine and does your chores.
 
-odai is local-only — the primary backend is Chrome's built-in AI (the Prompt
+odai is local-only - the primary backend is Chrome's built-in AI (the Prompt
 API, stable since Chrome 148) via installed Google Chrome on every platform;
 llama-server (loopback) is the local fallback; Apple FM and Phi Silica
 (Copilot+) are opportunistic per-OS extras. No cloud, no remote endpoints, no
@@ -26,7 +26,7 @@ flag.
 
 `@socketsecurity/odai` is a local, on-device AI library for browser and Node.
 It wraps the browser's built-in AI Prompt API behind a type-safe,
-backend-agnostic seam, hardens small-model JSON output, and ships `bench` — an
+backend-agnostic seam, hardens small-model JSON output, and ships `bench` - an
 evaluation harness that scores any backend on real Socket workloads. It exists
 so Socket code can feature-detect, prompt, and parse on-device model responses
 without scattering DOM-specific checks across consumers.
@@ -50,7 +50,7 @@ console.log(raw)
 ```
 
 `createOdaiModel` picks a backend by precedence: the explicit `backend`
-option, then the `ODAI_BACKEND` env var, then the availability probe order —
+option, then the `ODAI_BACKEND` env var, then the availability probe order -
 `chrome-builtin`, `llama-server`, `apple-fm`, `windows-phi-silica`,
 `simulator`.
 
@@ -70,22 +70,22 @@ odai backends
 printf '%s\n' '{"id":"a","task":"summarize","input":"release notes..."}' '{"id":"b","task":"commit-msg","input":"diff --git..."}' | odai batch
 ```
 
-Every prompt runs under a hard budget — `--timeout <ms>` or the
-`ODAI_TIMEOUT_MS` env var, default 120000 — so a wedged engine can never hang
+Every prompt runs under a hard budget - `--timeout <ms>` or the
+`ODAI_TIMEOUT_MS` env var, default 120000 - so a wedged engine can never hang
 a job. Exit codes are the CI contract:
 
 | code | meaning                                                         |
 | ---- | --------------------------------------------------------------- |
-| 0    | success — parsed JSON on stdout                                 |
-| 1    | model or task failure — invalid reply, timeout, or engine error |
+| 0    | success - parsed JSON on stdout                                 |
+| 1    | model or task failure - invalid reply, timeout, or engine error |
 | 2    | usage error                                                     |
-| 69   | no backend available — treat as a clean skip in CI              |
+| 69   | no backend available - treat as a clean skip in CI              |
 
 When nothing is provisioned the CLI prints the exact provisioning steps for
 each backend and exits 69; `odai backends` prints per-backend availability
 JSON with the reason for every unavailable engine.
 
-`odai batch` reads a JSONL manifest (stdin or `--input`), runs every task over a single backend launch, and prints one JSON line per entry in manifest order — `{"id","ok":true,"value":…}` or `{"id","ok":false,"error":…}`. It exits 0 when the batch ran even if every task failed (failures are in-band lines), 2 on a malformed manifest (checked in full before any task runs), and 69 when no backend is available. `--timeout` is the per-task budget; `--raw` is not accepted.
+`odai batch` reads a JSONL manifest (stdin or `--input`), runs every task over a single backend launch, and prints one JSON line per entry in manifest order - `{"id","ok":true,"value":…}` or `{"id","ok":false,"error":…}`. It exits 0 when the batch ran even if every task failed (failures are in-band lines), 2 on a malformed manifest (checked in full before any task runs), and 69 when no backend is available. `--timeout` is the per-task budget; `--raw` is not accepted.
 
 ### Bench
 

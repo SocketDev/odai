@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-**MANDATORY**: Act as principal-level engineer. This file is a thin index — every rule's detail lives in `docs/agents.md/{fleet,repo}/<topic>.md`; fleet bullets are canonical (edit only in `template/`, then cascade), repo bullets are host-owned.
+**MANDATORY**: Act as principal-level engineer. This file is a thin index - every rule's detail lives in `docs/agents.md/{fleet,repo}/<topic>.md`; fleet bullets are canonical (edit only in `template/`, then cascade), repo bullets are host-owned.
 
 <!-- <fleet> -->
 
@@ -137,4 +137,4 @@
 
 ## 🏗️ odai-specific
 
-`@socketsecurity/odai` — local on-device AI library for browser and Node, with the `bench` evaluation harness in `src/bench/`. Gemini Nano is one backend; Nano-specific internals keep their Nano naming. Source code and API docs live in `src/` and `docs/agents.md/repo/`.
+`@socketsecurity/odai` - local on-device AI library for browser and Node, with the `bench` evaluation harness in `src/bench/`. Gemini Nano is one backend; Nano-specific internals keep their Nano naming. Source code and API docs live in `src/` and `docs/agents.md/repo/`.

@@ -1,8 +1,8 @@
 # Anthropic Messages shim
 
 A loopback HTTP server that speaks the Anthropic Messages API over any odai
-registry backend, so an Anthropic-speaking agent — Claude Code via
-`ANTHROPIC_BASE_URL` — runs against local inference with no API key.
+registry backend, so an Anthropic-speaking agent - Claude Code via
+`ANTHROPIC_BASE_URL` - runs against local inference with no API key.
 
 ## Run it
 
@@ -32,9 +32,9 @@ mirroring the llama-server doctrine.
   accepted and ignored.
 - Tool use over the text-only backend seam: tool definitions become a
   prompt-engineered one-line JSON protocol, replies are scanned for a tool
-  call through the shared JSON hardening — code fences, fullwidth
+  call through the shared JSON hardening - code fences, fullwidth
   punctuation, balanced-object extraction, plus an unbalanced-close repair
-  for the one-brace-short calls observed live from Qwen2.5-Coder-7B — and a
+  for the one-brace-short calls observed live from Qwen2.5-Coder-7B - and a
   detected call is emitted as a `tool_use` block with a fresh id.
   `tool_result` blocks round-trip back as tagged text.
 - `stop_sequences` with truncation, `POST /v1/messages/count_tokens` with a
@@ -54,7 +54,7 @@ mirroring the llama-server doctrine.
 ## Measured verdict with Claude Code 2.1.219
 
 Real Claude Code completed turns against Qwen2.5-Coder-7B-Instruct through
-the shim. With the default surface — 25 tools, ~30k input tokens — the 7B
+the shim. With the default surface - 25 tools, ~30k input tokens - the 7B
 ignored the tool protocol and answered in prose, so no tool was ever called.
 With the tool list cut to Bash alone, ~10k input tokens, the full agentic
 loop worked end to end: `tool_use` emitted, command executed, result consumed,
