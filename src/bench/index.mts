@@ -13,14 +13,15 @@ import type { Scenario, ScenarioResult } from './scenarios.mts'
 export { allScenarios }
 export type { Scenario, ScenarioResult }
 
-// socket-lint: allow no-required-in-options-bag — published API shape; renaming
-// the exported interface or reshaping the bag is a breaking change.
+// Published API shape; renaming the exported interface or reshaping the
+// bag is a breaking change.
 export interface EvalRunOptions {
   /**
    * When true, probe the running model's identity (an extra prompt) and record
    * it on the report as `model`. Failures are swallowed to `undefined`.
    */
   identifyModel?: boolean | undefined
+  // oxlint-disable-next-line socket/no-required-in-options-bag -- public API
   model: OdaiModel
   scenarios?: Scenario[] | undefined
 }

@@ -86,8 +86,9 @@ describe('startAnthropicShim', () => {
   it('serves a non-streaming text turn', async () => {
     const backend = createScriptedBackend(['plain answer'])
     handle = await startAnthropicShim({ backend })
-    // socket-lint: allow global-fetch -- exercising the shim's raw HTTP
-    // surface end to end, SSE text and Response status included.
+    // Exercising the shim's raw HTTP surface end to end, SSE text and
+    // Response status included.
+    // oxlint-disable-next-line socket/no-fetch-prefer-http-request -- raw HTTP
     const response = await fetch(`${handle.url}/v1/messages`, {
       body: JSON.stringify({
         max_tokens: 128,
@@ -130,8 +131,9 @@ describe('startAnthropicShim', () => {
       },
     ]
 
-    // socket-lint: allow global-fetch -- exercising the shim's raw HTTP
-    // surface end to end, SSE text and Response status included.
+    // Exercising the shim's raw HTTP surface end to end, SSE text and
+    // Response status included.
+    // oxlint-disable-next-line socket/no-fetch-prefer-http-request -- raw HTTP
     const first = await fetch(`${handle.url}/v1/messages`, {
       body: JSON.stringify({
         max_tokens: 128,
@@ -170,8 +172,9 @@ describe('startAnthropicShim', () => {
     expect(systemMessage?.content).toContain('# Tool protocol')
     expect(systemMessage?.content).toContain('### get_time')
 
-    // socket-lint: allow global-fetch -- exercising the shim's raw HTTP
-    // surface end to end, SSE text and Response status included.
+    // Exercising the shim's raw HTTP surface end to end, SSE text and
+    // Response status included.
+    // oxlint-disable-next-line socket/no-fetch-prefer-http-request -- raw HTTP
     const second = await fetch(`${handle.url}/v1/messages`, {
       body: JSON.stringify({
         max_tokens: 128,
@@ -228,8 +231,9 @@ describe('startAnthropicShim', () => {
   it('estimates tokens on count_tokens and rejects bad bodies', async () => {
     const backend = createScriptedBackend([])
     handle = await startAnthropicShim({ backend })
-    // socket-lint: allow global-fetch -- exercising the shim's raw HTTP
-    // surface end to end, SSE text and Response status included.
+    // Exercising the shim's raw HTTP surface end to end, SSE text and
+    // Response status included.
+    // oxlint-disable-next-line socket/no-fetch-prefer-http-request -- raw HTTP
     const count = await fetch(`${handle.url}/v1/messages/count_tokens`, {
       body: JSON.stringify({
         messages: [{ content: 'x'.repeat(400), role: 'user' }],
@@ -242,8 +246,9 @@ describe('startAnthropicShim', () => {
     const counted = (await count.json()) as { input_tokens: number }
     expect(counted.input_tokens).toBe(100)
 
-    // socket-lint: allow global-fetch -- exercising the shim's raw HTTP
-    // surface; the assertion is on the bare error Response shape.
+    // Exercising the shim's raw HTTP surface; the assertion is on the bare
+    // error Response shape.
+    // oxlint-disable-next-line socket/no-fetch-prefer-http-request -- raw HTTP
     const bad = await fetch(`${handle.url}/v1/messages`, {
       body: 'not json',
       headers: { 'content-type': 'application/json' },
@@ -257,24 +262,27 @@ describe('startAnthropicShim', () => {
     expect(badBody.type).toBe('error')
     expect(badBody.error.type).toBe('invalid_request_error')
 
-    // socket-lint: allow global-fetch -- exercising the shim's raw HTTP
-    // surface; the assertion is on the bare Response status.
+    // Exercising the shim's raw HTTP surface; the assertion is on the bare
+    // Response status.
+    // oxlint-disable-next-line socket/no-fetch-prefer-http-request -- raw HTTP
     const missing = await fetch(`${handle.url}/v1/nope`, {
       body: '{}',
       method: 'POST',
     })
     expect(missing.status).toBe(404)
 
-    // socket-lint: allow global-fetch -- exercising the shim's raw HTTP
-    // surface; the assertion is on the bare Response status.
+    // Exercising the shim's raw HTTP surface; the assertion is on the bare
+    // Response status.
+    // oxlint-disable-next-line socket/no-fetch-prefer-http-request -- raw HTTP
     const health = await fetch(`${handle.url}/health`)
     expect(health.status).toBe(200)
   })
 
   it('404s a non-POST route that is not /health', async () => {
     handle = await startAnthropicShim({ backend: createScriptedBackend([]) })
-    // socket-lint: allow global-fetch -- exercising the shim's bare HTTP route
-    // table; the assertion is on the raw Response status.
+    // Exercising the shim's bare HTTP route table; the assertion is on the
+    // raw Response status.
+    // oxlint-disable-next-line socket/no-fetch-prefer-http-request -- raw HTTP
     const response = await fetch(`${handle.url}/v1/messages`)
     expect(response.status).toBe(404)
   })
@@ -299,8 +307,9 @@ describe('startAnthropicShim', () => {
       name: 'simulator',
     }
     handle = await startAnthropicShim({ backend })
-    // socket-lint: allow global-fetch -- exercising the shim's raw error path;
-    // the assertion is on the bare error Response shape.
+    // Exercising the shim's raw error path; the assertion is on the bare
+    // error Response shape.
+    // oxlint-disable-next-line socket/no-fetch-prefer-http-request -- raw HTTP
     const response = await fetch(`${handle.url}/v1/messages`, {
       body: JSON.stringify({
         messages: [{ content: 'hi', role: 'user' }],

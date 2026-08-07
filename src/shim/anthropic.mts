@@ -91,8 +91,9 @@ export function buildToolProtocol(tools: AnthropicTool[]): string {
     '',
     'You can call the tools listed below. To call one, reply with ONLY a',
     'single JSON object on one line — no prose, no code fence, nothing else:',
-    // socket-lint: allow literal-ellipsis -- model-facing JSON template; a
-    // typographic ellipsis inside it would corrupt the protocol example.
+    // Model-facing JSON template; a typographic ellipsis inside it would
+    // corrupt the protocol example.
+    // oxlint-disable-next-line socket/prefer-ellipsis-char -- protocol example
     '{"tool_call": {"name": "<tool name>", "input": { ...arguments... }}}',
     "The input object must match the tool's JSON schema.",
     'After a tool call, the next user message starts with',

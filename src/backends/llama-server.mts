@@ -167,9 +167,9 @@ export function createLlamaServerBackend(
         'OpenAI-compatible endpoint.'
       let response: Response
       try {
-        // socket-lint: allow global-fetch -- this file ships in the browser
-        // bundle and httpRequest is Node-only; fetch is the one isomorphic
-        // client here.
+        // This file ships in the browser bundle and httpRequest is
+        // Node-only; fetch is the one isomorphic client here.
+        // oxlint-disable-next-line socket/no-fetch-prefer-http-request -- isomorphic client
         response = await fetch(endpoint, {
           signal: AbortSignal.timeout(healthTimeoutMs),
         })
@@ -280,9 +280,10 @@ export async function postChat(
   const endpoint = `${config.url}/v1/chat/completions`
   let response: Response
   try {
-    // socket-lint: allow global-fetch -- SSE streaming needs incremental
-    // response.body reads and this file ships in the browser bundle;
-    // httpRequest is Node-only and buffers the whole body.
+    // SSE streaming needs incremental response.body reads and this file
+    // ships in the browser bundle; httpRequest is Node-only and buffers
+    // the whole body.
+    // oxlint-disable-next-line socket/no-fetch-prefer-http-request -- SSE streaming
     response = await fetch(endpoint, {
       body,
       headers: { 'content-type': 'application/json' },

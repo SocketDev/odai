@@ -29,7 +29,7 @@ export async function generateVerified<T>(
   for (let attempt = 0; attempt < attempts; attempt += 1) {
     // Attempts are intentionally sequential: each re-ask gets a fresh clone
     // inside the model wrapper, and a stateful backend rejects overlapping use.
-    // oxlint-disable-next-line no-await-in-loop -- verify-loop attempts are intentionally sequential
+    // oxlint-disable-next-line no-await-in-loop -- sequential attempts
     const result = await run()
     last = result
     if (result.ok && result.data !== undefined) {

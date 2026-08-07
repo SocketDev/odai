@@ -62,9 +62,10 @@ export interface PromptOptions {
   topK?: number | undefined
 }
 
-// socket-lint: allow no-required-in-options-bag — published API shape; renaming
-// the exported interface or reshaping the bag is a breaking change.
+// Published API shape; renaming the exported interface or reshaping the
+// bag is a breaking change.
 export interface StructuredPromptOptions<T> extends PromptOptions {
+  // oxlint-disable-next-line socket/no-required-in-options-bag -- public API
   prefill: string
   /**
    * How many times to re-prompt when the reply is empty or unparseable. Total
@@ -73,6 +74,7 @@ export interface StructuredPromptOptions<T> extends PromptOptions {
    * most of them. Defaults to 2 (up to 3 attempts).
    */
   retries?: number | undefined
+  // oxlint-disable-next-line socket/no-required-in-options-bag -- public API
   schema: SchemaLike<T>
   synonymMap?: Record<string, string[]> | undefined
 }

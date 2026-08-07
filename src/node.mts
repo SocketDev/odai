@@ -95,9 +95,10 @@ export function createMockModel(response: string): OdaiModel {
   }
 }
 
-// socket-lint: allow no-required-in-options-bag — published API shape; renaming
-// the exported interface or reshaping the bag is a breaking change.
+// Published API shape; renaming the exported interface or reshaping the
+// bag is a breaking change.
 export interface MockSessionOptions {
+  // oxlint-disable-next-line socket/no-required-in-options-bag -- public API
   response: string
 }
 

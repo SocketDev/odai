@@ -159,7 +159,8 @@ export const alertSummaryScenario: Scenario = {
     const samples = []
     for (let i = 0; i < DECISION_SAMPLES; i += 1) {
       samples.push(
-        // oxlint-disable-next-line no-await-in-loop -- self-consistency samples are intentionally sequential
+        // Self-consistency samples are intentionally sequential.
+        // oxlint-disable-next-line no-await-in-loop -- sequential samples
         await model.promptStructured(prompt, {
           prefill: '{"sentences":["',
           responseConstraint: AlertSummarySchemaObject,
@@ -197,7 +198,8 @@ export const askIntentScenario: Scenario = {
     const samples = []
     for (let i = 0; i < DECISION_SAMPLES; i += 1) {
       samples.push(
-        // oxlint-disable-next-line no-await-in-loop -- self-consistency samples are intentionally sequential
+        // Self-consistency samples are intentionally sequential.
+        // oxlint-disable-next-line no-await-in-loop -- sequential samples
         await model.promptStructured(prompt, {
           prefill: '{"intent":"',
           responseConstraint: AskIntentSchemaObject,
@@ -298,7 +300,8 @@ export const dedupeCandidateScenario: Scenario = {
     const samples = []
     for (let i = 0; i < DECISION_SAMPLES; i += 1) {
       samples.push(
-        // oxlint-disable-next-line no-await-in-loop -- self-consistency samples are intentionally sequential
+        // Self-consistency samples are intentionally sequential.
+        // oxlint-disable-next-line no-await-in-loop -- sequential samples
         await dedupeDependencies(
           model,
           MANIFEST_DEDUPE_CANDIDATE,
