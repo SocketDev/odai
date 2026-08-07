@@ -60,6 +60,9 @@ The package ships a `odai` bin for single-shot, keyless AI steps in scripts
 and CI. Input arrives on stdin or `--input`; the parsed result prints as one
 JSON line on stdout, diagnostics go to stderr.
 
+<details>
+<summary>Command examples, the exit-code contract, and batch mode</summary>
+
 ```sh
 git diff | odai commit-msg
 printf 'Critical: 2\nHigh: 5\n' | odai triage
@@ -86,6 +89,8 @@ each backend and exits 69; `odai backends` prints per-backend availability
 JSON with the reason for every unavailable engine.
 
 `odai batch` reads a JSONL manifest (stdin or `--input`), runs every task over a single backend launch, and prints one JSON line per entry in manifest order - `{"id","ok":true,"value":…}` or `{"id","ok":false,"error":…}`. It exits 0 when the batch ran even if every task failed (failures are in-band lines), 2 on a malformed manifest (checked in full before any task runs), and 69 when no backend is available. `--timeout` is the per-task budget; `--raw` is not accepted.
+
+</details>
 
 ### Bench
 
