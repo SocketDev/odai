@@ -308,6 +308,8 @@ export async function loadNodeDeps(): Promise<NodeDeps> {
 export function pathToFileUrl(filePath: string): string {
   const normalized = filePath.replaceAll('\\', '/')
   const prefixed = normalized.startsWith('/') ? normalized : `/${normalized}`
+  // Platform-specific Windows/Unix path conversion.
+  // oxlint-disable-next-line socket/no-handbuilt-file-url -- path utility
   return `file://${encodeURI(prefixed)}`
 }
 
