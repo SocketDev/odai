@@ -37,7 +37,7 @@ export function importsSymbol(code: string, symbol: string): boolean {
  * interpolation).
  */
 export function isTemplateLiteralPatch(value: { patch: string }): boolean {
-  const lines = value.patch.split('\n')
+  const lines = value.patch.split(/\r?\n/)
   const hasHunkHeader = lines.some(line => line.includes('@@'))
   const hasAdditionLine = lines.some(line => line.startsWith('+'))
   const hasRemovalLine = lines.some(line => line.startsWith('-'))

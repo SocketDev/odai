@@ -69,7 +69,7 @@ export function parseControlTokens(template: string): Message[] {
     role = undefined
     lines = []
   }
-  const sourceLines = template.split('\n')
+  const sourceLines = template.split(/\r?\n/)
   for (let i = 0, { length } = sourceLines; i < length; i += 1) {
     const rawLine = sourceLines[i]!
     const token = rawLine.trim()

@@ -41,7 +41,7 @@ export function isBatchTaskCommand(value: string): value is BatchTaskCommand {
 }
 
 export function parseBatchManifest(text: string): BatchEntry[] {
-  const lines = text.split('\n')
+  const lines = text.split(/\r?\n/)
   const entries: BatchEntry[] = []
   const seen = new Set<string>()
 

@@ -19,7 +19,7 @@ const PURL_PATTERN = /pkg:[^/\s]+\/(.+?)@([0-9][^\s()]*)/
  * then the per-line marker findings in list order.
  */
 export function findSbomAnomalies(componentsText: string): string[] {
-  const lines = componentsText.split('\n')
+  const lines = componentsText.split(/\r?\n/)
   const versionsByName = new Map<string, Set<string>>()
   for (let i = 0, { length } = lines; i < length; i += 1) {
     const line = lines[i]!
