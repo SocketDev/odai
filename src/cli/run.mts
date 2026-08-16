@@ -402,10 +402,13 @@ export async function runServeCommand(
   )
   const stop =
     opts.stop ??
+    /* c8 ignore start - process signal wait; the bin entry's real stop path,
+       covered in-process through the injected opts.stop instead */
     new Promise<void>(resolve => {
       process.once('SIGINT', resolve)
       process.once('SIGTERM', resolve)
     })
+  /* c8 ignore stop */
   await stop
   await handle.close()
   return EXIT_OK

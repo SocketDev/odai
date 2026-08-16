@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest'
 import { createSimulatorBackend } from '../../src/backends/simulator.mts'
 import { runCli } from '../../src/cli/run.mts'
 import { tolerantSleep } from '../fleet/_shared/lib/timing.mts'
+import type { OdaiBackend } from '../../src/backends/types.mts'
 
 interface Capture {
   lines: string[]
@@ -40,6 +41,18 @@ function createDeferred(): Deferred {
   return { promise, resolve }
 }
 
+function createUnavailableBackend(reason: string): OdaiBackend {
+  return {
+    async availability() {
+      return { available: false, reason }
+    },
+    async languageModel() {
+      throw new Error('unavailable backend has no language model')
+    },
+    name: 'llama-server',
+  }
+}
+
 async function untilListening(
   get: () => ServeHandle | undefined,
 ): Promise<ServeHandle> {
@@ -56,6 +69,19 @@ async function untilListening(
 }
 
 describe('odai serve', () => {
+  it('exits 69 with provisioning help when no backend is available', async () => {
+    const stderr = createCapture()
+    const code = await runCli(['serve'], {
+      backend: createUnavailableBackend('engine offline'),
+      env: {},
+      stderr: stderr.write,
+    })
+    expect(code).toBe(69)
+    expect(stderr.text()).toContain('no usable backend')
+    expect(stderr.text()).toContain('engine offline')
+    expect(stderr.text()).toContain('Provisioning:')
+  })
+
   it('serves Anthropic Messages requests until stopped', async () => {
     const backend = createSimulatorBackend({
       fallback:
