@@ -1,9 +1,9 @@
 /**
- * @file Repo overlay over the fleet oxlint config. The `--type-aware`
- *   tsgolint lane the fleet lint runner's whole-tree gate turned on is staged
- *   OFF rule-by-rule here, mirroring socket-registry's and socket-sdk-js's
- *   adoption overlays. First enforcement surfaced ~90 pre-existing findings
- *   concentrated in the backend seam and its tests: the seam narrows untyped
+ * @file Repo overlay over the fleet oxlint config. The `--type-aware` tsgolint
+ *   lane the fleet lint runner's whole-tree gate turned on is staged OFF
+ *   rule-by-rule here, mirroring socket-registry's and socket-sdk-js's adoption
+ *   overlays. First enforcement surfaced ~90 pre-existing findings concentrated
+ *   in the backend interface and its tests: the interface narrows untyped
  *   engine payloads (page-proxy replies, shim protocol JSON, OpenAI-compatible
  *   response bodies) via `as` casts by design, the fuzz lanes spread ASCII
  *   corpus strings deliberately, and the Swift-shim error surfaces stringify
@@ -24,7 +24,7 @@ import { config } from '../fleet/oxlint.config.mts'
 export default defineConfig(
   config({
     rules: {
-      // Brand-new socket/* rule from the plugin sync: the seam's public
+      // Brand-new socket/* rule from the plugin sync: the interface's public
       // helper signatures keep their published `options` param names —
       // renaming to `config` is an API-shape change that needs its own
       // reviewed pass, not a lint sweep.
@@ -36,7 +36,7 @@ export default defineConfig(
       // The fuzz lanes spread ASCII corpus strings into character arrays
       // deliberately; no emoji-bearing input exists in those corpora.
       'typescript/no-misused-spread': 'off',
-      // The seam narrows untyped engine payloads (page-proxy replies, shim
+      // The interface narrows untyped engine payloads (page-proxy replies, shim
       // JSON, OpenAI-compatible bodies) and tests fake those boundaries via
       // `as` casts by design (66 sites at first enforcement).
       'typescript/no-unsafe-type-assertion': 'off',

@@ -1,7 +1,7 @@
 /**
  * @file Simulator backend. Wraps the canned-response `LanguageModelSimulator`
- *   as a registry backend, so tests and bench drive the full seam without a
- *   global install and without Chrome.
+ *   as a registry backend, so tests and bench drive the full backend interface
+ *   without a global install and without Chrome.
  */
 
 import { LanguageModelSimulator } from '../simulator.mts'

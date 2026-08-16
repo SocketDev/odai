@@ -75,10 +75,15 @@ export class LanguageModelSessionSimulator implements SessionLike {
 }
 
 export function installLanguageModelSimulator(
-  target: typeof globalThis = globalThis,
-  options?: LanguageModelSimulatorOptions | undefined,
+  options?:
+    | (LanguageModelSimulatorOptions & {
+        target?: typeof globalThis | undefined
+      })
+    | undefined,
 ): LanguageModelSimulator {
-  const simulator = new LanguageModelSimulator(options)
+  const opts = { __proto__: null, ...options }
+  const target = opts.target ?? globalThis
+  const simulator = new LanguageModelSimulator(opts)
   ;(target as { LanguageModel?: LanguageModelLike | undefined }).LanguageModel =
     simulator
   return simulator

@@ -1,19 +1,19 @@
 // socket-lint: mirror-exempt — end-to-end router proof spanning provider.mts and the simulator backend by design; no single unit under test.
 /**
- * @file End-to-end proof that socket-lib's availability-gated tier router reaches
- *   odai as the keyless-local rung and completes a real generation round-trip.
- *   The scenario is a Socket dev machine with NOTHING keyed and NO agent CLI on
- *   PATH: `RouteContext.keyed` and `RouteContext.available` are both empty. The
- *   only usable engine is the keyless on-device tail rung, which socket-lib's
- *   `spawn-local` seam drives through an injected `LocalAgentProvider`. odai is
- *   that provider — its `createLocalLanguageModelFactory` returns exactly the
- *   `@socketsecurity/lib/ai/builtin` `LanguageModelFactory` shape the seam
+ * @file End-to-end proof that socket-lib's availability-gated tier router
+ *   reaches odai as the keyless-local rung and completes a real generation
+ *   round-trip. The scenario is a Socket dev machine with NOTHING keyed and NO
+ *   agent CLI on PATH: `RouteContext.keyed` and `RouteContext.available` are
+ *   both empty. The only usable engine is the keyless on-device tail rung,
+ *   which socket-lib's `spawn-local` injection point drives through an injected
+ *   `LocalAgentProvider`. odai is that provider — its
+ *   `createLocalLanguageModelFactory` returns exactly the
+ *   `@socketsecurity/lib/ai/builtin` `LanguageModelFactory` shape the interface
  *   expects, here backed by the hermetic `simulator` backend so the completion
- *   is deterministic (no Chrome, no llama-server).
- *   Dependency direction stays one-way: this test imports socket-lib's router
- *   (`ai/route`, `ai/spawn`, `ai/spawn-local`) and odai's factory; socket-lib
- *   never imports odai.
- *   Proof surface: (1) `resolveTier` picks the `local` candidate with reason
+ *   is deterministic (no Chrome, no llama-server). Dependency direction stays
+ *   one-way: this test imports socket-lib's router (`ai/route`, `ai/spawn`,
+ *   `ai/spawn-local`) and odai's factory; socket-lib never imports odai. Proof
+ *   surface: (1) `resolveTier` picks the `local` candidate with reason
  *   `fell-over`, and (2) `spawnTierWithFallback` returns a normal
  *   `AgentSpawnResult` carrying the canned completion on stdout.
  */

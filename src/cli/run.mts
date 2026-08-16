@@ -1,13 +1,13 @@
 /**
- * @file Odai CLI core. Single-shot prompt subcommands over the backend seam
- *   (see CLI_COMMANDS — text tasks take stdin; the structured dep-update tasks
- *   dedupe / hoist / security-fix / weekly-update take a JSON object on stdin),
- *   plus a backends availability probe and the serve loopback shim.
- *   Node-only — the bin entry wraps `runCli`, tests call it directly with
+ * @file Odai CLI core. Single-shot prompt subcommands over the backend
+ *   interface (see CLI_COMMANDS — text tasks take stdin; the structured
+ *   dep-update tasks dedupe / hoist / security-fix / weekly-update take a JSON
+ *   object on stdin), plus a backends availability probe and the serve loopback
+ *   shim. Node-only — the bin entry wraps `runCli`, tests call it directly with
  *   injected writers and backends. Failure modes are loud and bounded: a
  *   missing model prints exactly how to provision one and exits 69, the
- *   clean-skip signal, and every prompt runs under a hard timeout so a wedged
- *   engine can never hang a CI job.
+ *   clean-skip signal, and every prompt runs under a hard timeout so an
+ *   unresponsive engine can never hang a CI job.
  */
 
 import { errorMessage } from '@socketsecurity/lib/errors/message'
@@ -57,7 +57,8 @@ export type LineWriter = (line: string) => void
 
 export interface RunCliOptions {
   /**
-   * Backend instance override. Wins over the --backend flag; the test seam.
+   * Backend instance override. Wins over the --backend flag; the test injection
+   * point.
    */
   backend?: OdaiBackend | undefined
   /**
@@ -65,8 +66,8 @@ export interface RunCliOptions {
    */
   env?: Record<string, string | undefined> | undefined
   /**
-   * Called once the serve shim is listening; the test seam for learning the
-   * bound port.
+   * Called once the serve shim is listening; the test injection point for
+   * learning the bound port.
    */
   onServeStart?: ((handle: AnthropicShimHandle) => void) | undefined
   /**
@@ -361,8 +362,8 @@ export async function runCli(
 
 export interface RunServeCommandOptions {
   /**
-   * Called once the shim is listening; the test seam for learning the bound
-   * port.
+   * Called once the shim is listening; the test injection point for learning
+   * the bound port.
    */
   onStart?: ((handle: AnthropicShimHandle) => void) | undefined
   /**

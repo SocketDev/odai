@@ -5,8 +5,8 @@
  *   `node:smol-ai` Prompt API, and the optional `@node-smol/ai` native addon —
  *   a strict superset of the browser-only global this module used to fork. The
  *   resolved factory is adapted to odai's richer `LanguageModelLike` session
- *   seam. This module returns a normalized availability answer without creating
- *   an expensive session.
+ *   interface. This module returns a normalized availability answer without
+ *   creating an expensive session.
  */
 
 import { getLanguageModel as getBuiltinLanguageModel } from '@socketsecurity/lib/ai/builtin'
@@ -23,8 +23,8 @@ export interface AvailabilityResult {
 /**
  * Bridge the socket-lib `LanguageModelFactory` to odai's `LanguageModelLike`.
  * The factory's opaque `create()` result is the concrete Prompt API session at
- * runtime; odai's seam types it as `SessionLike` so the fallback ladder and
- * task helpers stay strongly typed.
+ * runtime; odai's session interface types it as `SessionLike` so the fallback
+ * ladder and task helpers stay strongly typed.
  */
 export function adaptLanguageModelFactory(
   factory: LanguageModelFactory,
@@ -71,7 +71,7 @@ export async function readAvailability(
   if (typeof model.availability !== 'function') {
     return undefined
   }
-  // Widen to unknown: the seam type promises a string, but this probe also
+  // Widen to unknown: the session type promises a string, but this probe also
   // guards runtimes that hand back exotic availability objects.
   const result: unknown = await model.availability()
   if (typeof result === 'string') {

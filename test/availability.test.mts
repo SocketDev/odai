@@ -8,7 +8,7 @@ import {
 import type { LanguageModelLike } from '../src/types.mts'
 
 // The built-in resolver lives in socket-lib's `ai/builtin`; odai delegates to it
-// and adapts the result. Mock that seam so each case controls exactly which
+// and adapts the result. Mock that injection point so each case controls exactly which
 // factory (if any) the runtime resolves, without socket-lib's module-scope probe
 // cache leaking across cases.
 const builtin = vi.hoisted(() => ({ factory: undefined as unknown }))

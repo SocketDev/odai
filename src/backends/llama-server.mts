@@ -2,7 +2,7 @@
  * @file Llama-server backend. Adapts any OpenAI-compatible
  *   `/v1/chat/completions` endpoint — llama.cpp's `llama-server`, ollama,
  *   Foundry Local, and anything speaking the same protocol — to the session
- *   seam. Loopback only: the URL is validated at config time and a
+ *   interface. Loopback only: the URL is validated at config time and a
  *   non-loopback host throws, whether it arrives via the option or the env
  *   var. Availability is a live `GET /health` probe. Structured output rides
  *   the existing prefill merge and JSON repair path: the trailing assistant

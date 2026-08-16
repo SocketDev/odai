@@ -1,14 +1,14 @@
 # @socketsecurity/odai
 
 <div align="center">
-  <img src="assets/repo/odai-combomark.svg" width="240" alt="odai - the odai badge: the odai wordmark, on disk AI, socket labs, and stacked storage layers inside the violet shield">
+  <img src="https://raw.githubusercontent.com/SocketDev/odai/HEAD/assets/repo/odai-combomark.svg" width="240" alt="odai - the odai badge: the odai wordmark, on disk AI, socket labs, and stacked storage layers inside the violet shield">
 </div>
 
 <a href="https://badge.socket.dev/npm/package/@socketsecurity/odai"><img src="https://badge.socket.dev/npm/package/@socketsecurity/odai" alt="Socket Badge" height="20"></a>
 <img src="https://raw.githubusercontent.com/SocketDev/odai/HEAD/assets/repo/coverage.svg" width="97" height="20" alt="Coverage" />
 
-[![Follow @SocketSecurity](assets/fleet/badge-follow-x.svg)](https://twitter.com/SocketSecurity)
-[![Follow @socket.dev on Bluesky](assets/fleet/badge-follow-bluesky.svg)](https://bsky.app/profile/socket.dev)
+[![Follow @SocketSecurity](https://raw.githubusercontent.com/SocketDev/odai/HEAD/assets/fleet/badge-follow-x.svg)](https://twitter.com/SocketSecurity)
+[![Follow @socket.dev on Bluesky](https://raw.githubusercontent.com/SocketDev/odai/HEAD/assets/fleet/badge-follow-bluesky.svg)](https://bsky.app/profile/socket.dev)
 
 odai - pronounced like the trickster; it lives in your machine and does your chores.
 

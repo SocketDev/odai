@@ -44,6 +44,6 @@ export default defineConfig({
     }),
   ],
   test: {
-    include: ['test/**/*.fuzz.ts'],
+    include: ['test/**/*.fuzz.mts'],
   },
 })

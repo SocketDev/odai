@@ -19,9 +19,10 @@ vi.mock(import('@socketsecurity/lib/ai/builtin'), () => ({
 
 describe('LanguageModelSimulator', () => {
   it('installs a global LanguageModel and returns available', async () => {
-    installLanguageModelSimulator(globalThis, {
+    installLanguageModelSimulator({
       fallback: '{"ok":true}',
       rules: [],
+      target: globalThis,
     })
     const model = await createBuiltinModel()
     const result = await model.promptStreaming('hello')

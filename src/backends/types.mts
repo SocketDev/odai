@@ -1,5 +1,5 @@
 /**
- * @file Backend seam types. A backend wraps one on-device inference engine
+ * @file Backend interface types. A backend wraps one on-device inference engine
  *   behind the `LanguageModel` factory shape, so the session fallback ladder
  *   and JSON hardening drive every engine the same way.
  */

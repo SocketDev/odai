@@ -1,7 +1,7 @@
 /**
  * @file Anthropic Messages translation for the loopback shim. Pure functions
  *   only: parse a `POST /v1/messages` body, flatten its system prompt and
- *   content blocks — text, tool_use, tool_result — into the seam's plain
+ *   content blocks — text, tool_use, tool_result — into odai's plain
  *   `Message[]`, teach the backend a one-line JSON tool-call protocol, and
  *   read the reply back into Anthropic content blocks. Tool-call detection
  *   rides the existing JSON hardening: fence stripping, fullwidth punctuation
@@ -81,9 +81,9 @@ export interface ToolCall {
 
 /**
  * The system-prompt section that teaches a plain-text backend the tool
- * protocol. The seam carries text only, so tool calling is prompt-engineered:
- * the model answers either with prose or with exactly one one-line JSON
- * object naming a declared tool.
+ * protocol. The session interface carries text only, so tool calling is
+ * prompt-engineered: the model answers either with prose or with exactly one
+ * one-line JSON object naming a declared tool.
  */
 export function buildToolProtocol(tools: AnthropicTool[]): string {
   const lines: string[] = [
@@ -228,8 +228,8 @@ export function extractToolCall(
 }
 
 /**
- * Flatten one Anthropic content value — string or block array — into the
- * seam's plain text. tool_use blocks in assistant history are re-serialized
+ * Flatten one Anthropic content value — string or block array — into odai's
+ * plain text. tool_use blocks in assistant history are re-serialized
  * as the canonical protocol line so the model sees its own past calls in the
  * same shape it must emit them; tool_result blocks become tagged
  * `[tool_result id=...]` sections; images are named and dropped.
@@ -349,7 +349,7 @@ export function replyToMessage(
 }
 
 /**
- * Translate the whole request into the seam's `Message[]`. The system prompt
+ * Translate the whole request into odai's `Message[]`. The system prompt
  * and the tool protocol land in one leading system message; every
  * conversation turn is flattened text with tool traffic inlined.
  */

@@ -40,7 +40,8 @@ export interface AnthropicShimHandle {
 
 export interface AnthropicShimOptions {
   /**
-   * Explicit backend instance. Wins over registry selection; the test seam.
+   * Explicit backend instance. Wins over registry selection; the test injection
+   * point.
    */
   backend?: OdaiBackend | undefined
   /**

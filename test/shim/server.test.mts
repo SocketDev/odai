@@ -297,7 +297,7 @@ describe('startAnthropicShim', () => {
           availability: async () => 'available',
           create: async () => ({
             prompt: async () => {
-              throw new Error('engine wedged')
+              throw new Error('engine unresponsive')
             },
             promptStreaming: () =>
               (async function* generate(): AsyncGenerator<string> {})(),

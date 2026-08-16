@@ -268,7 +268,7 @@ export async function ensureShimBinary(cacheDir: string): Promise<string> {
 }
 
 /**
- * Flatten seam messages into the single prompt string FoundationModels
+ * Flatten odai messages into the single prompt string FoundationModels
  * accepts. A lone user message passes through raw; anything richer becomes a
  * role-tagged transcript, and a trailing assistant prefill is left open so
  * the model continues it — `mergePrefill` reconciles echo and continuation.

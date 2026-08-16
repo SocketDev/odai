@@ -1,6 +1,6 @@
 /**
  * @file Expose odai as a socket-lib-routable keyless local provider. socket-lib
- *   declares the built-in `LanguageModelFactory` seam in `ai/builtin` and
+ *   declares the built-in `LanguageModelFactory` interface in `ai/builtin` and
  *   drives local, keyless models through it. odai's backends already implement
  *   the richer `LanguageModelLike` session shape; this module selects a backend
  *   and adapts it to the socket-lib `LanguageModelFactory` contract, so

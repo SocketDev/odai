@@ -3,7 +3,7 @@
  *   functions run INSIDE Chrome via `page.evaluate`: playwright serializes
  *   them into the page, so they must be self-contained — argument plus
  *   globals only, no closure over Node scope. `createPageBoundFactory` wraps
- *   them into the seam's `LanguageModelLike` shape; streaming chunks flow
+ *   them into odai's `LanguageModelLike` shape; streaming chunks flow
  *   back over an exposed binding into per-stream queues.
  */
 

@@ -13,7 +13,7 @@
  *   replay the committed seed corpus as fast regression checks. Budget via
  *   `FUZZ_TIME_MS` (default 15s; CI raises it). Exits with vitest's status —
  *   vitest reports a crash/hang as a failed test, which sidesteps the vitiate
- *   CLI exit-code nuances. Extra argv is forwarded (e.g. a single `*.fuzz.ts`
+ *   CLI exit-code nuances. Extra argv is forwarded (e.g. a single `*.fuzz.mts`
  *   path).
  */
 

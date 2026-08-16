@@ -1,10 +1,10 @@
 /**
  * @file Odai CLI task dispatch. Maps a parsed CLI command to its task function
- *   over the model seam — text tasks take the raw stdin string; the structured
- *   dep-update tasks (dedupe / hoist / security-fix / weekly-update) take a
- *   JSON object parsed from stdin. Split from run.mts so the command runner
- *   (stdin, timeout, backend lifecycle) and this pure dispatch table stay
- *   independently testable.
+ *   over the model interface — text tasks take the raw stdin string; the
+ *   structured dep-update tasks (dedupe / hoist / security-fix / weekly-update)
+ *   take a JSON object parsed from stdin. Split from run.mts so the command
+ *   runner (stdin, timeout, backend lifecycle) and this pure dispatch table
+ *   stay independently testable.
  */
 
 import { joinOr } from '@socketsecurity/lib/arrays/join'

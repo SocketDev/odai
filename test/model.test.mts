@@ -54,7 +54,7 @@ describe('createOdaiModel', () => {
     expect(result.raw).toBe('{"ok":true}')
   })
 
-  it('runs the full bench battery through the seam', async () => {
+  it('runs the full bench battery through the session interface', async () => {
     const model = await createOdaiModel({
       backend: createSimulatorBackend({
         fallback: '{"summary":"fallback"}',

@@ -317,7 +317,7 @@ describe('chrome-builtin backend', () => {
     const fixture = await createFixture()
     const fake = createFakeBrowser(
       new LanguageModelSimulator({
-        fallback: '{"summary":"via seam"}',
+        fallback: '{"summary":"via fixture"}',
         rules: [],
       }),
     )
@@ -345,7 +345,7 @@ describe('chrome-builtin backend', () => {
       },
     )
     expect(result.ok).toBe(true)
-    expect(result.data?.summary).toBe('via seam')
+    expect(result.data?.summary).toBe('via fixture')
     await backend.close()
   })
 
@@ -396,7 +396,7 @@ describe('chrome-builtin backend', () => {
     const backend = createChromeBuiltinBackend({ env: {} })
     const factory = await backend.languageModel()
     // The runtime global is used (not the headless bridge); odai adapts it to
-    // the session seam, so assert delegation rather than object identity.
+    // the session interface, so assert delegation rather than object identity.
     expect(await factory.availability()).toBe('available')
     const session = await factory.create()
     expect(typeof session.prompt).toBe('function')

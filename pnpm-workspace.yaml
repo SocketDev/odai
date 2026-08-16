@@ -1,3 +1,19 @@
+# vite 8.1.0 — dev dep (vitest's bundler). 8.1 adds experimental.bundledDev
+# (NOT adopted — experimental, and the fleet runs stable-only). Published
+# within the 7-day soak; exact-pinned so a future 8.1.1 still soaks.
+# taze 19.16.0 — the dep updater itself; forced ahead of the soak by owner
+# directive so the regenerated single-registry patch (patchedDependencies)
+# tracks the current release. Exact-pinned so a future version re-soaks.
+# shadscan 0.2.0 — deterministic UI audits for shadcn apps, used by the
+# design skills; forced ahead of the soak by owner directive. Exact-pinned
+# so a future version re-soaks.
+# verkit — new dev-only transitive of taze 19.16.0 (same owner directive);
+# exact-pinned so future versions re-soak.
+# js-yaml 5.2.2 — HIGH security fix, GHSA-pm4m-ph32-ghv5: exponential parse
+# time in flow collections. The canonical overrides entry forces it past
+# markdownlint-cli2 0.23.1's vulnerable 5.2.1 exact-pin. Soak bypassed per
+# the high-severity security exception; exact-pinned so a future version
+# re-soaks.
 catalog:
   # agent-ci runs a repo's GitHub Actions workflows locally in Docker so a
   # change can be validated before it's pushed (see the `agent-ci` skill).
@@ -97,9 +113,10 @@ catalog:
   # @rolldown/binding-* + @oxc-project/types stay as soak-excluded
   # transitives (consumers depend on `rolldown` only).
   'regjsparser': 0.13.2
+  'rolldown': 1.2.3
   'semver': 7.8.5
   'shell-quote': 1.10.0
-  'taze': 19.17.1
+  'taze': 20.0.0
   # vite 8.0.16 swaps esbuild → rolldown natively (bundles rolldown
   # 1.0.2) and patches the <=8.0.15 advisories (GHSA-fx2h-pf6j-xcff
   # high, GHSA-v6wh-96g9-6wx3 medium). Tracked here so the pnpm
@@ -127,7 +144,6 @@ catalog:
   # Use in rolldown.config.mts for any repo with a Rolldown build.
   # published: 2026-05-07 (26 days, past 7-day soak)
   'comptime': 0.1.0
-  'rolldown': 1.2.3
   'rolldown-plugin-dts': 0.28.0
   'svgo': 4.0.2
   'vite': 8.2.0
@@ -412,22 +428,6 @@ minimumReleaseAgeExclude:
   # npm freshpub typosquats, not a first-party oxc release.
   - '@sdxgen/*'
   - 'sdxgen'
-  # vite 8.1.0 — dev dep (vitest's bundler). 8.1 adds experimental.bundledDev
-  # (NOT adopted — experimental, and the fleet runs stable-only). Published
-  # within the 7-day soak; exact-pinned so a future 8.1.1 still soaks.
-  # taze 19.16.0 — the dep updater itself; forced ahead of the soak by owner
-  # directive so the regenerated single-registry patch (patchedDependencies)
-  # tracks the current release. Exact-pinned so a future version re-soaks.
-  # shadscan 0.2.0 — deterministic UI audits for shadcn apps, used by the
-  # design skills; forced ahead of the soak by owner directive. Exact-pinned
-  # so a future version re-soaks.
-  # verkit — new dev-only transitive of taze 19.16.0 (same owner directive);
-  # exact-pinned so future versions re-soak.
-  # js-yaml 5.2.2 — HIGH security fix, GHSA-pm4m-ph32-ghv5: exponential parse
-  # time in flow collections. The canonical overrides entry forces it past
-  # markdownlint-cli2 0.23.1's vulnerable 5.2.1 exact-pin. Soak bypassed per
-  # the high-severity security exception; exact-pinned so a future version
-  # re-soaks.
 
 # Native post-install build scripts. These three arrive transitively via
 # @redwoodjs/agent-ci's `ssh2` (optional crypto acceleration). agent-ci's
