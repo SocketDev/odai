@@ -32,9 +32,11 @@ async function tmpDir(): Promise<string> {
 
 describe('chromePathCandidates', () => {
   it('lists the two macOS Chrome locations', () => {
-    const candidates = chromePathCandidates('darwin', {}, '/Users/x')
+    const candidates = chromePathCandidates('darwin', {}, '/Users/<user>')
     expect(candidates[0]).toContain('/Applications/Google Chrome.app')
-    expect(candidates[1]).toContain('/Users/x/Applications/Google Chrome.app')
+    expect(candidates[1]).toContain(
+      '/Users/<user>/Applications/Google Chrome.app',
+    )
   })
 
   it('builds Windows candidates from the env base dirs', () => {
@@ -50,7 +52,7 @@ describe('chromePathCandidates', () => {
   })
 
   it('lists the well-known Linux paths', () => {
-    const candidates = chromePathCandidates('linux', {}, '/home/x')
+    const candidates = chromePathCandidates('linux', {}, '/home/<user>')
     expect(candidates).toContain('/usr/bin/google-chrome')
     expect(candidates).toContain('/opt/google/chrome/chrome')
   })
@@ -58,8 +60,8 @@ describe('chromePathCandidates', () => {
 
 describe('systemChromeUserDataDirFor', () => {
   it('resolves the macOS profile dir', () => {
-    expect(systemChromeUserDataDirFor('darwin', {}, '/Users/x')).toContain(
-      '/Users/x/Library/Application Support/Google/Chrome',
+    expect(systemChromeUserDataDirFor('darwin', {}, '/Users/<user>')).toContain(
+      '/Users/<user>/Library/Application Support/Google/Chrome',
     )
   })
 
@@ -78,14 +80,14 @@ describe('systemChromeUserDataDirFor', () => {
       systemChromeUserDataDirFor(
         'linux',
         { XDG_CONFIG_HOME: '/cfg' },
-        '/home/x',
+        '/home/<user>',
       ),
     ).toBe('/cfg/google-chrome')
   })
 
   it('falls back to ~/.config on Linux without XDG_CONFIG_HOME', () => {
-    expect(systemChromeUserDataDirFor('linux', {}, '/home/x')).toBe(
-      '/home/x/.config/google-chrome',
+    expect(systemChromeUserDataDirFor('linux', {}, '/home/<user>')).toBe(
+      '/home/<user>/.config/google-chrome',
     )
   })
 })
@@ -93,13 +95,17 @@ describe('systemChromeUserDataDirFor', () => {
 describe('defaultBridgeUserDataDir', () => {
   it('uses XDG_CACHE_HOME when set', () => {
     expect(
-      defaultBridgeUserDataDir({ XDG_CACHE_HOME: '/cache' }, '/home/x', path),
+      defaultBridgeUserDataDir(
+        { XDG_CACHE_HOME: '/cache' },
+        '/home/<user>',
+        path,
+      ),
     ).toBe('/cache/odai/chrome-builtin')
   })
 
   it('falls back to the home cache dir without XDG_CACHE_HOME', () => {
-    expect(defaultBridgeUserDataDir({}, '/home/x', path)).toBe(
-      ['/home/x', '.cache', 'odai', 'chrome-builtin'].join('/'),
+    expect(defaultBridgeUserDataDir({}, '/home/<user>', path)).toBe(
+      ['/home/<user>', '.cache', 'odai', 'chrome-builtin'].join('/'),
     )
   })
 })
@@ -134,10 +140,10 @@ describe('chromeNowMicros', () => {
 describe('chromeMissingReason', () => {
   it('lists the probed candidates and the remedy env var', () => {
     const config = {
-      chromePathCandidates: ['/a/chrome', '/b/chrome'],
+      chromePathCandidates: ['/opt/chrome-a/chrome', '/opt/chrome-b/chrome'],
     } as ResolvedBridgeConfig
     const reason = chromeMissingReason(config)
-    expect(reason).toContain('/a/chrome, /b/chrome')
+    expect(reason).toContain('/opt/chrome-a/chrome, /opt/chrome-b/chrome')
     expect(reason).toContain('ODAI_CHROME')
     expect(reason).toContain('Chromium builds do not work')
   })

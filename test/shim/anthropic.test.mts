@@ -65,7 +65,7 @@ describe('flattenContent', () => {
   it('tags tool_result blocks with the id and error flag', () => {
     const flattened = flattenContent([
       {
-        content: [{ text: '/tmp/x', type: 'text' }],
+        content: [{ text: '/tmp/example', type: 'text' }],
         tool_use_id: 'toolu_1',
         type: 'tool_result',
       },
@@ -77,7 +77,7 @@ describe('flattenContent', () => {
       },
     ])
     expect(flattened).toBe(
-      '[tool_result id=toolu_1]\n/tmp/x\n[tool_result id=toolu_2 error]\nboom',
+      '[tool_result id=toolu_1]\n/tmp/example\n[tool_result id=toolu_2 error]\nboom',
     )
   })
 

@@ -3086,3 +3086,12 @@ test/fleet/registry-infra/npm/placeholder.test.mts
 test/fleet/scripts/setup.mts
 test/fleet/unit/comment-voice.test.mts
 # </fleet-pack>
+
+# Repo-specific re-inclusions: hand-authored files that must stay tracked
+# even though a fleet-managed block above matches them.
+!/.github/zizmor.yml
+!/assets/fleet/badge-follow-bluesky.svg
+!/assets/fleet/badge-follow-x.svg
+!/assets/fleet/socket-combomark-dark.svg
+!/assets/fleet/socket-combomark-light.svg
+!/test/fleet/_shared/lib/isolate-home-env.mts

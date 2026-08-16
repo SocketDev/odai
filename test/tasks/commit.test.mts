@@ -8,7 +8,10 @@ describe('suggestCommitMessage', () => {
     const model = createMockModel(
       '{"subject":"fix(parse): return empty object for empty input"}',
     )
-    const result = await suggestCommitMessage(model, 'diff --git a/x b/x')
+    const result = await suggestCommitMessage(
+      model,
+      'diff --git a/example.js b/example.js',
+    )
     expect(result.ok).toBe(true)
     expect(result.data?.subject).toBe(
       'fix(parse): return empty object for empty input',
@@ -17,14 +20,20 @@ describe('suggestCommitMessage', () => {
 
   it('normalizes message and title synonyms', async () => {
     const model = createMockModel('{"message":"chore: bump deps"}')
-    const result = await suggestCommitMessage(model, 'diff --git a/x b/x')
+    const result = await suggestCommitMessage(
+      model,
+      'diff --git a/example.js b/example.js',
+    )
     expect(result.ok).toBe(true)
     expect(result.data?.subject).toBe('chore: bump deps')
   })
 
   it('reports failure when the response has no subject', async () => {
     const model = createMockModel('{"body":"long prose"}')
-    const result = await suggestCommitMessage(model, 'diff --git a/x b/x')
+    const result = await suggestCommitMessage(
+      model,
+      'diff --git a/example.js b/example.js',
+    )
     expect(result.ok).toBe(false)
     expect(result.error).toBeDefined()
   })
