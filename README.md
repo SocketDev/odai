@@ -1,11 +1,11 @@
 # @socketsecurity/odai
 
 <div align="center">
-  <img src="assets/repo/brand/odai-combomark.svg" width="240" alt="odai - the odai badge: the odai wordmark, on disk AI, socket labs, and stacked storage layers inside the violet shield">
+  <img src="assets/repo/odai-combomark.svg" width="240" alt="odai - the odai badge: the odai wordmark, on disk AI, socket labs, and stacked storage layers inside the violet shield">
 </div>
 
 <a href="https://badge.socket.dev/npm/package/@socketsecurity/odai"><img src="https://badge.socket.dev/npm/package/@socketsecurity/odai" alt="Socket Badge" height="20"></a>
-<img src="https://raw.githubusercontent.com/SocketDev/odai/HEAD/assets/repo/badges/coverage.svg" width="97" height="20" alt="Coverage" />
+<img src="https://raw.githubusercontent.com/SocketDev/odai/HEAD/assets/repo/coverage.svg" width="97" height="20" alt="Coverage" />
 
 [![Follow @SocketSecurity](assets/fleet/badge-follow-x.svg)](https://twitter.com/SocketSecurity)
 [![Follow @socket.dev on Bluesky](assets/fleet/badge-follow-bluesky.svg)](https://bsky.app/profile/socket.dev)
@@ -91,6 +91,36 @@ JSON with the reason for every unavailable engine.
 `odai batch` reads a JSONL manifest (stdin or `--input`), runs every task over a single backend launch, and prints one JSON line per entry in manifest order - `{"id","ok":true,"value":…}` or `{"id","ok":false,"error":…}`. It exits 0 when the batch ran even if every task failed (failures are in-band lines), 2 on a malformed manifest (checked in full before any task runs), and 69 when no backend is available. `--timeout` is the per-task budget; `--raw` is not accepted.
 
 </details>
+
+### Serve
+
+`odai serve` turns any backend into a loopback HTTP server speaking the
+Anthropic Messages API - `POST /v1/messages` (plus `/health` and
+`v1/messages/count_tokens`), tool calling included. Tool use is emulated for
+plain-text engines: the shim teaches the model a one-line JSON tool-call
+protocol in the system prompt and reads the reply back into `tool_use`
+content blocks with the same JSON repair hardening the tasks use.
+
+```sh
+odai serve                  # 127.0.0.1:8402, backend from the registry probe
+odai serve --port 0         # let the OS pick a free port
+odai serve --backend llama-server
+```
+
+Point any Anthropic-speaking client at the printed URL with
+`ANTHROPIC_BASE_URL` and any non-empty `ANTHROPIC_API_KEY` (loopback only, no
+auth). For example, [communique](https://github.com/jdx/communique) runs its
+release-notes agent loop against local inference with no code changes:
+
+```sh
+communique --provider anthropic --model local \
+  --base-url http://127.0.0.1:8402
+```
+
+Known limitation: the shim ignores `max_tokens` in the request - odai's
+session interface has no output-token budget - and never emits a `max_tokens`
+stop reason, so a reply cut short by the engine itself (for example
+llama-server's own `n_predict` default) arrives as `end_turn`.
 
 ### Bench
 

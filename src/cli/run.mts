@@ -2,7 +2,7 @@
  * @file Odai CLI core. Single-shot prompt subcommands over the backend seam
  *   (see CLI_COMMANDS — text tasks take stdin; the structured dep-update tasks
  *   dedupe / hoist / security-fix / weekly-update take a JSON object on stdin),
- *   plus a backends availability probe.
+ *   plus a backends availability probe and the serve loopback shim.
  *   Node-only — the bin entry wraps `runCli`, tests call it directly with
  *   injected writers and backends. Failure modes are loud and bounded: a
  *   missing model prints exactly how to provision one and exits 69, the
@@ -19,10 +19,12 @@ import {
   selectBackend,
 } from '../backends/registry.mts'
 import { createOdaiModel } from '../model.mts'
+import { startAnthropicShim } from '../shim/server.mts'
 import { CliUsageError, parseCliArgs, usageText } from './args.mts'
 import { parseBatchManifest, runBatchEntries } from './batch.mts'
 import { runTask } from './dispatch.mts'
 import type { CliArgs } from './args.mts'
+import type { AnthropicShimHandle } from '../shim/server.mts'
 import type { BatchEntry } from './batch.mts'
 import type {
   BackendAvailability,
@@ -40,6 +42,7 @@ export const EXIT_USAGE = 2
 export const EXIT_NO_BACKEND = 69
 
 export const DEFAULT_PROMPT_TIMEOUT_MS = 120_000
+export const DEFAULT_SERVE_PORT = 8402
 export const ODAI_TIMEOUT_ENV_VAR = 'ODAI_TIMEOUT_MS'
 
 const RAW_REPLY_LOG_LIMIT = 400
@@ -62,6 +65,11 @@ export interface RunCliOptions {
    */
   env?: Record<string, string | undefined> | undefined
   /**
+   * Called once the serve shim is listening; the test seam for learning the
+   * bound port.
+   */
+  onServeStart?: ((handle: AnthropicShimHandle) => void) | undefined
+  /**
    * Backends the `backends` command probes. Defaults to every declared
    * registry backend; injectable so tests avoid live probes.
    */
@@ -78,6 +86,12 @@ export interface RunCliOptions {
    * Result line sink, the default logger's log stream by default.
    */
   stdout?: LineWriter | undefined
+  /**
+   * Serve-stop signal override. Defaults to a promise resolving on
+   * SIGINT/SIGTERM; tests resolve it themselves instead of signalling the
+   * process.
+   */
+  stopServing?: Promise<void> | undefined
 }
 
 export async function closeBackend(
@@ -241,6 +255,30 @@ export async function runCli(
   if (command === 'backends') {
     return await runBackendsCommand(opts.probeBackends, stdout)
   }
+  if (command === 'serve') {
+    let backend: OdaiBackend
+    try {
+      backend = await selectBackend({
+        backend: opts.backend ?? args.backend,
+        env,
+      })
+    } catch (error) {
+      stderr(`odai serve: no usable backend — ${errorMessage(error)}`)
+      stderr(provisioningHelp())
+      return EXIT_NO_BACKEND
+    }
+    return await runServeCommand(
+      backend,
+      args.port ?? DEFAULT_SERVE_PORT,
+      stderr,
+      {
+        ...(opts.onServeStart === undefined
+          ? {}
+          : { onStart: opts.onServeStart }),
+        ...(opts.stopServing === undefined ? {} : { stop: opts.stopServing }),
+      },
+    )
+  }
 
   let input: string
   try {
@@ -319,6 +357,58 @@ export async function runCli(
   } finally {
     await closeBackend(backend)
   }
+}
+
+export interface RunServeCommandOptions {
+  /**
+   * Called once the shim is listening; the test seam for learning the bound
+   * port.
+   */
+  onStart?: ((handle: AnthropicShimHandle) => void) | undefined
+  /**
+   * Resolves when the server should shut down. Defaults to SIGINT/SIGTERM.
+   */
+  stop?: Promise<void> | undefined
+}
+
+/**
+ * The serve lifecycle: bring the loopback Anthropic shim up over the selected
+ * backend, print the client connection hint, and hold until the stop signal.
+ * The shim handle's close also closes the backend.
+ */
+export async function runServeCommand(
+  backend: OdaiBackend,
+  port: number,
+  stderr: LineWriter,
+  options?: RunServeCommandOptions | undefined,
+): Promise<number> {
+  const opts = { __proto__: null, ...options } as RunServeCommandOptions
+  let handle: AnthropicShimHandle
+  try {
+    handle = await startAnthropicShim({
+      backend,
+      log: stderr,
+      port,
+    })
+  } catch (error) {
+    stderr(`odai serve: ${errorMessage(error)}`)
+    await closeBackend(backend)
+    return EXIT_TASK_FAILURE
+  }
+  opts.onStart?.(handle)
+  stderr(
+    `ANTHROPIC_BASE_URL=${handle.url} ANTHROPIC_API_KEY=<any non-empty ` +
+      'value> — Ctrl-C stops.',
+  )
+  const stop =
+    opts.stop ??
+    new Promise<void>(resolve => {
+      process.once('SIGINT', resolve)
+      process.once('SIGTERM', resolve)
+    })
+  await stop
+  await handle.close()
+  return EXIT_OK
 }
 
 export function truncateForLog(value: string): string {

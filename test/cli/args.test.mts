@@ -72,6 +72,30 @@ describe('parseCliArgs', () => {
     )
   })
 
+  it('parses serve with a port in both spaced and equals forms', () => {
+    expect(parseCliArgs(['serve', '--port', '8402']).port).toBe(8402)
+    expect(parseCliArgs(['serve', '--port=0']).port).toBe(0)
+  })
+
+  it('rejects an invalid port', () => {
+    expect(() => parseCliArgs(['serve', '--port', 'soon'])).toThrow(
+      /not a valid port/,
+    )
+    expect(() => parseCliArgs(['serve', '--port', '65536'])).toThrow(
+      /not a valid port/,
+    )
+    expect(() => parseCliArgs(['serve', '--port', '-1'])).toThrow(
+      /not a valid port/,
+    )
+    expect(() => parseCliArgs(['serve', '--port'])).toThrow(/needs a value/)
+  })
+
+  it('rejects --port on non-serve commands', () => {
+    expect(() => parseCliArgs(['triage', '--port', '8402'])).toThrow(
+      /only applies to the serve command/,
+    )
+  })
+
   it('rejects a flag with a missing value', () => {
     expect(() => parseCliArgs(['triage', '--backend'])).toThrow(/needs a value/)
   })
@@ -97,6 +121,7 @@ describe('usageText', () => {
       'classify-deps',
       'commit-msg',
       'patch',
+      'serve',
       'summarize',
       'triage',
     ]) {
