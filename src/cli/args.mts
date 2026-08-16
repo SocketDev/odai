@@ -18,6 +18,7 @@ export const CLI_COMMANDS = [
   'lockfile',
   'patch',
   'security-fix',
+  'serve',
   'summarize',
   'triage',
   'weekly-update',
@@ -31,6 +32,7 @@ export interface CliArgs {
   help: boolean
   input: string | undefined
   instruction: string | undefined
+  port: number | undefined
   raw: boolean
   timeoutMs: number | undefined
 }
@@ -41,6 +43,8 @@ export interface CliArgs {
  * message plus usage and exits 2.
  */
 export class CliUsageError extends Error {}
+
+const MAX_PORT = 65_535
 
 export function isCliCommand(value: string): value is CliCommand {
   return (CLI_COMMANDS as readonly string[]).includes(value)
@@ -53,6 +57,7 @@ export function parseCliArgs(argv: string[]): CliArgs {
     help: false,
     input: undefined,
     instruction: undefined,
+    port: undefined,
     raw: false,
     timeoutMs: undefined,
   }
@@ -106,6 +111,15 @@ export function parseCliArgs(argv: string[]): CliArgs {
         args.instruction = takeValue(flag, inline, next)
         break
       }
+      case '--port': {
+        const value = takeValue(flag, inline, next)
+        const parsed = Number(value)
+        if (!Number.isInteger(parsed) || parsed < 0 || parsed > MAX_PORT) {
+          throw new CliUsageError(`odai: --port ${value} is not a valid port.`)
+        }
+        args.port = parsed
+        break
+      }
       case '--raw': {
         args.raw = true
         break
@@ -157,6 +171,15 @@ export function parseCliArgs(argv: string[]): CliArgs {
       `odai: --instruction only applies to the patch command, not ${args.command}.`,
     )
   }
+  if (
+    args.port !== undefined &&
+    args.command !== undefined &&
+    args.command !== 'serve'
+  ) {
+    throw new CliUsageError(
+      `odai: --port only applies to the serve command, not ${args.command}.`,
+    )
+  }
   if (args.raw && args.command === 'batch') {
     throw new CliUsageError(
       'odai: --raw does not apply to the batch command — batch output is always JSONL.',
@@ -182,6 +205,7 @@ export function usageText(): string {
     '  lockfile              reason about a lockfile excerpt',
     '  patch                 generate a unified-diff code patch for a file',
     '  security-fix          pick the minimal safe upgrade for an advisory (JSON stdin)',
+    '  serve                 listen on loopback for Anthropic Messages API requests',
     '  summarize             condense text into a summary plus key points',
     '  triage                explain aggregate security findings in plain language',
     '  weekly-update         plan soak-gated dependency updates (JSON stdin)',
@@ -191,6 +215,7 @@ export function usageText(): string {
     '                        default: ODAI_BACKEND env var, then the availability probe',
     '  --input <path>        read input from a file instead of stdin',
     '  --instruction <text>  the change patch should make; required for patch',
+    '  --port <n>            loopback port for serve; default 8402, 0 picks a free port',
     '  --raw                 print the raw model reply instead of the parsed JSON',
     '  --timeout <ms>        per-prompt budget; default 120000, env ODAI_TIMEOUT_MS',
     '  -h, --help            show this help',
