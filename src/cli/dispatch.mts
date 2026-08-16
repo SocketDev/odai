@@ -15,6 +15,7 @@ import { dedupeDependencies } from '../tasks/dedupe.mts'
 import { assessHoistSafety } from '../tasks/hoist.mts'
 import { reasonAboutLockfile } from '../tasks/lockfile.mts'
 import { generateCodePatch } from '../tasks/patch.mts'
+import { extractPrices } from '../tasks/pricing.mts'
 import { assessSecurityFix } from '../tasks/security-fix.mts'
 import { summarizeText } from '../tasks/summarize.mts'
 import { triageAlerts } from '../tasks/triage.mts'
@@ -22,6 +23,7 @@ import { planWeeklyUpdate } from '../tasks/weekly-update.mts'
 import { CliUsageError } from './args.mts'
 import type { CliCommand } from './args.mts'
 import type { HoistInput } from '../prompts/hoist.mts'
+import type { PricingInput } from '../prompts/pricing.mts'
 import type { SecurityFixInput } from '../prompts/security-fix.mts'
 import type { WeeklyUpdateInput } from '../prompts/weekly-update.mts'
 import type { OdaiModel } from '../model.mts'
@@ -94,6 +96,15 @@ export async function runTask(
           '{ "advisory", "affectedRange", "availableVersions", "currentVersion" }',
         ) as SecurityFixInput,
       )
+    case 'pricing':
+      return await extractPrices(
+        model,
+        parseJsonInput(
+          input,
+          'pricing',
+          '{ "models": ["<model id>"], "sourceText": "<pricing page text>" }',
+        ) as PricingInput,
+      )
     case 'summarize':
       return await summarizeText(model, input)
     case 'triage':
@@ -117,6 +128,7 @@ export async function runTask(
             'hoist',
             'lockfile',
             'patch',
+            'pricing',
             'security-fix',
             'summarize',
             'triage',
