@@ -90,6 +90,12 @@ describe('parseCliArgs', () => {
     expect(() => parseCliArgs(['serve', '--port'])).toThrow(/needs a value/)
   })
 
+  it('tells the reader the expected port range', () => {
+    expect(() => parseCliArgs(['serve', '--port', 'soon'])).toThrow(
+      /expected an integer from 0 to 65535/,
+    )
+  })
+
   it('rejects --port on non-serve commands', () => {
     expect(() => parseCliArgs(['triage', '--port', '8402'])).toThrow(
       /only applies to the serve command/,

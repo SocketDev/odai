@@ -158,6 +158,7 @@ describe('odai serve', () => {
       })
       expect(code).toBe(1)
       expect(stderr.text()).toContain('odai serve:')
+      expect(stderr.text()).toContain('--port 0 for an OS-assigned one')
     } finally {
       await new Promise<void>((resolve, reject) => {
         blocker.close(error =>

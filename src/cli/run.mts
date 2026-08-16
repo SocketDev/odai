@@ -391,7 +391,10 @@ export async function runServeCommand(
       port,
     })
   } catch (error) {
-    stderr(`odai serve: ${errorMessage(error)}`)
+    stderr(
+      `odai serve: ${errorMessage(error)} — pass --port <n> for a different ` +
+        'port or --port 0 for an OS-assigned one.',
+    )
     await closeBackend(backend)
     return EXIT_TASK_FAILURE
   }

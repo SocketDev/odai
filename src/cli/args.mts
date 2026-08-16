@@ -115,7 +115,10 @@ export function parseCliArgs(argv: string[]): CliArgs {
         const value = takeValue(flag, inline, next)
         const parsed = Number(value)
         if (!Number.isInteger(parsed) || parsed < 0 || parsed > MAX_PORT) {
-          throw new CliUsageError(`odai: --port ${value} is not a valid port.`)
+          throw new CliUsageError(
+            `odai: --port ${value} is not a valid port; expected an integer ` +
+              `from 0 to ${MAX_PORT} (0 lets the OS pick a free port).`,
+          )
         }
         args.port = parsed
         break
