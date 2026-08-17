@@ -1,19 +1,19 @@
-# vite 8.1.0 — dev dep (vitest's bundler). 8.1 adds experimental.bundledDev
-# (NOT adopted — experimental, and the fleet runs stable-only). Published
-# within the 7-day soak; exact-pinned so a future 8.1.1 still soaks.
-# taze 19.16.0 — the dep updater itself; forced ahead of the soak by owner
-# directive so the regenerated single-registry patch (patchedDependencies)
-# tracks the current release. Exact-pinned so a future version re-soaks.
-# shadscan 0.2.0 — deterministic UI audits for shadcn apps, used by the
-# design skills; forced ahead of the soak by owner directive. Exact-pinned
-# so a future version re-soaks.
-# verkit — new dev-only transitive of taze 19.16.0 (same owner directive);
-# exact-pinned so future versions re-soak.
-# js-yaml 5.2.2 — HIGH security fix, GHSA-pm4m-ph32-ghv5: exponential parse
-# time in flow collections. The canonical overrides entry forces it past
-# markdownlint-cli2 0.23.1's vulnerable 5.2.1 exact-pin. Soak bypassed per
-# the high-severity security exception; exact-pinned so a future version
-# re-soaks.
+  # vite 8.1.0 — dev dep (vitest's bundler). 8.1 adds experimental.bundledDev
+  # (NOT adopted — experimental, and the fleet runs stable-only). Published
+  # within the 7-day soak; exact-pinned so a future 8.1.1 still soaks.
+  # taze 19.16.0 — the dep updater itself; forced ahead of the soak by owner
+  # directive so the regenerated single-registry patch (patchedDependencies)
+  # tracks the current release. Exact-pinned so a future version re-soaks.
+  # shadscan 0.2.0 — deterministic UI audits for shadcn apps, used by the
+  # design skills; forced ahead of the soak by owner directive. Exact-pinned
+  # so a future version re-soaks.
+  # verkit — new dev-only transitive of taze 19.16.0 (same owner directive);
+  # exact-pinned so future versions re-soak.
+  # js-yaml 5.2.2 — HIGH security fix, GHSA-pm4m-ph32-ghv5: exponential parse
+  # time in flow collections. The canonical overrides entry forces it past
+  # markdownlint-cli2 0.23.1's vulnerable 5.2.1 exact-pin. Soak bypassed per
+  # the high-severity security exception; exact-pinned so a future version
+  # re-soaks.
 catalog:
   # agent-ci runs a repo's GitHub Actions workflows locally in Docker so a
   # change can be validated before it's pushed (see the `agent-ci` skill).
@@ -21,10 +21,10 @@ catalog:
   # platform-binary optionalDependencies, despite the monorepo's internal
   # workspace layout. dtu-github-actions is its GitHub-Actions parser, pinned
   # explicitly (not left transitive) so its version is uniform fleet-wide.
-  '@redwoodjs/agent-ci': 0.17.1
+  '@redwoodjs/agent-ci': 0.18.0
   '@ultrathink/acorn.rs.wasm': 0.1.1
   'brace-expansion': 5.0.9
-  'dtu-github-actions': 0.17.1
+  'dtu-github-actions': 0.18.0
   # shadscan — shadcn UI audit CLI for the design skills (missing UI
   # fundamentals report). Exact-pinned; the whole package is younger than
   # the soak window, so it carries a minimumReleaseAgeExclude entry below.
@@ -312,6 +312,18 @@ patchedDependencies:
   # while taze still exits 0 (false green; update.mts fails loud on it).
   # On a taze bump, regenerate via `pnpm patch taze` + `pnpm patch-commit`.
   taze@20.0.0: patches/taze@20.0.0.patch
+  # phantom self-alias requires (managed by socket-wheelhouse sync; do not edit):
+  # five dist files require '@socketsecurity/lib-stable/...' but lib declares no
+  # such dependency — lib-stable is an alias of lib itself, so the require only
+  # ever resolved by per-repo virtual-store placement accident. Under
+  # enableGlobalVirtualStore the issuer path is the machine-wide store, where no
+  # alias sibling exists, so every import of the secrets/ai surface dies with
+  # Cannot find module '@socketsecurity/lib-stable/process/spawn/child' (pnpm v11
+  # does not materialize packageExtensions deps inside the links store, so the
+  # declaration alone cannot save it). The patch rewrites the five requires to
+  # the relative path inside lib itself. Rides the @socketsecurity/lib catalog
+  # pin: on a bump, regenerate via `pnpm patch @socketsecurity/lib` + `pnpm patch-commit`.
+  '@socketsecurity/lib@6.7.0': patches/@socketsecurity__lib@6.7.0.patch
 
 packages:
   - .claude/hooks/fleet/*
@@ -371,6 +383,7 @@ minimumReleaseAge: 10080
 resolutionMode: 'highest'
 saveExact: true
 trustPolicy: no-downgrade
+enableGlobalVirtualStore: true
 
 # Refuse transitive (sub-) deps declared via git/tarball/local-tarball
 # specs. Direct git deps in this repo are still allowed; this only
