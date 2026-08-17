@@ -192,6 +192,7 @@ overrides:
   'wrap-ansi@>=8': '9.0.2'
   'yaml@2': '2.9.0'
 
+  # <repo>
   # Repo-specific overrides below.
   # Dedup: @grpc/proto-loader 0.7 (dockerode direct) vs 0.8 (via @grpc/grpc-js,
   # also a dockerode dep). The 0.7->0.8 diff only touches an internal
@@ -262,6 +263,8 @@ overrides:
   'strip-ansi': '7.2.0'
   'vite': 'catalog:'
   'which@>=4': '7.0.0'
+
+  # </repo>
 
 patchedDependencies:
   # default-export interop (managed by socket-wheelhouse sync; do not edit):

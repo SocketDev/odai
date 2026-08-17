@@ -3088,6 +3088,9 @@ test/fleet/scripts/setup.mts
 test/fleet/unit/comment-voice.test.mts
 # </fleet-pack>
 
+# Fleet-specific payloads the installer owns; never commit.
+/.config/fleet/oxlintrc.json
+
 # Repo-specific re-inclusions: hand-authored files that must stay tracked
 # even though a fleet-managed block above matches them.
 !/.github/zizmor.yml

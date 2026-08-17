@@ -139,6 +139,10 @@
 
 <!-- </fleet> -->
 
+<!-- <repo> -->
+
 ## 🏗️ odai-specific
 
 `@socketsecurity/odai` - local on-device AI library for browser and Node, with the `bench` evaluation harness in `src/bench/`. Gemini Nano is one backend; Nano-specific internals keep their Nano naming. Source code and API docs live in `src/` and `docs/agents.md/repo/`.
+
+<!-- </repo> -->
