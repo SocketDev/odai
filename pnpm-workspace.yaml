@@ -384,10 +384,8 @@ resolutionMode: 'highest'
 saveExact: true
 trustPolicy: no-downgrade
 trustPolicyExclude:
-  # agent-ci 0.18.0 is the rename-bridge release ("Compatibility package for
-  # local-ci"): redwoodjs moved the tool to run-local-ci, and the bridge was
-  # published without provenance, so the no-downgrade trust check flags it.
-  # Owner-directed pin; the fleet moves to run-local-ci when the tooling does.
+  # Rename-bridge releases (agent-ci -> run-local-ci); the bridge lines
+  # carry no provenance. Owner-directed; see the catalog note.
   - '@redwoodjs/agent-ci@0.18.0'
   - 'dtu-github-actions@0.18.0'
 enableGlobalVirtualStore: true
