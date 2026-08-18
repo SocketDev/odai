@@ -8,6 +8,7 @@
  *   never pulls in the Node-only backends.
  */
 
+import { detectModelName } from './model-identity.mts'
 import { selectBackend } from './backends/registry.mts'
 import { promptStructured } from './json.mts'
 import { createLanguageModel, createWithFallback } from './session.mts'
@@ -146,12 +147,24 @@ export async function createOdaiModel(
   // over time (Gemini Nano today, Gemma 4 later), so the stamp names the
   // model, not the host. Detection failure is silent - the backend name
   // remains the fallback.
-  let modelName: string | undefined
-  try {
-    modelName = (await detectModelName(session)).name
-  } catch {
-    modelName = undefined
-  }
+  // Timeout-bounded: a hanging or slow backend degrades to the registry
+  // fallback in 5s instead of stalling model creation forever. Single-shot
+  // deadline wrapper (not Promise.race): the winner's handler clears the
+  // timer, and a late probe settles into an already-resolved outer promise
+  // instead of attaching unbounded handlers per call.
+  const modelName = await new Promise<string | undefined>(resolve => {
+    const timer = setTimeout(() => resolve(undefined), 5000)
+    detectModelName(session).then(
+      identity => {
+        clearTimeout(timer)
+        resolve(identity.name)
+      },
+      () => {
+        clearTimeout(timer)
+        resolve(undefined)
+      },
+    )
+  })
   const state: LanguageModelState = {
     backendName: backend.name,
     cloneCapable: typeof session.clone === 'function',
