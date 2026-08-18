@@ -98,11 +98,17 @@ export interface TaskResult<T> {
 
 export interface LanguageModelState {
   /**
-   * The selected backend's registry name, threaded into every stamped
-   * TaskResult. Absent for caller-built models whose origin is unknown.
+   * The selected backend's registry name, the identity fallback when the
+   * model itself is unknown. Absent for caller-built models.
    */
   backendName?: string | undefined
   cloneCapable: boolean
+  /**
+   * The detected model identity (e.g. 'Gemini Nano'), queried once at model
+   * creation and cached here for every subsequent TaskResult stamp. Undefined
+   * when detection failed or the model names no known family.
+   */
+  modelName?: string | undefined
   namespace: 'modern' | 'none'
   session: SessionLike
 }

@@ -100,11 +100,13 @@ export function createModelFromState(state: LanguageModelState): OdaiModel {
           break
         }
       }
-      // Stamp the producing backend so a verdict's origin is reproducible by
-      // every consumer (the registry name when the model came from
-      // `createOdaiModel`; absent for caller-built models).
-      if (state.backendName !== undefined && last.model === undefined) {
-        last.model = state.backendName
+      // Stamp the producing model so a verdict's origin is reproducible by
+      // every consumer: the detected model identity (cached at creation)
+      // with the backend's registry name as the fallback; absent for
+      // caller-built models.
+      const stamp = state.modelName ?? state.backendName
+      if (stamp !== undefined && last.model === undefined) {
+        last.model = stamp
       }
       return last
     },
@@ -139,9 +141,21 @@ export async function createOdaiModel(
   })
   const factory = await backend.languageModel()
   const session = await createWithFallback(factory, opts)
+  // Query the model's identity once at creation and cache it on the state,
+  // at the cost of one extra prompt. The weights behind a backend change
+  // over time (Gemini Nano today, Gemma 4 later), so the stamp names the
+  // model, not the host. Detection failure is silent - the backend name
+  // remains the fallback.
+  let modelName: string | undefined
+  try {
+    modelName = (await detectModelName(session)).name
+  } catch {
+    modelName = undefined
+  }
   const state: LanguageModelState = {
     backendName: backend.name,
     cloneCapable: typeof session.clone === 'function',
+    modelName,
     namespace: 'modern',
     session,
   }
