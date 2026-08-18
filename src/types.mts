@@ -86,11 +86,22 @@ export interface SchemaLike<T> {
 export interface TaskResult<T> {
   data?: T | undefined
   error?: string | undefined
+  /**
+   * The backend that produced this result, when known (the registry name:
+   * 'chrome-builtin', 'llama-server', 'simulator', ...). Stamped so a
+   * verdict's origin is reproducible by every consumer.
+   */
+  model?: string | undefined
   ok: boolean
   raw: string
 }
 
 export interface LanguageModelState {
+  /**
+   * The selected backend's registry name, threaded into every stamped
+   * TaskResult. Absent for caller-built models whose origin is unknown.
+   */
+  backendName?: string | undefined
   cloneCapable: boolean
   namespace: 'modern' | 'none'
   session: SessionLike

@@ -97,8 +97,14 @@ export function createModelFromState(state: LanguageModelState): OdaiModel {
           destroySession(session)
         }
         if (last.ok) {
-          return last
+          break
         }
+      }
+      // Stamp the producing backend so a verdict's origin is reproducible by
+      // every consumer (the registry name when the model came from
+      // `createOdaiModel`; absent for caller-built models).
+      if (state.backendName !== undefined && last.model === undefined) {
+        last.model = state.backendName
       }
       return last
     },
@@ -134,6 +140,7 @@ export async function createOdaiModel(
   const factory = await backend.languageModel()
   const session = await createWithFallback(factory, opts)
   const state: LanguageModelState = {
+    backendName: backend.name,
     cloneCapable: typeof session.clone === 'function',
     namespace: 'modern',
     session,
