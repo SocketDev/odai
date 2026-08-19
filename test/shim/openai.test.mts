@@ -14,6 +14,8 @@ import type { OpenAiChatRequest } from '../../src/shim/openai.mts'
 
 const CREATED_AT = 1_760_000_000
 
+const FINGERPRINT = 'odai-simulator'
+
 const TOOLS = [
   {
     function: {
@@ -186,12 +188,11 @@ describe('openAiToBackendMessages', () => {
 
 describe('replyToChatCompletion', () => {
   it('produces a text choice that finishes with stop', () => {
-    const completion = replyToChatCompletion(
-      'plain answer',
-      baseRequest(),
-      10,
-      CREATED_AT,
-    )
+    const completion = replyToChatCompletion('plain answer', baseRequest(), {
+      createdAt: CREATED_AT,
+      fingerprint: FINGERPRINT,
+      promptTokens: 10,
+    })
     expect(completion.object).toBe('chat.completion')
     expect(completion.id).toMatch(/^chatcmpl-/)
     expect(completion.created).toBe(CREATED_AT)
@@ -208,8 +209,11 @@ describe('replyToChatCompletion', () => {
     const completion = replyToChatCompletion(
       'keep this STOP drop that',
       baseRequest({ stop: 'STOP' }),
-      4,
-      CREATED_AT,
+      {
+        createdAt: CREATED_AT,
+        fingerprint: FINGERPRINT,
+        promptTokens: 4,
+      },
     )
     expect(completion.choices[0]?.message.content).toBe('keep this ')
     expect(completion.choices[0]?.finish_reason).toBe('stop')
@@ -219,8 +223,11 @@ describe('replyToChatCompletion', () => {
     const completion = replyToChatCompletion(
       '{"tool_call": {"name": "get_time", "input": {"zone": "UTC"}}}',
       baseRequest({ tools: TOOLS }),
-      4,
-      CREATED_AT,
+      {
+        createdAt: CREATED_AT,
+        fingerprint: FINGERPRINT,
+        promptTokens: 4,
+      },
     )
     const choice = completion.choices[0]!
     expect(choice.finish_reason).toBe('tool_calls')
@@ -235,12 +242,11 @@ describe('replyToChatCompletion', () => {
 
 describe('buildChatCompletionChunks', () => {
   it('frames a text reply as role, content deltas, and a finish frame', () => {
-    const completion = replyToChatCompletion(
-      'x'.repeat(200),
-      baseRequest(),
-      4,
-      CREATED_AT,
-    )
+    const completion = replyToChatCompletion('x'.repeat(200), baseRequest(), {
+      createdAt: CREATED_AT,
+      fingerprint: FINGERPRINT,
+      promptTokens: 4,
+    })
     const frames = buildChatCompletionChunks(completion, {
       includeUsage: false,
     })
@@ -253,7 +259,12 @@ describe('buildChatCompletionChunks', () => {
         (frame['choices'] as Array<{ delta: Record<string, unknown> }>)[0]
           ?.delta,
     )
-    expect(deltas[0]).toEqual({ role: 'assistant' })
+    // The opening frame is role plus an explicit null content, the shape
+    // llama-server sends.
+    expect(deltas[0]).toEqual({
+      content: JSON.parse('null'),
+      role: 'assistant',
+    })
     const streamed = deltas.slice(1, 3).map(delta => delta?.['content'])
     expect(streamed.join('')).toBe('x'.repeat(200))
     const last = frames.at(-1)!['choices'] as Array<{ finish_reason: string }>
@@ -264,8 +275,11 @@ describe('buildChatCompletionChunks', () => {
     const completion = replyToChatCompletion(
       '{"tool_call": {"name": "get_time", "input": {"zone": "UTC"}}}',
       baseRequest({ tools: TOOLS }),
-      4,
-      CREATED_AT,
+      {
+        createdAt: CREATED_AT,
+        fingerprint: FINGERPRINT,
+        promptTokens: 4,
+      },
     )
     const frames = buildChatCompletionChunks(completion, {
       includeUsage: false,
@@ -291,12 +305,11 @@ describe('buildChatCompletionChunks', () => {
   })
 
   it('appends a usage-only frame when the client asks for usage', () => {
-    const completion = replyToChatCompletion(
-      'short',
-      baseRequest(),
-      4,
-      CREATED_AT,
-    )
+    const completion = replyToChatCompletion('short', baseRequest(), {
+      createdAt: CREATED_AT,
+      fingerprint: FINGERPRINT,
+      promptTokens: 4,
+    })
     const frames = buildChatCompletionChunks(completion, { includeUsage: true })
     const usageFrame = frames.at(-1)!
     expect(usageFrame['choices']).toEqual([])

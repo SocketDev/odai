@@ -115,7 +115,10 @@ export class ShimRequestError extends Error {
  * chat-completions family and the model list; everything else is Anthropic.
  */
 export function errorFormatFor(pathname: string): ErrorFormat {
-  return pathname.startsWith('/v1/chat/') || pathname === '/v1/models'
+  return pathname.startsWith('/chat/') ||
+    pathname.startsWith('/v1/chat/') ||
+    pathname === '/models' ||
+    pathname === '/v1/models'
     ? 'openai'
     : 'anthropic'
 }
@@ -134,12 +137,11 @@ export async function handleChatCompletions(
       `stream=${parsed.stream === true} input~${promptTokens}tok`,
   )
   const raw = await promptOnce(state, messages)
-  const completion = replyToChatCompletion(
-    raw,
-    parsed,
+  const completion = replyToChatCompletion(raw, parsed, {
+    createdAt: nowSeconds(),
+    fingerprint: `odai-${state.modelId}`,
     promptTokens,
-    nowSeconds(),
-  )
+  })
   const choice = completion.choices[0]!
   state.log(
     `  -> finish_reason=${choice.finish_reason} output~` +
@@ -214,7 +216,7 @@ export async function handleRequest(
         writeJson(response, 200, { status: 'ok' })
         return
       }
-      if (pathname === '/v1/models') {
+      if (pathname === '/models' || pathname === '/v1/models') {
         writeJson(response, 200, toModelList(state.modelId, nowSeconds()))
         return
       }
@@ -230,9 +232,13 @@ export async function handleRequest(
     }
     const body = await readBody(request)
     switch (pathname) {
+      // llama-server registers the OpenAI routes at both the bare and the
+      // `/v1` path, and its own test suite posts to the bare one.
+      case '/chat/completions':
       case '/v1/chat/completions':
         await handleChatCompletions(state, body, response)
         return
+      case '/chat/completions/input_tokens':
       case '/v1/chat/completions/input_tokens': {
         const parsed = parseChatCompletionsRequest(body, state.modelId)
         writeJson(response, 200, {

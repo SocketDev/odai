@@ -90,7 +90,22 @@ export interface OpenAiChatCompletion {
   id: string
   model: string
   object: 'chat.completion'
+  /**
+   * Which server produced the reply. llama-server answers with its build
+   * string; odai answers with its own name and the backend behind it.
+   */
+  system_fingerprint: string
   usage: OpenAiUsage
+}
+
+export interface ChatCompletionOptions {
+  /**
+   * Unix seconds stamped into the reply. Passed in so the translation stays
+   * pure and a test can assert an exact value.
+   */
+  createdAt: number
+  fingerprint: string
+  promptTokens: number
 }
 
 export interface OpenAiModelEntry {
@@ -133,9 +148,16 @@ export function buildChatCompletionChunks(
     id: completion.id,
     model: completion.model,
     object: 'chat.completion.chunk',
+    system_fingerprint: completion.system_fingerprint,
   }
   const frames: Array<Record<string, unknown>> = [
-    { ...envelope, choices: [openStreamChoice({ role: 'assistant' })] },
+    {
+      ...envelope,
+      // The opening frame carries an explicit null content beside the role,
+      // which is the shape llama-server sends and an OpenAI client reads.
+      // oxlint-disable-next-line socket/prefer-undefined-over-null -- chat.completion.chunk wire format
+      choices: [openStreamChoice({ content: null, role: 'assistant' })],
+    },
   ]
   const pushDelta = (delta: Record<string, unknown>): void => {
     frames.push({ ...envelope, choices: [openStreamChoice(delta)] })
@@ -307,9 +329,12 @@ export function parseArguments(raw: string): Record<string, unknown> {
 export function replyToChatCompletion(
   raw: string,
   request: OpenAiChatRequest,
-  promptTokens: number,
-  createdAt: number,
+  options: ChatCompletionOptions,
 ): OpenAiChatCompletion {
+  const { createdAt, fingerprint, promptTokens } = {
+    __proto__: null,
+    ...options,
+  } as ChatCompletionOptions
   const toolNames = new Set(
     (request.tools ?? []).map(tool => tool.function.name),
   )
@@ -360,6 +385,7 @@ export function replyToChatCompletion(
     id: newId('chatcmpl', '-'),
     model: request.model,
     object: 'chat.completion',
+    system_fingerprint: fingerprint,
     usage: {
       completion_tokens: completionTokens,
       prompt_tokens: promptTokens,
