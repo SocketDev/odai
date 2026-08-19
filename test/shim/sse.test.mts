@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { replyToMessage } from '../../src/shim/anthropic.mts'
-import { buildSseFrames, chunkText } from '../../src/shim/sse.mts'
+import { buildSseFrames } from '../../src/shim/sse.mts'
 import type { AnthropicMessagesRequest } from '../../src/shim/anthropic.mts'
 
 function baseRequest(
@@ -66,15 +66,5 @@ describe('buildSseFrames', () => {
       )
       .join('')
     expect(JSON.parse(joined)).toEqual({ command: 'pwd' })
-  })
-})
-
-describe('chunkText', () => {
-  it('chunks text and reassembles losslessly', () => {
-    const text = 'x'.repeat(301)
-    const pieces = chunkText(text, 120)
-    expect(pieces).toHaveLength(3)
-    expect(pieces.join('')).toBe(text)
-    expect(chunkText('')).toEqual([])
   })
 })

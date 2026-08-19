@@ -16,11 +16,8 @@ import { errorMessage } from '@socketsecurity/lib/errors/message'
 import { selectBackend } from '../backends/registry.mts'
 import { createWithFallback } from '../session.mts'
 import { destroySession } from '../model.mts'
-import {
-  estimateTokens,
-  replyToMessage,
-  toBackendMessages,
-} from './anthropic.mts'
+import { replyToMessage, toBackendMessages } from './anthropic.mts'
+import { estimateTokens } from './protocol.mts'
 import { buildSseFrames } from './sse.mts'
 import type { IncomingMessage, Server, ServerResponse } from 'node:http'
 import type { BackendName, OdaiBackend } from '../backends/types.mts'

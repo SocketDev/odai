@@ -6,6 +6,7 @@
  *   whole reply.
  */
 
+import { chunkText } from './protocol.mts'
 import type { AnthropicMessageResult } from './anthropic.mts'
 
 /**
@@ -109,15 +110,4 @@ export function buildSseFrames(message: AnthropicMessageResult): SseFrame[] {
     event: 'message_stop',
   })
   return frames
-}
-
-export function chunkText(text: string, size = 120): string[] {
-  if (text === '') {
-    return []
-  }
-  const pieces: string[] = []
-  for (let i = 0; i < text.length; i += size) {
-    pieces.push(text.slice(i, i + size))
-  }
-  return pieces
 }
