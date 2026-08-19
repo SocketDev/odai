@@ -210,7 +210,7 @@ export function usageText(): string {
     '  patch                 generate a unified-diff code patch for a file',
     '  pricing               extract per-token model prices from a pricing page (JSON stdin)',
     '  security-fix          pick the minimal safe upgrade for an advisory (JSON stdin)',
-    '  serve                 listen on loopback for Anthropic Messages API requests',
+    '  serve                 listen on loopback for Anthropic Messages and OpenAI chat requests',
     '  summarize             condense text into a summary plus key points',
     '  triage                explain aggregate security findings in plain language',
     '  weekly-update         plan soak-gated dependency updates (JSON stdin)',

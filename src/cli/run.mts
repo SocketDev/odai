@@ -401,7 +401,10 @@ export async function runServeCommand(
   }
   opts.onStart?.(handle)
   stderr(
-    `ANTHROPIC_BASE_URL=${handle.url} ANTHROPIC_API_KEY=<any non-empty ` +
+    `ANTHROPIC_BASE_URL=${handle.url} ANTHROPIC_API_KEY=<any non-empty value>`,
+  )
+  stderr(
+    `OPENAI_BASE_URL=${handle.url}/v1 OPENAI_API_KEY=<any non-empty ` +
       'value> — Ctrl-C stops.',
   )
   const stop =

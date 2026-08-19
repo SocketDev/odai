@@ -94,12 +94,17 @@ JSON with the reason for every unavailable engine.
 
 ### Serve
 
-`odai serve` turns any backend into a loopback HTTP server speaking the
-Anthropic Messages API - `POST /v1/messages` (plus `/health` and
-`v1/messages/count_tokens`), tool calling included. Tool use is emulated for
-plain-text engines: the shim teaches the model a one-line JSON tool-call
-protocol in the system prompt and reads the reply back into `tool_use`
-content blocks with the same JSON repair hardening the tasks use.
+`odai serve` turns any backend into a loopback HTTP server speaking both wire
+formats `llama-server` does, on one port: the Anthropic Messages API
+(`POST /v1/messages`, `/v1/messages/count_tokens`) and the OpenAI
+chat-completions API (`POST /v1/chat/completions`,
+`/v1/chat/completions/input_tokens`, `GET /v1/models`), plus `/health`. odai
+already talks to `llama-server` as a client, so serving the same routes lets
+anything pointed at a local OpenAI base URL treat odai as the server it would
+otherwise run. Tool calling works on both sides and is emulated for plain-text
+engines: the shim teaches the model a one-line JSON tool-call protocol in the
+system prompt and reads the reply back into `tool_use` blocks or `tool_calls`,
+with the same JSON repair hardening the tasks use.
 
 ```sh
 odai serve                  # 127.0.0.1:8402, backend from the registry probe
@@ -115,6 +120,13 @@ release-notes agent loop against local inference with no code changes:
 ```sh
 communique --provider anthropic --model local \
   --base-url http://127.0.0.1:8402
+```
+
+An OpenAI-speaking client points at the same port's `/v1` prefix, the way it
+would at `llama-server`:
+
+```sh
+OPENAI_BASE_URL=http://127.0.0.1:8402/v1 OPENAI_API_KEY=anything
 ```
 
 Known limitation: the shim ignores `max_tokens` in the request - odai's

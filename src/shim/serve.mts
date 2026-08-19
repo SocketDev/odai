@@ -4,8 +4,9 @@
  *   `node --experimental-strip-types src/shim/serve.mts --port 8402`.
  *   Backend selection follows the registry: `--backend <name>` wins, then
  *   ODAI_BACKEND, then the availability probe. Point an Anthropic client at
- *   the printed URL with ANTHROPIC_BASE_URL and any non-empty placeholder
- *   key.
+ *   the printed URL with ANTHROPIC_BASE_URL, or an OpenAI client at the same
+ *   URL's `/v1` prefix with OPENAI_BASE_URL, either with any non-empty
+ *   placeholder key.
  */
 
 import { errorMessage } from '@socketsecurity/lib/errors/message'
@@ -59,7 +60,10 @@ async function main(): Promise<void> {
     port,
   })
   logger.error(
-    `ANTHROPIC_BASE_URL=${handle.url} ANTHROPIC_API_KEY=<any non-empty ` +
+    `ANTHROPIC_BASE_URL=${handle.url} ANTHROPIC_API_KEY=<any non-empty value>`,
+  )
+  logger.error(
+    `OPENAI_BASE_URL=${handle.url}/v1 OPENAI_API_KEY=<any non-empty ` +
       'value> — Ctrl-C stops.',
   )
   await new Promise<void>(resolve => {
