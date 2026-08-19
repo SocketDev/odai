@@ -19,12 +19,12 @@ import {
   selectBackend,
 } from '../backends/registry.mts'
 import { createOdaiModel } from '../model.mts'
-import { startAnthropicShim } from '../shim/server.mts'
+import { startShimServer } from '../shim/server.mts'
 import { CliUsageError, parseCliArgs, usageText } from './args.mts'
 import { parseBatchManifest, runBatchEntries } from './batch.mts'
 import { runTask } from './dispatch.mts'
 import type { CliArgs } from './args.mts'
-import type { AnthropicShimHandle } from '../shim/server.mts'
+import type { ShimServerHandle } from '../shim/server.mts'
 import type { BatchEntry } from './batch.mts'
 import type {
   BackendAvailability,
@@ -69,7 +69,7 @@ export interface RunCliOptions {
    * Called once the serve shim is listening; the test injection point for
    * learning the bound port.
    */
-  onServeStart?: ((handle: AnthropicShimHandle) => void) | undefined
+  onServeStart?: ((handle: ShimServerHandle) => void) | undefined
   /**
    * Backends the `backends` command probes. Defaults to every declared
    * registry backend; injectable so tests avoid live probes.
@@ -365,7 +365,7 @@ export interface RunServeCommandOptions {
    * Called once the shim is listening; the test injection point for learning
    * the bound port.
    */
-  onStart?: ((handle: AnthropicShimHandle) => void) | undefined
+  onStart?: ((handle: ShimServerHandle) => void) | undefined
   /**
    * Resolves when the server should shut down. Defaults to SIGINT/SIGTERM.
    */
@@ -373,7 +373,7 @@ export interface RunServeCommandOptions {
 }
 
 /**
- * The serve lifecycle: bring the loopback Anthropic shim up over the selected
+ * The serve lifecycle: bring the loopback shim up over the selected
  * backend, print the client connection hint, and hold until the stop signal.
  * The shim handle's close also closes the backend.
  */
@@ -384,9 +384,9 @@ export async function runServeCommand(
   options?: RunServeCommandOptions | undefined,
 ): Promise<number> {
   const opts = { __proto__: null, ...options } as RunServeCommandOptions
-  let handle: AnthropicShimHandle
+  let handle: ShimServerHandle
   try {
-    handle = await startAnthropicShim({
+    handle = await startShimServer({
       backend,
       log: stderr,
       port,

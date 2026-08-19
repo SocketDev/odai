@@ -6,47 +6,16 @@ import {
   parseMessagesRequest,
   readBody,
   ShimRequestError,
-  startAnthropicShim,
+  startShimServer,
 } from '../../src/shim/server.mts'
-import type { AnthropicShimHandle } from '../../src/shim/server.mts'
+import { createScriptedBackend } from './_shared/scripted-backend.mts'
+import type { ShimServerHandle } from '../../src/shim/server.mts'
 import type { IncomingMessage } from 'node:http'
 import type { OdaiBackend } from '../../src/backends/types.mts'
-import type { Message } from '../../src/types.mts'
 
 interface SseEvent {
   data: Record<string, unknown>
   event: string
-}
-
-interface ScriptedBackend extends OdaiBackend {
-  prompts: Message[][]
-}
-
-function createScriptedBackend(replies: string[]): ScriptedBackend {
-  const prompts: Message[][] = []
-  let call = 0
-  return {
-    async availability() {
-      return { available: true }
-    },
-    async languageModel() {
-      return {
-        availability: async () => 'available',
-        create: async () => ({
-          prompt: async (messages: Message[]) => {
-            prompts.push(messages)
-            const reply = replies[call] ?? 'no scripted reply left'
-            call += 1
-            return reply
-          },
-          promptStreaming: () =>
-            (async function* generate(): AsyncGenerator<string> {})(),
-        }),
-      }
-    },
-    name: 'simulator',
-    prompts,
-  }
 }
 
 function parseSse(text: string): SseEvent[] {
@@ -66,8 +35,8 @@ function parseSse(text: string): SseEvent[] {
   return events
 }
 
-describe('startAnthropicShim', () => {
-  let handle: AnthropicShimHandle | undefined
+describe('startShimServer', () => {
+  let handle: ShimServerHandle | undefined
 
   afterEach(async () => {
     await handle?.close()
@@ -76,7 +45,7 @@ describe('startAnthropicShim', () => {
 
   it('refuses to bind a non-loopback hostname', async () => {
     await expect(
-      startAnthropicShim({
+      startShimServer({
         backend: createScriptedBackend([]),
         hostname: '0.0.0.0',
       }),
@@ -85,7 +54,7 @@ describe('startAnthropicShim', () => {
 
   it('serves a non-streaming text turn', async () => {
     const backend = createScriptedBackend(['plain answer'])
-    handle = await startAnthropicShim({ backend })
+    handle = await startShimServer({ backend })
     // Exercising the shim's raw HTTP surface end to end, SSE text and
     // Response status included.
     // oxlint-disable-next-line socket/no-fetch-prefer-http-request -- raw HTTP
@@ -119,7 +88,7 @@ describe('startAnthropicShim', () => {
       '{"tool_call": {"name": "get_time", "input": {"zone": "UTC"}}}',
       'The time is 12:00 UTC.',
     ])
-    handle = await startAnthropicShim({ backend })
+    handle = await startShimServer({ backend })
     const tools = [
       {
         description: 'Get the current time.',
@@ -230,7 +199,7 @@ describe('startAnthropicShim', () => {
 
   it('estimates tokens on count_tokens and rejects bad bodies', async () => {
     const backend = createScriptedBackend([])
-    handle = await startAnthropicShim({ backend })
+    handle = await startShimServer({ backend })
     // Exercising the shim's raw HTTP surface end to end, SSE text and
     // Response status included.
     // oxlint-disable-next-line socket/no-fetch-prefer-http-request -- raw HTTP
@@ -279,7 +248,7 @@ describe('startAnthropicShim', () => {
   })
 
   it('404s a non-POST route that is not /health', async () => {
-    handle = await startAnthropicShim({ backend: createScriptedBackend([]) })
+    handle = await startShimServer({ backend: createScriptedBackend([]) })
     // Exercising the shim's bare HTTP route table; the assertion is on the
     // raw Response status.
     // oxlint-disable-next-line socket/no-fetch-prefer-http-request -- raw HTTP
@@ -306,7 +275,7 @@ describe('startAnthropicShim', () => {
       },
       name: 'simulator',
     }
-    handle = await startAnthropicShim({ backend })
+    handle = await startShimServer({ backend })
     // Exercising the shim's raw error path; the assertion is on the bare
     // error Response shape.
     // oxlint-disable-next-line socket/no-fetch-prefer-http-request -- raw HTTP
@@ -331,7 +300,7 @@ describe('startAnthropicShim', () => {
         closed = true
       },
     }
-    const local = await startAnthropicShim({ backend })
+    const local = await startShimServer({ backend })
     await local.close()
     expect(closed).toBe(true)
   })

@@ -1,5 +1,5 @@
 /**
- * @file Anthropic shim serve entry. Starts the loopback shim and stays up
+ * @file Shim serve entry. Starts the loopback shim and stays up
  *   until interrupted. Run it directly:
  *   `node --experimental-strip-types src/shim/serve.mts --port 8402`.
  *   Backend selection follows the registry: `--backend <name>` wins, then
@@ -13,7 +13,7 @@ import { getDefaultLogger } from '@socketsecurity/lib/logger/default'
 
 import { isBackendName } from '../backends/registry.mts'
 import { isMainModule } from '../is-main-module.mts'
-import { startAnthropicShim } from './server.mts'
+import { startShimServer } from './server.mts'
 import type { BackendName } from '../backends/types.mts'
 
 const DEFAULT_PORT = 8402
@@ -53,7 +53,7 @@ export function parseServeArgs(argv: string[]): {
 /* c8 ignore start - module entrypoint; exercised via subprocess */
 async function main(): Promise<void> {
   const { backendName, port } = parseServeArgs(process.argv.slice(2))
-  const handle = await startAnthropicShim({
+  const handle = await startShimServer({
     ...(backendName === undefined ? {} : { backendName }),
     log: line => logger.error(line),
     port,

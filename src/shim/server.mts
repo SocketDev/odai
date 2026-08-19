@@ -1,11 +1,14 @@
 /**
- * @file Loopback Anthropic Messages shim server. Serves `POST /v1/messages`
- *   over any registry backend so an Anthropic-speaking agent — Claude Code
- *   via ANTHROPIC_BASE_URL — runs against local inference with no key.
- *   Node-only. The backend is selected once at startup through the normal
- *   registry precedence; each request clones a fresh session, prompts the
- *   flattened conversation, and replies either as one JSON message or as the
- *   standard SSE event sequence. Loopback binding is asserted, mirroring the
+ * @file Loopback shim server. Serves both wire formats llama-server does over
+ *   any registry backend: the Anthropic Messages routes, so an
+ *   Anthropic-speaking agent — Claude Code via ANTHROPIC_BASE_URL — runs
+ *   against local inference with no key, and the OpenAI chat-completions
+ *   routes, so anything pointed at an OpenAI base URL sees odai as the
+ *   llama-server it would otherwise talk to. Node-only. The backend is
+ *   selected once at startup through the normal registry precedence; each
+ *   request clones a fresh session and prompts the flattened conversation with
+ *   decoding pinned greedy, then replies as one JSON object or as that
+ *   format's SSE sequence. Loopback binding is asserted, mirroring the
  *   llama-server doctrine: the shim never listens on a routable interface.
  */
 
@@ -17,25 +20,41 @@ import { selectBackend } from '../backends/registry.mts'
 import { createWithFallback } from '../session.mts'
 import { destroySession } from '../model.mts'
 import { replyToMessage, toBackendMessages } from './anthropic.mts'
+import {
+  buildChatCompletionChunks,
+  openAiToBackendMessages,
+  replyToChatCompletion,
+  toModelList,
+} from './openai.mts'
 import { estimateTokens } from './protocol.mts'
 import { buildSseFrames } from './sse.mts'
 import type { IncomingMessage, Server, ServerResponse } from 'node:http'
 import type { BackendName, OdaiBackend } from '../backends/types.mts'
-import type { LanguageModelLike, SessionLike } from '../types.mts'
+import type { LanguageModelLike, Message, SessionLike } from '../types.mts'
 import type { AnthropicMessagesRequest } from './anthropic.mts'
+import type { OpenAiChatRequest } from './openai.mts'
 
 const DEFAULT_MAX_BODY_BYTES = 32 * 1024 * 1024
 
 const LOOPBACK_HOSTNAMES = new Set(['::1', '127.0.0.1', 'localhost'])
 
-export interface AnthropicShimHandle {
+const MS_PER_SECOND = 1000
+
+/**
+ * Which error envelope a route answers with. The two formats disagree: an
+ * Anthropic client reads `{type: "error", error: {...}}`, an OpenAI one reads
+ * `{error: {code, message, type}}`.
+ */
+export type ErrorFormat = 'anthropic' | 'openai'
+
+export interface ShimServerHandle {
   backendName: BackendName
   close(): Promise<void>
   port: number
   url: string
 }
 
-export interface AnthropicShimOptions {
+export interface ShimServerOptions {
   /**
    * Explicit backend instance. Wins over registry selection; the test injection
    * point.
@@ -66,6 +85,19 @@ export interface AnthropicShimOptions {
 export interface ShimState {
   factory: LanguageModelLike
   log: (line: string) => void
+  /**
+   * What `/v1/models` reports and what an OpenAI request that names no model
+   * falls back to. The selected backend's name — llama-server serves one
+   * model and ignores the field, and so does the shim.
+   */
+  modelId: string
+}
+
+export interface WriteErrorOptions {
+  errorType: string
+  format: ErrorFormat
+  message: string
+  status: number
 }
 
 export class ShimRequestError extends Error {
@@ -78,84 +110,211 @@ export class ShimRequestError extends Error {
   }
 }
 
+/**
+ * The error envelope a path answers with. The OpenAI routes are the
+ * chat-completions family and the model list; everything else is Anthropic.
+ */
+export function errorFormatFor(pathname: string): ErrorFormat {
+  return pathname.startsWith('/v1/chat/') || pathname === '/v1/models'
+    ? 'openai'
+    : 'anthropic'
+}
+
+export async function handleChatCompletions(
+  state: ShimState,
+  body: string,
+  response: ServerResponse,
+): Promise<void> {
+  const parsed = parseChatCompletionsRequest(body, state.modelId)
+  const messages = openAiToBackendMessages(parsed)
+  const promptTokens = estimateTokens(joinContent(messages))
+  state.log(
+    `POST /v1/chat/completions model=${parsed.model} ` +
+      `turns=${parsed.messages.length} tools=${parsed.tools?.length ?? 0} ` +
+      `stream=${parsed.stream === true} input~${promptTokens}tok`,
+  )
+  const raw = await promptOnce(state, messages)
+  const completion = replyToChatCompletion(
+    raw,
+    parsed,
+    promptTokens,
+    nowSeconds(),
+  )
+  const choice = completion.choices[0]!
+  state.log(
+    `  -> finish_reason=${choice.finish_reason} output~` +
+      `${completion.usage.completion_tokens}tok ` +
+      (choice.message.tool_calls === undefined
+        ? ''
+        : `tool=${choice.message.tool_calls[0]!.function.name}`),
+  )
+  if (parsed.stream !== true) {
+    writeJson(response, 200, completion)
+    return
+  }
+  const includeUsage = parsed.stream_options?.include_usage === true
+  response.writeHead(200, {
+    'cache-control': 'no-cache',
+    'content-type': 'text/event-stream',
+  })
+  const frames = buildChatCompletionChunks(completion, { includeUsage })
+  for (const frame of frames) {
+    response.write(`data: ${JSON.stringify(frame)}\n\n`)
+  }
+  response.write('data: [DONE]\n\n')
+  response.end()
+}
+
+export async function handleMessages(
+  state: ShimState,
+  body: string,
+  response: ServerResponse,
+): Promise<void> {
+  const parsed = parseMessagesRequest(body)
+  const messages = toBackendMessages(parsed)
+  const inputTokens = estimateTokens(joinContent(messages))
+  state.log(
+    `POST /v1/messages model=${parsed.model} turns=${parsed.messages.length} ` +
+      `tools=${parsed.tools?.length ?? 0} stream=${parsed.stream === true} ` +
+      `input~${inputTokens}tok`,
+  )
+  const raw = await promptOnce(state, messages)
+  const message = replyToMessage(raw, parsed, inputTokens)
+  state.log(
+    `  -> stop_reason=${message.stop_reason} output~` +
+      `${message.usage.output_tokens}tok ` +
+      (message.content[0]?.type === 'tool_use'
+        ? `tool=${(message.content[0] as { name: string }).name}`
+        : ''),
+  )
+  if (parsed.stream !== true) {
+    writeJson(response, 200, message)
+    return
+  }
+  response.writeHead(200, {
+    'cache-control': 'no-cache',
+    'content-type': 'text/event-stream',
+  })
+  for (const frame of buildSseFrames(message)) {
+    response.write(`event: ${frame.event}\ndata: ${frame.data}\n\n`)
+  }
+  response.end()
+}
+
 export async function handleRequest(
   state: ShimState,
   request: IncomingMessage,
   response: ServerResponse,
 ): Promise<void> {
   const pathname = (request.url ?? '').split('?')[0] ?? ''
+  const format = errorFormatFor(pathname)
   try {
-    if (request.method === 'GET' && pathname === '/health') {
-      writeJson(response, 200, { status: 'ok' })
-      return
+    if (request.method === 'GET') {
+      if (pathname === '/health' || pathname === '/v1/health') {
+        writeJson(response, 200, { status: 'ok' })
+        return
+      }
+      if (pathname === '/v1/models') {
+        writeJson(response, 200, toModelList(state.modelId, nowSeconds()))
+        return
+      }
     }
     if (request.method !== 'POST') {
-      writeError(response, 404, 'not_found_error', `No route for ${pathname}.`)
+      writeError(response, {
+        errorType: 'not_found_error',
+        format,
+        message: `No route for ${pathname}.`,
+        status: 404,
+      })
       return
     }
     const body = await readBody(request)
-    if (pathname === '/v1/messages/count_tokens') {
-      const parsed = parseMessagesRequest(body)
-      const text = toBackendMessages(parsed)
-        .map(message => message.content)
-        .join('\n')
-      writeJson(response, 200, { input_tokens: estimateTokens(text) })
-      return
-    }
-    if (pathname !== '/v1/messages') {
-      writeError(response, 404, 'not_found_error', `No route for ${pathname}.`)
-      return
-    }
-    const parsed = parseMessagesRequest(body)
-    const messages = toBackendMessages(parsed)
-    const inputText = messages.map(message => message.content).join('\n')
-    const inputTokens = estimateTokens(inputText)
-    state.log(
-      `POST /v1/messages model=${parsed.model} turns=${parsed.messages.length} ` +
-        `tools=${parsed.tools?.length ?? 0} stream=${parsed.stream === true} ` +
-        `input~${inputTokens}tok`,
-    )
-    const session: SessionLike = await createWithFallback(state.factory, {
-      temperature: 0,
-      topK: 1,
-    })
-    let raw: string
-    try {
-      raw = await session.prompt(messages)
-    } finally {
-      destroySession(session)
-    }
-    const message = replyToMessage(raw, parsed, inputTokens)
-    state.log(
-      `  -> stop_reason=${message.stop_reason} output~` +
-        `${message.usage.output_tokens}tok ` +
-        (message.content[0]?.type === 'tool_use'
-          ? `tool=${(message.content[0] as { name: string }).name}`
-          : ''),
-    )
-    if (parsed.stream === true) {
-      response.writeHead(200, {
-        'cache-control': 'no-cache',
-        'content-type': 'text/event-stream',
-      })
-      for (const frame of buildSseFrames(message)) {
-        response.write(`event: ${frame.event}\ndata: ${frame.data}\n\n`)
+    switch (pathname) {
+      case '/v1/chat/completions':
+        await handleChatCompletions(state, body, response)
+        return
+      case '/v1/chat/completions/input_tokens': {
+        const parsed = parseChatCompletionsRequest(body, state.modelId)
+        writeJson(response, 200, {
+          input_tokens: estimateTokens(
+            joinContent(openAiToBackendMessages(parsed)),
+          ),
+          object: 'response.input_tokens',
+        })
+        return
       }
-      response.end()
-      return
+      case '/v1/messages':
+        await handleMessages(state, body, response)
+        return
+      case '/v1/messages/count_tokens': {
+        const parsed = parseMessagesRequest(body)
+        writeJson(response, 200, {
+          input_tokens: estimateTokens(joinContent(toBackendMessages(parsed))),
+        })
+        return
+      }
+      default:
+        writeError(response, {
+          errorType: 'not_found_error',
+          format,
+          message: `No route for ${pathname}.`,
+          status: 404,
+        })
+        return
     }
-    writeJson(response, 200, message)
   } catch (error) {
     if (error instanceof ShimRequestError) {
-      writeError(response, error.status, error.errorType, error.message)
+      writeError(response, {
+        errorType: error.errorType,
+        format,
+        message: error.message,
+        status: error.status,
+      })
       return
     }
-    state.log(`anthropic shim request failed: ${errorMessage(error)}`)
-    writeError(response, 500, 'api_error', errorMessage(error))
+    state.log(`shim request failed: ${errorMessage(error)}`)
+    writeError(response, {
+      errorType: 'api_error',
+      format,
+      message: errorMessage(error),
+      status: 500,
+    })
   }
 }
 
-export function parseMessagesRequest(body: string): AnthropicMessagesRequest {
+export function joinContent(messages: readonly Message[]): string {
+  return messages.map(message => message.content).join('\n')
+}
+
+export function nowSeconds(): number {
+  return Math.floor(Date.now() / MS_PER_SECOND)
+}
+
+/**
+ * Parse a chat-completions body. `model` is optional, as it is on
+ * llama-server: a single-model server has nothing to route, so an absent field
+ * takes the shim's own model id rather than failing the request.
+ */
+export function parseChatCompletionsRequest(
+  body: string,
+  fallbackModel: string,
+): OpenAiChatRequest {
+  const record = parseJsonObject(body)
+  if (!Array.isArray(record['messages']) || record['messages'].length === 0) {
+    throw new ShimRequestError(
+      400,
+      'invalid_request_error',
+      'messages must be a non-empty array.',
+    )
+  }
+  const model = record['model']
+  return {
+    ...record,
+    model: typeof model === 'string' && model !== '' ? model : fallbackModel,
+  } as unknown as OpenAiChatRequest
+}
+
+export function parseJsonObject(body: string): Record<string, unknown> {
   let parsed: unknown
   try {
     parsed = JSON.parse(body)
@@ -166,7 +325,18 @@ export function parseMessagesRequest(body: string): AnthropicMessagesRequest {
       'Request body is not valid JSON.',
     )
   }
-  const record = parsed as Record<string, unknown>
+  if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    throw new ShimRequestError(
+      400,
+      'invalid_request_error',
+      'Request body must be a JSON object.',
+    )
+  }
+  return parsed as Record<string, unknown>
+}
+
+export function parseMessagesRequest(body: string): AnthropicMessagesRequest {
+  const record = parseJsonObject(body)
   if (!Array.isArray(record['messages']) || record['messages'].length === 0) {
     throw new ShimRequestError(
       400,
@@ -182,6 +352,26 @@ export function parseMessagesRequest(body: string): AnthropicMessagesRequest {
     )
   }
   return record as unknown as AnthropicMessagesRequest
+}
+
+/**
+ * One turn against a fresh session: decoding is pinned greedy so a request
+ * replays identically, and the session is destroyed whether the prompt
+ * succeeded or threw.
+ */
+export async function promptOnce(
+  state: ShimState,
+  messages: Message[],
+): Promise<string> {
+  const session: SessionLike = await createWithFallback(state.factory, {
+    temperature: 0,
+    topK: 1,
+  })
+  try {
+    return await session.prompt(messages)
+  } finally {
+    destroySession(session)
+  }
 }
 
 export async function readBody(request: IncomingMessage): Promise<string> {
@@ -202,14 +392,14 @@ export async function readBody(request: IncomingMessage): Promise<string> {
   return Buffer.concat(chunks).toString('utf8')
 }
 
-export async function startAnthropicShim(
-  options?: AnthropicShimOptions | undefined,
-): Promise<AnthropicShimHandle> {
-  const opts = { __proto__: null, ...options } as AnthropicShimOptions
+export async function startShimServer(
+  options?: ShimServerOptions | undefined,
+): Promise<ShimServerHandle> {
+  const opts = { __proto__: null, ...options } as ShimServerOptions
   const hostname = opts.hostname ?? '127.0.0.1'
   if (!LOOPBACK_HOSTNAMES.has(hostname)) {
     throw new Error(
-      `Anthropic shim hostname "${hostname}" is not loopback. The shim is ` +
+      `Shim hostname "${hostname}" is not loopback. The shim is ` +
         'local-only and refuses to listen on a routable interface.',
     )
   }
@@ -221,7 +411,7 @@ export async function startAnthropicShim(
       ...(opts.env === undefined ? {} : { env: opts.env }),
     }))
   const factory = await backend.languageModel()
-  const state: ShimState = { factory, log }
+  const state: ShimState = { factory, log, modelId: backend.name }
   const server: Server = createServer((request, response) => {
     void handleRequest(state, request, response)
   })
@@ -233,7 +423,7 @@ export async function startAnthropicShim(
   const port =
     address !== null && typeof address === 'object' ? address.port : 0
   const url = `http://${hostname}:${port}`
-  log(`anthropic shim listening at ${url} over backend "${backend.name}"`)
+  log(`shim listening at ${url} over backend "${backend.name}"`)
   return {
     backendName: backend.name,
     async close(): Promise<void> {
@@ -252,14 +442,19 @@ export async function startAnthropicShim(
 
 export function writeError(
   response: ServerResponse,
-  status: number,
-  errorType: string,
-  message: string,
+  options: WriteErrorOptions,
 ): void {
-  writeJson(response, status, {
-    error: { message, type: errorType },
-    type: 'error',
-  })
+  const { errorType, format, message, status } = {
+    __proto__: null,
+    ...options,
+  } as typeof options
+  writeJson(
+    response,
+    status,
+    format === 'openai'
+      ? { error: { code: status, message, type: errorType } }
+      : { error: { message, type: errorType }, type: 'error' },
+  )
 }
 
 export function writeJson(

@@ -196,10 +196,14 @@ export function extractToolCall(
   return candidate
 }
 
-export function newId(prefix: string): string {
+/**
+ * Mint a namespaced id. The separator is the wire format's: Anthropic spells
+ * `msg_...` and `toolu_...`, OpenAI spells `chatcmpl-...` and `call-...`.
+ */
+export function newId(prefix: string, separator = '_'): string {
   const entropy = () =>
     Math.random().toString(TOOL_ID_RADIX).slice(2, TOOL_ID_SLICE)
-  return `${prefix}_${entropy()}${entropy()}`
+  return `${prefix}${separator}${entropy()}${entropy()}`
 }
 
 export function unwrapToolCall(parsed: unknown): ToolCall | undefined {
