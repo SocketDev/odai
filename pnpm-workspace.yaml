@@ -289,16 +289,6 @@ patchedDependencies:
   # patched v10 answers that same shape.
   # On a bump, regenerate via `pnpm patch minimatch` + `pnpm patch-commit`.
   minimatch@10.2.6: patches/minimatch@10.2.6.patch
-  # single-registry (managed by socket-wheelhouse sync; do not edit):
-  # routes taze version resolution through its own bundled direct-registry
-  # client (getVersionsFromRegistry — full packument, .npmrc/auth-aware) for
-  # EVERY registry, instead of the fast-npm-meta hosted endpoint it uses
-  # when the registry is the npm default. That third-party hop leaks
-  # dependency names, violates the fleet single-registry posture, and is
-  # blocked by egress policy — every lookup then hits the request timeout
-  # while taze still exits 0 (false green; update.mts fails loud on it).
-  # On a taze bump, regenerate via `pnpm patch taze` + `pnpm patch-commit`.
-  taze@20.0.0: patches/taze@20.0.0.patch
   # phantom self-alias requires (managed by socket-wheelhouse sync; do not edit):
   # five dist files require '@socketsecurity/lib-stable/...' but lib declares no
   # such dependency — lib-stable is an alias of lib itself, so the require only
