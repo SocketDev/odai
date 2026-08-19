@@ -254,9 +254,8 @@ describe('buildChatCompletionChunks', () => {
           ?.delta,
     )
     expect(deltas[0]).toEqual({ role: 'assistant' })
-    expect(`${deltas[1]?.['content']}${deltas[2]?.['content']}`).toBe(
-      'x'.repeat(200),
-    )
+    const streamed = deltas.slice(1, 3).map(delta => delta?.['content'])
+    expect(streamed.join('')).toBe('x'.repeat(200))
     const last = frames.at(-1)!['choices'] as Array<{ finish_reason: string }>
     expect(last[0]?.finish_reason).toBe('stop')
   })

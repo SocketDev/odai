@@ -34,14 +34,14 @@ mirroring the llama-server doctrine.
 
 ## Routes
 
-| Route | Notes |
-| --- | --- |
-| `POST /v1/messages` | Anthropic Messages, streaming and not |
-| `POST /v1/messages/count_tokens` | chars-over-four estimate |
-| `POST /v1/chat/completions` | OpenAI chat completions, streaming and not |
-| `POST /v1/chat/completions/input_tokens` | same estimate, `response.input_tokens` shape |
-| `GET /v1/models` | one entry, id is the selected backend, `owned_by: odai` |
-| `GET /health`, `GET /v1/health` | `{"status": "ok"}` |
+| Route                                    | Notes                                                   |
+| ---------------------------------------- | ------------------------------------------------------- |
+| `POST /v1/messages`                      | Anthropic Messages, streaming and not                   |
+| `POST /v1/messages/count_tokens`         | chars-over-four estimate                                |
+| `POST /v1/chat/completions`              | OpenAI chat completions, streaming and not              |
+| `POST /v1/chat/completions/input_tokens` | same estimate, `response.input_tokens` shape            |
+| `GET /v1/models`                         | one entry, id is the selected backend, `owned_by: odai` |
+| `GET /health`, `GET /v1/health`          | `{"status": "ok"}`                                      |
 
 Out of scope, because odai has no tokenizer, no embeddings, and no slots to
 report: `/completion`, `/tokenize`, `/detokenize`, `/embedding`, `/reranking`,
