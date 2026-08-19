@@ -56,6 +56,7 @@
     "sync-fleet": "node scripts/repo/bootstrap/fleet.mjs",
     "fleet:status": "node scripts/repo/bootstrap/fleet.mjs --status",
     "test": "node scripts/fleet/test.mts",
+    "test:conformance": "node test/scripts/llama-cpp-server-conformance-runner.mts",
     "test:fuzz": "node scripts/repo/fuzz.mts",
     "bench": "node --experimental-strip-types src/bench/run.mts",
     "type": "node node_modules/typescript/bin/tsc --noEmit -p .config/fleet/tsconfig.check.json",

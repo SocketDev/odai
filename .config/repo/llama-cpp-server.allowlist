@@ -1,0 +1,87 @@
+# llama.cpp server conformance allowlist
+#
+# One `<test id>  # <reason>` per line. A test id is the upstream path plus
+# the pytest node name, exactly as the runner reports it. An entry says: this
+# upstream behavior is one odai does not implement, and here is why that is
+# acceptable. The runner exits non-zero when an entry now passes or when an id
+# is not reported at all, so the list only ever shrinks on its own.
+#
+# Generate the initial list with:
+#   pnpm run conformance:llama-cpp-server
+# then move each unexpected failure here with a reason.
+
+unit/test_chat_completion.py::test_apply_chat_template  # asserts a real tokenizer's token counts; odai estimates at chars-over-four
+unit/test_chat_completion.py::test_chat_completion[None-Book-Hey-8-But she couldn't-69-8-length-False-None]  # asserts llama.cpp's own build string; odai reports odai-<backend>
+unit/test_chat_completion.py::test_chat_completion[None-Book-Hey-8-But she couldn't-69-8-length-True-None]  # asserts llama.cpp's own build string; odai reports odai-<backend>
+unit/test_chat_completion.py::test_chat_completion[None-Book-What is the best book-8-(Suddenly)+|\\{ " Sarax.-77-8-length-False-None]  # asserts llama.cpp's own build string; odai reports odai-<backend>
+unit/test_chat_completion.py::test_chat_completion[None-Book-What is the best book-8-(Suddenly)+|\\{ " Sarax.-77-8-length-True-None]  # asserts llama.cpp's own build string; odai reports odai-<backend>
+unit/test_chat_completion.py::test_chat_completion[None-Book-What is the best book-8-(Suddenly)+|\\{ " Sarax.-77-8-length-True-chatml]  # asserts llama.cpp's own build string; odai reports odai-<backend>
+unit/test_chat_completion.py::test_chat_completion[None-Book-What is the best book-8-^ blue-23-8-length-True-This is not a chat template, it is]  # asserts llama.cpp's own build string; odai reports odai-<backend>
+unit/test_chat_completion.py::test_chat_completion[None-Book-user_prompt8-8-Whillicter-79-8-length-False-None]  # asserts llama.cpp's own build string; odai reports odai-<backend>
+unit/test_chat_completion.py::test_chat_completion[None-Book-user_prompt9-8-Whillicter-79-8-length-True-None]  # asserts llama.cpp's own build string; odai reports odai-<backend>
+unit/test_chat_completion.py::test_chat_completion[codellama70b-You are a coding assistant.-Write the fibonacci function in c++.-128-(Aside|she|felter|alonger)+-104-128-length-False-None]  # asserts llama.cpp's own build string; odai reports odai-<backend>
+unit/test_chat_completion.py::test_chat_completion[codellama70b-You are a coding assistant.-Write the fibonacci function in c++.-128-(Aside|she|felter|alonger)+-104-128-length-True-None]  # asserts llama.cpp's own build string; odai reports odai-<backend>
+unit/test_chat_completion.py::test_chat_completion_cached_tokens  # asserts a real tokenizer's token counts; odai estimates at chars-over-four
+unit/test_chat_completion.py::test_chat_completion_stream[Book-What is the best book-8-(Suddenly)+-77-8-length]  # asserts llama.cpp's own build string; odai reports odai-<backend>
+unit/test_chat_completion.py::test_chat_completion_stream[You are a coding assistant.-Write the fibonacci function in c++.-128-(Aside|she|felter|alonger)+-104-128-length]  # asserts llama.cpp's own build string; odai reports odai-<backend>
+unit/test_chat_completion.py::test_chat_completion_with_openai_library  # llama.cpp logprobs, which odai does not implement
+unit/test_chat_completion.py::test_chat_completion_with_timings_per_token  # llama.cpp sampling telemetry (timings, prompt progress), which odai does not implement
+unit/test_chat_completion.py::test_chat_completions_multiple_choices  # llama.cpp logprobs, which odai does not implement
+unit/test_chat_completion.py::test_chat_template  # llama.cpp's __verbose response extension, which odai does not implement
+unit/test_chat_completion.py::test_chat_template_assistant_prefill[Whill-Whill]  # llama.cpp's __verbose response extension, which odai does not implement
+unit/test_chat_completion.py::test_chat_template_assistant_prefill[prefill1-Wh\n\nill]  # llama.cpp's __verbose response extension, which odai does not implement
+unit/test_chat_completion.py::test_chat_template_continue_final_message_mutual_exclusion  # asserts a real tokenizer's token counts; odai estimates at chars-over-four
+unit/test_chat_completion.py::test_chat_template_continue_final_message_vllm_compat  # llama.cpp's __verbose response extension, which odai does not implement
+unit/test_chat_completion.py::test_completion_with_grammar[False-root ::= "a"{5,5}-6-a{5,5}]  # asserts the words the tinyllama2 fixture model produces; odai answers over its own backend
+unit/test_chat_completion.py::test_completion_with_grammar[True-root ::= "a"{5,5}-6-a{5,5}]  # asserts the words the tinyllama2 fixture model produces; odai answers over its own backend
+unit/test_chat_completion.py::test_completion_with_invalid_grammar  # llama.cpp logprobs, which odai does not implement
+unit/test_chat_completion.py::test_completion_with_json_schema[False-json_schema0-6-"42"]  # asserts the words the tinyllama2 fixture model produces; odai answers over its own backend
+unit/test_chat_completion.py::test_completion_with_json_schema[True-json_schema1-6-"42"]  # asserts the words the tinyllama2 fixture model produces; odai answers over its own backend
+unit/test_chat_completion.py::test_completion_with_response_format[response_format0-6-"42"]  # asserts the words the tinyllama2 fixture model produces; odai answers over its own backend
+unit/test_chat_completion.py::test_completion_with_response_format[response_format2-10-"foooooo"]  # asserts the words the tinyllama2 fixture model produces; odai answers over its own backend
+unit/test_chat_completion.py::test_completion_with_response_format[response_format4-0-None]  # asserts a real tokenizer's token counts; odai estimates at chars-over-four
+unit/test_chat_completion.py::test_completion_with_response_format[response_format5-0-None]  # asserts a real tokenizer's token counts; odai estimates at chars-over-four
+unit/test_chat_completion.py::test_completion_with_response_format[response_format6-0-None]  # asserts a real tokenizer's token counts; odai estimates at chars-over-four
+unit/test_chat_completion.py::test_completion_with_response_format[response_format7-0-None]  # asserts a real tokenizer's token counts; odai estimates at chars-over-four
+unit/test_chat_completion.py::test_context_size_exceeded  # asserts a real tokenizer's token counts; odai estimates at chars-over-four
+unit/test_chat_completion.py::test_context_size_exceeded_stream  # odai does not validate this field, so it answers the request llama-server rejects
+unit/test_chat_completion.py::test_invalid_chat_completion_req[messages2]  # odai does not validate this field, so it answers the request llama-server rejects
+unit/test_chat_completion.py::test_invalid_chat_completion_req[messages3]  # odai does not validate this field, so it answers the request llama-server rejects
+unit/test_chat_completion.py::test_invalid_chat_completion_req[messages4]  # odai does not validate this field, so it answers the request llama-server rejects
+unit/test_chat_completion.py::test_invalid_chat_completion_req[messages5]  # odai does not validate this field, so it answers the request llama-server rejects
+unit/test_chat_completion.py::test_invalid_chat_completion_req[messages6]  # odai does not validate this field, so it answers the request llama-server rejects
+unit/test_chat_completion.py::test_invalid_chat_completion_req[messages7]  # odai does not validate this field, so it answers the request llama-server rejects
+unit/test_chat_completion.py::test_logit_bias  # asserts a real tokenizer's token counts; odai estimates at chars-over-four
+unit/test_chat_completion.py::test_logprobs  # llama.cpp logprobs, which odai does not implement
+unit/test_chat_completion.py::test_logprobs_stream  # asserts a response field odai does not populate
+unit/test_chat_completion.py::test_return_progress[64-2-True]  # asserts a response field odai does not populate
+unit/test_chat_completion.py::test_return_progress[64-4-False]  # asserts a response field odai does not populate
+unit/test_chat_completion.py::test_verbose_debug  # llama.cpp's __verbose response extension, which odai does not implement
+unit/test_compat_anthropic.py::test_anthropic_count_tokens  # test drives its own llama-server instance on a fixed port; external-server mode has nothing listening there
+unit/test_compat_anthropic.py::test_anthropic_count_tokens_no_max_tokens  # test drives its own llama-server instance on a fixed port; external-server mode has nothing listening there
+unit/test_compat_anthropic.py::test_anthropic_count_tokens_with_system  # test drives its own llama-server instance on a fixed port; external-server mode has nothing listening there
+unit/test_compat_anthropic.py::test_anthropic_empty_messages  # test drives its own llama-server instance on a fixed port; external-server mode has nothing listening there
+unit/test_compat_anthropic.py::test_anthropic_messages_basic  # test drives its own llama-server instance on a fixed port; external-server mode has nothing listening there
+unit/test_compat_anthropic.py::test_anthropic_messages_conversation  # test drives its own llama-server instance on a fixed port; external-server mode has nothing listening there
+unit/test_compat_anthropic.py::test_anthropic_messages_multipart_content  # test drives its own llama-server instance on a fixed port; external-server mode has nothing listening there
+unit/test_compat_anthropic.py::test_anthropic_messages_streaming  # test drives its own llama-server instance on a fixed port; external-server mode has nothing listening there
+unit/test_compat_anthropic.py::test_anthropic_messages_with_system  # test drives its own llama-server instance on a fixed port; external-server mode has nothing listening there
+unit/test_compat_anthropic.py::test_anthropic_metadata  # test drives its own llama-server instance on a fixed port; external-server mode has nothing listening there
+unit/test_compat_anthropic.py::test_anthropic_missing_messages  # test drives its own llama-server instance on a fixed port; external-server mode has nothing listening there
+unit/test_compat_anthropic.py::test_anthropic_stop_sequences  # test drives its own llama-server instance on a fixed port; external-server mode has nothing listening there
+unit/test_compat_anthropic.py::test_anthropic_streaming_content_block_indices  # test drives its own llama-server instance on a fixed port; external-server mode has nothing listening there
+unit/test_compat_anthropic.py::test_anthropic_temperature  # test drives its own llama-server instance on a fixed port; external-server mode has nothing listening there
+unit/test_compat_anthropic.py::test_anthropic_thinking  # test drives its own llama-server instance on a fixed port; external-server mode has nothing listening there
+unit/test_compat_anthropic.py::test_anthropic_thinking_history_in_count_tokens  # test drives its own llama-server instance on a fixed port; external-server mode has nothing listening there
+unit/test_compat_anthropic.py::test_anthropic_thinking_history_in_template  # test drives its own llama-server instance on a fixed port; external-server mode has nothing listening there
+unit/test_compat_anthropic.py::test_anthropic_tool_result  # test drives its own llama-server instance on a fixed port; external-server mode has nothing listening there
+unit/test_compat_anthropic.py::test_anthropic_tool_result_error  # test drives its own llama-server instance on a fixed port; external-server mode has nothing listening there
+unit/test_compat_anthropic.py::test_anthropic_tool_result_with_image  # test drives its own llama-server instance on a fixed port; external-server mode has nothing listening there
+unit/test_compat_anthropic.py::test_anthropic_tool_result_with_text  # test drives its own llama-server instance on a fixed port; external-server mode has nothing listening there
+unit/test_compat_anthropic.py::test_anthropic_tool_streaming  # test drives its own llama-server instance on a fixed port; external-server mode has nothing listening there
+unit/test_compat_anthropic.py::test_anthropic_tool_use_basic  # test drives its own llama-server instance on a fixed port; external-server mode has nothing listening there
+unit/test_compat_anthropic.py::test_anthropic_top_k  # test drives its own llama-server instance on a fixed port; external-server mode has nothing listening there
+unit/test_compat_anthropic.py::test_anthropic_top_p  # test drives its own llama-server instance on a fixed port; external-server mode has nothing listening there
+unit/test_compat_anthropic.py::test_anthropic_vision_base64_with_multimodal_model  # test drives its own llama-server instance on a fixed port; external-server mode has nothing listening there
+unit/test_compat_anthropic.py::test_anthropic_vision_format_accepted  # test drives its own llama-server instance on a fixed port; external-server mode has nothing listening there
+unit/test_compat_anthropic.py::test_anthropic_vs_openai_different_response_format  # test drives its own llama-server instance on a fixed port; external-server mode has nothing listening there
