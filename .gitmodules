@@ -1,4 +1,5 @@
-# llama.cpp-b10488 sha256:9d77fa17254e1dee4b9e92504c91611a60b1359f
+# no-release-tag: llama.cpp numbers releases `b<build>`, so its tags carry no `<major>.<minor>` token; `b10488` is a tag, not a branch.
+# llama.cpp-b10488 (2026-08-18) sha256:8813df36be97588b527550151182526469eb551588d42a92dbc86a9cd039e2e5
 [submodule "upstream/llama.cpp"]
 	ignore = dirty
 	ref = 9d77fa17254e1dee4b9e92504c91611a60b1359f
