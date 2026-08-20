@@ -14,18 +14,12 @@ import { fuzz } from '@vitiate/core'
 
 import { parseJsonWithFallback, repairJson } from '../src/json.mts'
 
-// The identity schema: parseJsonWithFallback's schema.parse must be a total,
-// non-throwing pass-through so the fuzz exercises the parse/repair/normalize
-// pipeline itself rather than a schema validator's own throws.
-const identitySchema = {
-  parse(value: unknown): unknown {
-    return value
-  },
-}
+import { identitySchema } from './_shared/identity-schema.mts'
 
 // A synonym map with attacker-relevant canonical/synonym keys so normalizeKeys
 // runs over arbitrary parsed objects — the code path where a `__proto__` key
 // could leak into the rebuilt object.
+// oxlint-disable-next-line socket/prefer-refined-record -- open key set
 const synonymMap: Record<string, string[]> = {
   __proto__: ['proto', 'prototype'],
   constructor: ['ctor'],

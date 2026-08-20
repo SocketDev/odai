@@ -25,6 +25,7 @@ export interface CommitMessage {
   subject: string
 }
 
+// oxlint-disable-next-line socket/prefer-refined-record -- open key set
 export const COMMIT_SYNONYM_MAP: Record<string, string[]> = {
   subject: ['commit', 'commitMessage', 'header', 'message', 'title'],
 }

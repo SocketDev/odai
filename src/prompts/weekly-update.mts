@@ -59,6 +59,7 @@ export interface WeeklyUpdateExtraction {
   candidates: WeeklyUpdateCandidate[]
 }
 
+// oxlint-disable-next-line socket/prefer-refined-record -- open key set
 export const WEEKLY_UPDATE_SYNONYM_MAP: Record<string, string[]> = {
   candidates: ['bumps', 'proposals', 'updates'],
   daysSincePublished: ['days', 'daysPublished', 'published'],

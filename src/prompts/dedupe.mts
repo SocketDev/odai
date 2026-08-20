@@ -32,6 +32,7 @@ export interface DedupeResult {
   suggestions: DedupeSuggestion[]
 }
 
+// oxlint-disable-next-line socket/prefer-refined-record -- open key set
 export const DEDUPE_SYNONYM_MAP: Record<string, string[]> = {
   packages: ['packageNames', 'names'],
   reasoning: ['reason', 'rationale', 'explanation'],

@@ -15,6 +15,7 @@ export interface StreamOptions {
    * Map of field name → regex that extracts a JSON-like value as soon as it is
    * complete. The regex should capture the value in group 1.
    */
+  // oxlint-disable-next-line socket/prefer-refined-record -- open key set
   earlyFieldPatterns?: Record<string, RegExp> | undefined
   requestId?: string | undefined
 }
@@ -109,6 +110,7 @@ export async function streamPrompt(
 
 export function tryExtractEarlyField(
   raw: string,
+  // oxlint-disable-next-line socket/prefer-refined-record -- open key set
   patterns: Record<string, RegExp>,
 ): { name: string; value: unknown } | undefined {
   for (const [name, pattern] of Object.entries(patterns)) {

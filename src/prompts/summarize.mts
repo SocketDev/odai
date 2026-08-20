@@ -28,6 +28,7 @@ export interface TextSummary {
   summary: string
 }
 
+// oxlint-disable-next-line socket/prefer-refined-record -- open key set
 export const SUMMARIZE_SYNONYM_MAP: Record<string, string[]> = {
   points: ['bullets', 'highlights', 'key_points', 'keyPoints'],
   summary: ['description', 'overview', 'tldr'],

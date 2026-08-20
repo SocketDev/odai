@@ -29,6 +29,7 @@ export interface AlertTriage {
   topConcern: string
 }
 
+// oxlint-disable-next-line socket/prefer-refined-record -- open key set
 export const TRIAGE_SYNONYM_MAP: Record<string, string[]> = {
   sentences: ['lines', 'messages', 'summaries'],
   topConcern: ['concern', 'priority', 'severity', 'top_concern'],

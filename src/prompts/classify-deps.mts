@@ -42,6 +42,7 @@ export interface DepClassification {
   surprise: boolean
 }
 
+// oxlint-disable-next-line socket/prefer-refined-record -- open key set
 export const CLASSIFY_DEPS_SYNONYM_MAP: Record<string, string[]> = {
   flags: ['reasons', 'signals', 'tags', 'labels'],
   note: ['reason', 'rationale', 'explanation', 'summary'],

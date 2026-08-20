@@ -33,6 +33,7 @@ export interface LockfileReasoning {
   summary: string
 }
 
+// oxlint-disable-next-line socket/prefer-refined-record -- open key set
 export const LOCKFILE_SYNONYM_MAP: Record<string, string[]> = {
   findings: ['issues', 'problems', 'concerns', 'alerts'],
   package: ['name', 'pkg'],

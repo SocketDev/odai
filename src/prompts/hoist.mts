@@ -67,6 +67,7 @@ export interface HoistExtraction {
   breakingChanges: HoistBreakingChange[]
 }
 
+// oxlint-disable-next-line socket/prefer-refined-record -- open key set
 export const HOIST_SYNONYM_MAP: Record<string, string[]> = {
   breakingChanges: ['breaking', 'breakingChangeList', 'changes'],
   droppedNodeMajor: ['droppedMajor', 'nodeMajor'],

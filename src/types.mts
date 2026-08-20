@@ -76,6 +76,7 @@ export interface StructuredPromptOptions<T> extends PromptOptions {
   retries?: number | undefined
   // oxlint-disable-next-line socket/no-required-in-options-bag -- public API
   schema: SchemaLike<T>
+  // oxlint-disable-next-line socket/prefer-refined-record -- open key set
   synonymMap?: Record<string, string[]> | undefined
 }
 

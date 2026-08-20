@@ -39,6 +39,7 @@ export interface ModelRate {
 }
 
 export interface PricingExtraction {
+  // oxlint-disable-next-line socket/prefer-refined-record -- open key set
   prices: Record<string, ModelRate>
 }
 
@@ -53,6 +54,7 @@ export interface PricingInput {
   sourceText: string
 }
 
+// oxlint-disable-next-line socket/prefer-refined-record -- open key set
 export const PRICING_SYNONYM_MAP: Record<string, string[]> = {
   inputPerMtok: ['input', 'input_price', 'inputPrice', 'promptPrice'],
   outputPerMtok: ['completionPrice', 'output', 'output_price', 'outputPrice'],

@@ -29,6 +29,7 @@ export function buildPrefixedMessages(
 
 export function findCanonicalKey(
   key: string,
+  // oxlint-disable-next-line socket/prefer-refined-record -- open key set
   synonymMap: Record<string, string[]>,
 ): string {
   const lower = key.toLowerCase()
@@ -93,6 +94,7 @@ export function normalizeJsonPunctuation(raw: string): string {
 // oxlint-disable-next-line typescript/no-unnecessary-type-parameters -- the generic return is the API contract: callers pick the normalized shape; returning unknown would push an unsafe cast to every call site.
 export function normalizeKeys<T>(
   value: unknown,
+  // oxlint-disable-next-line socket/prefer-refined-record -- open key set
   synonymMap: Record<string, string[]>,
 ): T {
   if (value === undefined || value === null || typeof value !== 'object') {
@@ -113,6 +115,7 @@ export function normalizeKeys<T>(
 export function parseJsonWithFallback<T>(
   raw: string,
   schema: SchemaLike<T>,
+  // oxlint-disable-next-line socket/prefer-refined-record -- open key set
   synonymMap?: Record<string, string[]> | undefined,
 ): T {
   let trimmed = raw.trim()

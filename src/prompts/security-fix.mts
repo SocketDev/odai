@@ -54,6 +54,7 @@ export interface SecurityFixExtraction {
   alsoVulnerable: string[]
 }
 
+// oxlint-disable-next-line socket/prefer-refined-record -- open key set
 export const SECURITY_FIX_SYNONYM_MAP: Record<string, string[]> = {
   alsoVulnerable: ['alsoAffected', 'alsoVulnerableVersions', 'stillVulnerable'],
 }

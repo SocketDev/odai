@@ -27,6 +27,7 @@ export interface CodePatch {
   patch: string
 }
 
+// oxlint-disable-next-line socket/prefer-refined-record -- open key set
 export const PATCH_SYNONYM_MAP: Record<string, string[]> = {
   explanation: ['reason', 'rationale', 'details'],
   patch: ['diff', 'change', 'fix'],
