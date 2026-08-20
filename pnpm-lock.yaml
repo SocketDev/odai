@@ -727,15 +727,6 @@ importers:
         specifier: 'catalog:'
         version: 26.2.0
 
-  .claude/hooks/fleet/cdn-allowlist-guard:
-    devDependencies:
-      '@socketsecurity/lib-stable':
-        specifier: 'catalog:'
-        version: '@socketsecurity/lib@6.7.0(patch_hash=6013bc5930e8dc12861356e4d5a6affc9c860745c8c0cfdabb4ec9fc635009af)(typescript@7.0.2)'
-      '@types/node':
-        specifier: 'catalog:'
-        version: 26.2.0
-
   .claude/hooks/fleet/changelog-entry-shape-nudge:
     dependencies:
       '@socketsecurity/lib-stable':
@@ -1027,6 +1018,15 @@ importers:
 
   .claude/hooks/fleet/drift-check-nudge:
     devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 26.2.0
+
+  .claude/hooks/fleet/egress-allowlist-guard:
+    devDependencies:
+      '@socketsecurity/lib-stable':
+        specifier: 'catalog:'
+        version: '@socketsecurity/lib@6.7.0(patch_hash=6013bc5930e8dc12861356e4d5a6affc9c860745c8c0cfdabb4ec9fc635009af)(typescript@7.0.2)'
       '@types/node':
         specifier: 'catalog:'
         version: 26.2.0
