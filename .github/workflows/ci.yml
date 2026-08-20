@@ -149,3 +149,14 @@ jobs:
         with:
           setup-script: pnpm run build
           main-script: pnpm run test --all
+
+      # odai presents as llama-server, so llama.cpp's own server suite is the
+      # conformance corpus. The setup step checks out the pinned submodule and
+      # warms the pinned python packages; uv itself arrives SRI-verified in the
+      # fleet bootstrap. The runner classifies every result against
+      # .config/repo/llama-cpp-server.allowlist and fails on an unexpected
+      # failure, a stale entry, or a run that measured nothing.
+      - uses: ./.github/actions/fleet/run-script
+        with:
+          setup-script: pnpm run setup:e2e --conformance
+          main-script: pnpm run test:conformance
