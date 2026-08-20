@@ -98,7 +98,7 @@ describe('page-proxy functions', () => {
     it('fails on an unknown session id', async () => {
       const result = await pagePrompt({ messages: [], sessionId: 99 })
       expect(result.ok).toBe(false)
-      expect(result.error?.message).toBe('unknown session id')
+      expect(result.error?.name).toBe('NotFoundError')
     })
 
     it('returns the raw reply for a known session', async () => {
@@ -137,7 +137,7 @@ describe('page-proxy functions', () => {
     it('fails on an unknown session id', async () => {
       const result = await pageCloneSession({ cloneId: 2, sessionId: 1 })
       expect(result.ok).toBe(false)
-      expect(result.error?.message).toBe('unknown session id')
+      expect(result.error?.name).toBe('NotFoundError')
     })
 
     it('rejects a session without a clone method', async () => {

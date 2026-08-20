@@ -205,7 +205,7 @@ export async function pageCloneSession(payload: {
   const session = store?.get(payload.sessionId)
   if (store === undefined || session === undefined) {
     return {
-      error: { message: 'unknown session id', name: 'Error' },
+      error: { message: 'unknown session id', name: 'NotFoundError' },
       ok: false,
     }
   }
@@ -316,7 +316,7 @@ export async function pagePrompt(payload: {
   const session = holder.__odaiSessions?.get(payload.sessionId)
   if (session === undefined) {
     return {
-      error: { message: 'unknown session id', name: 'Error' },
+      error: { message: 'unknown session id', name: 'NotFoundError' },
       ok: false,
     }
   }
