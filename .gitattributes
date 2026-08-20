@@ -95,7 +95,6 @@ docs/references/fleet/sfw-local-install.md linguist-generated=true
 patches/@socketsecurity__lib@6.7.0.patch linguist-generated=true
 patches/brace-expansion@5.0.9.patch linguist-generated=true
 patches/minimatch@10.2.6.patch linguist-generated=true
-patches/taze@20.0.0.patch linguist-generated=true
 scripts/fleet linguist-generated=true
 scripts/repo/bootstrap linguist-generated=true
 test/fleet/_shared/lib linguist-generated=true

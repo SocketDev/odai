@@ -18,7 +18,7 @@
  *   check-fleet-shared-scripts-are-testable).
  */
 
-import { readFileSync } from 'node:fs'
+import { readFileSync, realpathSync } from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
 import { pathToFileURL } from 'node:url'
@@ -81,11 +81,17 @@ export function walkKeys(value, keys) {
 }
 
 function isMainModule() {
-  if (!process.argv[1]) {
+  const entry = process.argv[1]
+  if (!entry) {
     return false
   }
   try {
-    return pathToFileURL(process.argv[1]).href === import.meta.url
+    // realpath both sides before comparing. Node normalizes `..` in argv[1]
+    // but leaves symlinks in place, while import.meta.url is fully resolved, so
+    // a launch path under a symlinked prefix (macOS /tmp and /var/folders, a
+    // symlinked checkout) compares unequal and the CLI silently does nothing
+    // while exiting 0.
+    return pathToFileURL(realpathSync(entry)).href === import.meta.url
   } catch {
     return false
   }

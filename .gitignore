@@ -189,7 +189,6 @@ pnpm-debug.log
 /patches/@socketsecurity__lib@6.7.0.patch
 /patches/brace-expansion@5.0.9.patch
 /patches/minimatch@10.2.6.patch
-/patches/taze@20.0.0.patch
 /scripts/fleet/
 # </fleet>
 # <repo>

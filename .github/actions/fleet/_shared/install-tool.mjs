@@ -45,6 +45,7 @@ import crypto from 'node:crypto'
 import {
   chmodSync,
   mkdirSync,
+  realpathSync,
   renameSync,
   rmSync,
   writeFileSync,
@@ -111,11 +112,17 @@ export function parseIntegrity(s) {
 // helpers above be imported by unit tests without triggering the download /
 // verify / extract pipeline.
 function isMainModule() {
-  if (!process.argv[1]) {
+  const entry = process.argv[1]
+  if (!entry) {
     return false
   }
   try {
-    return pathToFileURL(process.argv[1]).href === import.meta.url
+    // realpath both sides before comparing. Node normalizes `..` in argv[1]
+    // but leaves symlinks in place, while import.meta.url is fully resolved, so
+    // a launch path under a symlinked prefix (macOS /tmp and /var/folders, a
+    // symlinked checkout) compares unequal and the CLI silently does nothing
+    // while exiting 0.
+    return pathToFileURL(realpathSync(entry)).href === import.meta.url
   } catch {
     return false
   }
