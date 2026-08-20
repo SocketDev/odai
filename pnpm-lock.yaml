@@ -1146,12 +1146,6 @@ importers:
         specifier: 'catalog:'
         version: 26.2.0
 
-  .claude/hooks/fleet/headroom-proxy-start:
-    dependencies:
-      '@socketsecurity/lib-stable':
-        specifier: 'catalog:'
-        version: '@socketsecurity/lib@6.7.0(patch_hash=6013bc5930e8dc12861356e4d5a6affc9c860745c8c0cfdabb4ec9fc635009af)(typescript@7.0.2)'
-
   .claude/hooks/fleet/honeypot-echo-guard:
     dependencies:
       '@socketsecurity/lib-stable':
@@ -2439,6 +2433,12 @@ importers:
       '@socketsecurity/lib-stable':
         specifier: 'catalog:'
         version: '@socketsecurity/lib@6.7.0(patch_hash=6013bc5930e8dc12861356e4d5a6affc9c860745c8c0cfdabb4ec9fc635009af)(typescript@7.0.2)'
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 26.2.0
+
+  .claude/hooks/fleet/snapshot-hostile-require-guard:
     devDependencies:
       '@types/node':
         specifier: 'catalog:'
