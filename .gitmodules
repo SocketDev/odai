@@ -6,3 +6,5 @@
 	url = https://github.com/ggml-org/llama.cpp.git
 	branch = b10488
 	shallow = true
+	sparse-checkout = tools/server/
+	verify = pnpm run test:conformance
