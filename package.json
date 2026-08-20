@@ -51,7 +51,7 @@
     "format": "node scripts/fleet/format.mts",
     "format:check": "node scripts/fleet/format.mts --check",
     "lint": "node scripts/fleet/lint.mts",
-    "prepare": "node scripts/repo/bootstrap/prepare.mts && node scripts/fleet/install-git-hooks.mts && node scripts/fleet/prepare.mts",
+    "prepare": "node scripts/repo/bootstrap/prepare.mts && node scripts/repo/bootstrap/prepare.mts && node scripts/fleet/install-git-hooks.mts && node scripts/fleet/prepare.mts",
     "security": "node scripts/fleet/security.mts",
     "setup:e2e": "node test/scripts/setup-e2e.mts",
     "sync-fleet": "node scripts/repo/bootstrap/fleet.mjs",
