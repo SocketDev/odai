@@ -10,7 +10,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 
 import { createLlamaServerBackend } from '../../src/backends/llama-server.mts'
 import { startShimServer } from '../../src/shim/server.mts'
-import { createScriptedBackend } from './_shared/scripted-backend.mts'
+import { createScriptedBackend } from '../shim/_shared/scripted-backend.mts'
 import type { ShimServerHandle } from '../../src/shim/server.mts'
 
 describe('odai over odai', () => {
