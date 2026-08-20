@@ -209,8 +209,8 @@ catalogs:
       specifier: 0.0.79
       version: 0.0.79
     '@redwoodjs/agent-ci':
-      specifier: 0.18.0
-      version: 0.18.0
+      specifier: 0.17.1
+      version: 0.17.1
     '@shadscan/cli':
       specifier: 0.16.0
       version: 0.16.0
@@ -408,7 +408,7 @@ importers:
         version: 0.0.79
       '@redwoodjs/agent-ci':
         specifier: 'catalog:'
-        version: 0.18.0(supports-color@7.2.0)
+        version: 0.17.1(supports-color@7.2.0)
       '@shadscan/cli':
         specifier: 'catalog:'
         version: 0.16.0
@@ -2054,6 +2054,24 @@ importers:
         specifier: 'catalog:'
         version: 26.2.0
 
+  .claude/hooks/fleet/pr-comment-brevity-guard:
+    devDependencies:
+      '@socketsecurity/lib-stable':
+        specifier: 'catalog:'
+        version: '@socketsecurity/lib@6.7.0(patch_hash=6013bc5930e8dc12861356e4d5a6affc9c860745c8c0cfdabb4ec9fc635009af)(typescript@7.0.2)'
+      '@types/node':
+        specifier: 'catalog:'
+        version: 26.2.0
+
+  .claude/hooks/fleet/pr-comment-shape-nudge:
+    devDependencies:
+      '@socketsecurity/lib-stable':
+        specifier: 'catalog:'
+        version: '@socketsecurity/lib@6.7.0(patch_hash=6013bc5930e8dc12861356e4d5a6affc9c860745c8c0cfdabb4ec9fc635009af)(typescript@7.0.2)'
+      '@types/node':
+        specifier: 'catalog:'
+        version: 26.2.0
+
   .claude/hooks/fleet/pr-merge-conflict-guard:
     dependencies:
       '@socketsecurity/lib-stable':
@@ -3405,8 +3423,8 @@ packages:
   '@quansync/fs@1.0.0':
     resolution: {integrity: sha512-4TJ3DFtlf1L5LDMaM6CanJ/0lckGNtJcMjQ1NAV6zDmA0tEHKZtxNKin8EgPaVX1YzljbxckyT2tJrpQKAtngQ==}
 
-  '@redwoodjs/agent-ci@0.18.0':
-    resolution: {integrity: sha512-GfuCg7dPAE0carKABi4e4KseH1O3DSZORCIb61yI44RoZ5dWqSv1Gcsj0xwPlXADHpTiHV4nq995lsHrrvfPhw==}
+  '@redwoodjs/agent-ci@0.17.1':
+    resolution: {integrity: sha512-uf8tUPJ4+LUfLCAfo5ECQuGAO3yWfIgUsqFR5Wep0S9vTGD3pXK0AfMt+EzF1iySDjPPXIYZnTxvyDC6L5fbVQ==}
     engines: {node: '>=22'}
     hasBin: true
 
@@ -4103,8 +4121,8 @@ packages:
     resolution: {integrity: sha512-avsq/xk4YPIrn0CgleX5bjT9Y8IT1p9PxrNQ++RBQ2WEyFfHCTDsT9kmyxz+H/axnjAwg8wJWEIuPGOUuNupiA==}
     engines: {node: '>= 14.17'}
 
-  dtu-github-actions@0.18.0:
-    resolution: {integrity: sha512-GZuZCZTmjUr5MD9eLen4iEFifHk5pPtUumBHC4vk64HZ7KKqBxhhtrXULGL++BuQJw0MK6M3jLTfbuknOy6Nzw==}
+  dtu-github-actions@0.17.1:
+    resolution: {integrity: sha512-r4qrvnTg+jB4ThDTErECoBLnDXycrKHZp8/GJT67j4HFzpJ5fAznAqnzw1jtLQsKNusE+s1yEoMBHICmHE/zsw==}
     engines: {node: '>=22'}
 
   ee-first@1.1.1:
@@ -4840,11 +4858,6 @@ packages:
     engines: {node: ^20.19.0 || >=22.12.0}
     hasBin: true
 
-  run-local-ci@0.18.0:
-    resolution: {integrity: sha512-nbmnxYwILzoG7gpvn+2JhQMBZ4zgJqOxDpVySYZTuRfUm+8xm0x8nkDMeM/jFvGtunX4UkO3kmCXL/kMho7P8Q==}
-    engines: {node: '>=22'}
-    hasBin: true
-
   run-parallel@1.2.0:
     resolution: {integrity: sha512-5l4VyZR86LZ/lDxZTR6jqL8AFE2S0IFLMP26AbjsLVADxHdhB/c0GUsH+y39UfCi3dzz8OlQuPmnaJOMoDHQBA==}
 
@@ -5469,9 +5482,13 @@ snapshots:
     dependencies:
       quansync: 1.0.0
 
-  '@redwoodjs/agent-ci@0.18.0(supports-color@7.2.0)':
+  '@redwoodjs/agent-ci@0.17.1(supports-color@7.2.0)':
     dependencies:
-      run-local-ci: 0.18.0(supports-color@7.2.0)
+      '@actions/workflow-parser': 0.3.43
+      dockerode: 5.0.1(supports-color@7.2.0)
+      dtu-github-actions: 0.17.1(supports-color@7.2.0)
+      minimatch: 10.2.6(patch_hash=83f1ea5b333d1b6fe1b36f93ccb222aa02e5dd468b2c646e285d7d53d234e174)
+      yaml: 2.9.0
     transitivePeerDependencies:
       - supports-color
 
@@ -6011,7 +6028,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  dtu-github-actions@0.18.0(supports-color@7.2.0):
+  dtu-github-actions@0.17.1(supports-color@7.2.0):
     dependencies:
       body-parser: 2.3.0(supports-color@7.2.0)
       minimatch: 10.2.6(patch_hash=83f1ea5b333d1b6fe1b36f93ccb222aa02e5dd468b2c646e285d7d53d234e174)
@@ -6915,16 +6932,6 @@ snapshots:
       '@rolldown/binding-openharmony-arm64': 1.2.4
       '@rolldown/binding-win32-arm64-msvc': 1.2.4
       '@rolldown/binding-win32-x64-msvc': 1.2.4
-
-  run-local-ci@0.18.0(supports-color@7.2.0):
-    dependencies:
-      '@actions/workflow-parser': 0.3.43
-      dockerode: 5.0.1(supports-color@7.2.0)
-      dtu-github-actions: 0.18.0(supports-color@7.2.0)
-      minimatch: 10.2.6(patch_hash=83f1ea5b333d1b6fe1b36f93ccb222aa02e5dd468b2c646e285d7d53d234e174)
-      yaml: 2.9.0
-    transitivePeerDependencies:
-      - supports-color
 
   run-parallel@1.2.0:
     dependencies:
