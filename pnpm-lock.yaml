@@ -442,6 +442,9 @@ importers:
       '@types/shell-quote':
         specifier: 'catalog:'
         version: 1.7.5
+      '@ultrathink/acorn.rs.wasm':
+        specifier: 'catalog:'
+        version: 0.1.1
       '@vitest/coverage-v8':
         specifier: 'catalog:'
         version: 4.1.10(vitest@4.1.10)
