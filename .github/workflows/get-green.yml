@@ -149,6 +149,8 @@ jobs:
         shell: bash
         env:
           BRANCH: ${{ inputs.branch }}
+          GITHUB_TOKEN: ${{ github.token }}
+          SERVER_URL: ${{ github.server_url }}
         run: |
           set -euo pipefail
           if git diff --quiet; then
@@ -166,4 +168,17 @@ jobs:
           git -c user.name='socket-bot' \
               -c user.email='socket-bot@users.noreply.github.com' \
               commit -m 'fix(deps): apply the deterministic autofixer after the update'
-          git push origin "HEAD:${BRANCH}"
+          # The bootstrap checkout above authenticated only its own fetch via
+          # a per-invocation `-c`, so nothing landed in .git/config — this
+          # push needs its own auth the same way. The job's contents: write
+          # GITHUB_TOKEN is enough; the header is cleared in an always() step
+          # below rather than left in .git/config.
+          AUTH_B64="$(printf 'x-access-token:%s' "${GITHUB_TOKEN}" | base64 | tr -d '\n')"
+          git -c "http.${SERVER_URL}/.extraheader=AUTHORIZATION: basic ${AUTH_B64}" \
+              push origin "HEAD:${BRANCH}"
+
+      - name: Clear push credentials
+        if: ${{ always() }}
+        env:
+          SERVER_URL: ${{ github.server_url }}
+        run: git config --local --unset-all "http.${SERVER_URL}/.extraheader" || true
