@@ -112,6 +112,9 @@ odai serve --port 0         # let the OS pick a free port
 odai serve --backend llama-server
 ```
 
+<details>
+<summary><b>Pointing a client at it</b> - the two base-URL forms, and the one request field the shim ignores</summary>
+
 Point any Anthropic-speaking client at the printed URL with
 `ANTHROPIC_BASE_URL` and any non-empty `ANTHROPIC_API_KEY` (loopback only, no
 auth). For example, [communique](https://github.com/jdx/communique) runs its
@@ -133,6 +136,8 @@ Known limitation: the shim ignores `max_tokens` in the request - odai's
 session interface has no output-token budget - and never emits a `max_tokens`
 stop reason, so a reply cut short by the engine itself (for example
 llama-server's own `n_predict` default) arrives as `end_turn`.
+
+</details>
 
 ### Bench
 
