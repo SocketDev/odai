@@ -28,11 +28,7 @@ import {
   repairJson,
 } from '../src/json.mts'
 
-const identitySchema = {
-  parse(value: unknown): unknown {
-    return value
-  },
-}
+import { identitySchema } from './_shared/identity-schema.mts'
 
 const LETTERS = 'abcdefghijklmnopqrstuvwxyz'
 
@@ -60,14 +56,14 @@ const safeNode = fc.letrec<{ node: unknown }>(tie => ({
     fc.integer(),
     braceFreeStr,
     fc.array(tie('node'), { maxLength: 4 }),
-    fc.dictionary(word, tie('node'), { maxLength: 4, noNullPrototype: true }),
+    fc.dictionary(word, tie('node'), { maxKeys: 4, noNullPrototype: true }),
   ),
 })).node
 
 // Top-level must be an object so the serialized form starts with `{` — that is
 // what repairJson keys off of.
 const safeObject = fc.dictionary(word, safeNode, {
-  maxLength: 5,
+  maxKeys: 5,
   noNullPrototype: true,
 })
 
@@ -134,9 +130,10 @@ describe('json/findCanonicalKey (fuzz)', () => {
   const mapArb = fc
     .uniqueArray(word, { minLength: 2, maxLength: 6 })
     .map(tokens => {
-      const [canonical, ...synonyms] = tokens
+      const canonical = tokens[0]!
+      const synonyms = tokens.slice(1)
       return {
-        canonical: canonical,
+        canonical,
         map: { [canonical]: synonyms },
         synonyms,
       }
@@ -185,10 +182,10 @@ describe('json/normalizeKeys (fuzz)', () => {
   test('renames a synonym key to its canonical', () => {
     const renameArb = fc
       .uniqueArray(word, { maxLength: 2, minLength: 2 })
-      .chain(([canonical, synonym]) =>
+      .chain(tokens =>
         braceFreeStr.map(value => ({
-          canonical: canonical,
-          synonym: synonym,
+          canonical: tokens[0]!,
+          synonym: tokens[1]!,
           value,
         })),
       )
@@ -280,14 +277,14 @@ describe('json/buildPrefixedMessages (fuzz)', () => {
           )
           const expectedLength = systemPrompt === undefined ? 2 : 3
           expect(messages).toHaveLength(expectedLength)
-          const last = messages[messages.length - 1]
+          const last = messages[messages.length - 1]!
           expect(last.role).toBe('assistant')
           expect(last.content).toBe(prefill)
           const userMsg = messages.find(m => m.role === 'user')!
           expect(userMsg.content).toBe(userContent)
           if (systemPrompt !== undefined) {
-            expect(messages[0].role).toBe('system')
-            expect(messages[0].content).toBe(systemPrompt)
+            expect(messages[0]!.role).toBe('system')
+            expect(messages[0]!.content).toBe(systemPrompt)
           }
         },
       ),
@@ -325,10 +322,10 @@ describe('json/parseJsonWithFallback (fuzz)', () => {
   test('applies synonym normalization to the parsed object', () => {
     const renameArb = fc
       .uniqueArray(word, { maxLength: 2, minLength: 2 })
-      .chain(([canonical, synonym]) =>
+      .chain(tokens =>
         braceFreeStr.map(value => ({
-          canonical: canonical,
-          synonym: synonym,
+          canonical: tokens[0]!,
+          synonym: tokens[1]!,
           value,
         })),
       )

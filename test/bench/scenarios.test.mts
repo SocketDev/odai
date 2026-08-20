@@ -14,6 +14,8 @@ import {
 import type { OdaiModel } from '../../src/model.mts'
 import type { TaskResult } from '../../src/types.mts'
 
+import { stubSession } from '../_shared/session-stub.mts'
+
 /**
  * A model that returns caller-chosen data as a passing structured result, so a
  * scenario's schema check succeeds and its behavioral assertion can be steered
@@ -34,7 +36,7 @@ function fakeModel(data: unknown): OdaiModel {
       return { raw: result.raw }
     },
     rawSession() {
-      return { prompt: async () => result.raw }
+      return stubSession({ prompt: async () => result.raw })
     },
   }
 }

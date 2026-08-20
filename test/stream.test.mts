@@ -17,8 +17,7 @@ function createSession(chunks: string[]): SessionLike {
     promptStreaming(): AsyncIterable<string> {
       return (async function* generate(): AsyncGenerator<string> {
         for (let i = 0, { length } = chunks; i < length; i += 1) {
-          const chunk = chunks[i]
-          yield chunk
+          yield chunks[i]!
         }
       })()
     },
@@ -43,12 +42,15 @@ describe('stream', () => {
   })
 
   it('falls back to prompt when streaming is unavailable', async () => {
-    const session: SessionLike = {
+    // Deliberately out of contract: `SessionLike` requires `promptStreaming`,
+    // and this asserts the fallback for a runtime session that omits it anyway
+    // (an older browser build, a hand-rolled backend).
+    const session = {
       async prompt(messages: Message[]): Promise<string> {
         void messages
         return 'plain'
       },
-    }
+    } as unknown as SessionLike
     const result = await streamPrompt(session, [
       { content: 'hi', role: 'user' },
     ])

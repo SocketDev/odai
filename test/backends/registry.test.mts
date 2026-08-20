@@ -24,15 +24,18 @@ import {
 } from '../../src/backends/registry.mts'
 import { ODAI_LLAMA_URL_ENV_VAR } from '../../src/backends/llama-server.mts'
 import { LanguageModelSimulator } from '../../src/simulator.mts'
+import type { LanguageModelFactory } from '@socketsecurity/lib/ai/builtin'
+
 import type { OdaiBackend } from '../../src/backends/types.mts'
 
 // odai delegates built-in model resolution to socket-lib's `ai/builtin`, whose
 // real resolver probes the runtime once and caches. Mock it to re-read the
 // per-case `globalThis.LanguageModel` install on every call.
 vi.mock(import('@socketsecurity/lib/ai/builtin'), () => ({
-  getLanguageModel: () =>
-    (globalThis as { LanguageModel?: unknown | undefined }).LanguageModel ??
-    undefined,
+  getLanguageModel: (): LanguageModelFactory | undefined =>
+    ((globalThis as { LanguageModel?: unknown | undefined }).LanguageModel as
+      | LanguageModelFactory
+      | undefined) ?? undefined,
 }))
 
 /**

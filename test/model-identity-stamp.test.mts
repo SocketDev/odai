@@ -2,15 +2,18 @@ import { describe, expect, it } from 'vitest'
 
 import { createModelFromState } from '../src/model.mts'
 
+import { identitySchema } from './_shared/identity-schema.mts'
+import { stubSession } from './_shared/session-stub.mts'
+
 describe('model identity stamping', () => {
   function fakeState(
     backendName?: string | undefined,
     modelName?: string | undefined,
   ) {
-    const session = {
+    const session = stubSession({
       prompt: async () =>
         '{"packages":[],"recommendedVersion":"1.0.0","reasoning":"x"}',
-    }
+    })
     return {
       backendName,
       cloneCapable: false,
@@ -25,6 +28,7 @@ describe('model identity stamping', () => {
     const result = await model.promptStructured('{"packages":[]}', {
       prefill: '',
       retries: 0,
+      schema: identitySchema,
     })
     expect(result.model).toBe('chrome-builtin')
   })
@@ -36,6 +40,7 @@ describe('model identity stamping', () => {
     const result = await model.promptStructured('{"packages":[]}', {
       prefill: '',
       retries: 0,
+      schema: identitySchema,
     })
     expect(result.model).toBe('Gemini Nano')
   })
@@ -45,6 +50,7 @@ describe('model identity stamping', () => {
     const result = await model.promptStructured('{"packages":[]}', {
       prefill: '',
       retries: 0,
+      schema: identitySchema,
     })
     expect(result.model).toBeUndefined()
   })

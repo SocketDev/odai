@@ -8,13 +8,16 @@ import { createBuiltinModel } from '../src/model.mts'
 import { runEval } from '../src/bench/index.mts'
 import { createBenchResponseRules } from '../src/bench/simulator.mts'
 
+import type { LanguageModelFactory } from '@socketsecurity/lib/ai/builtin'
+
 // odai delegates built-in model resolution to socket-lib's `ai/builtin`, whose
 // real resolver probes the runtime once and caches. Mock it to re-read the
 // per-case `globalThis.LanguageModel` install on every call.
 vi.mock(import('@socketsecurity/lib/ai/builtin'), () => ({
-  getLanguageModel: () =>
-    (globalThis as { LanguageModel?: unknown | undefined }).LanguageModel ??
-    undefined,
+  getLanguageModel: (): LanguageModelFactory | undefined =>
+    ((globalThis as { LanguageModel?: unknown | undefined }).LanguageModel as
+      | LanguageModelFactory
+      | undefined) ?? undefined,
 }))
 
 describe('LanguageModelSimulator', () => {

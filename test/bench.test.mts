@@ -35,6 +35,7 @@ describe('bench evaluator', () => {
           name: 'no-timing',
           ok: true,
           raw: '{}',
+          score: 1,
         },
       ],
       score: 1,

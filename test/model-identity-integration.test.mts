@@ -5,7 +5,8 @@ import {
   LanguageModelSimulator,
 } from '../src/simulator.mts'
 import { createOdaiModel } from '../src/model.mts'
-import type { Message } from '../src/types.mts'
+
+import { identitySchema } from './_shared/identity-schema.mts'
 
 /**
  * The stamp chain through the REAL simulator backend — no module mocks, so
@@ -38,6 +39,7 @@ describe('model identity through the simulator backend (CI-accurate)', () => {
     const result = await model.promptStructured('{}', {
       prefill: '',
       retries: 0,
+      schema: identitySchema,
     })
     expect(result.model).toBe('Gemini Nano')
   })
@@ -59,6 +61,7 @@ describe('model identity through the simulator backend (CI-accurate)', () => {
     const result = await model.promptStructured('{}', {
       prefill: '',
       retries: 0,
+      schema: identitySchema,
     })
     expect(result.model).toBe('simulator')
   })

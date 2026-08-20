@@ -7,11 +7,15 @@ import {
   isUnsupportedError,
   resolveInitialPrompts,
 } from '../src/session.mts'
+import type { LanguageModelFactory } from '@socketsecurity/lib/ai/builtin'
+
 import type { LanguageModelLike } from '../src/types.mts'
 
 // `createLanguageModel` resolves the factory through socket-lib's `ai/builtin`
 // injection point. Mock it so each case controls the resolved factory directly.
-const builtin = vi.hoisted(() => ({ factory: undefined as unknown }))
+const builtin = vi.hoisted(() => ({
+  factory: undefined as LanguageModelFactory | undefined,
+}))
 vi.mock(import('@socketsecurity/lib/ai/builtin'), () => ({
   getLanguageModel: () => builtin.factory,
 }))

@@ -11,7 +11,6 @@ import {
   truncateForLog,
   withTimeout,
 } from '../../src/cli/run.mts'
-import { createMockModel } from '../../src/node.mts'
 import type { OdaiBackend } from '../../src/backends/types.mts'
 import type { SessionLike } from '../../src/types.mts'
 

@@ -11,11 +11,7 @@ import {
 } from '../src/json.mts'
 import type { Message, SessionLike } from '../src/types.mts'
 
-const identitySchema = {
-  parse(value: unknown): unknown {
-    return value
-  },
-}
+import { identitySchema } from './_shared/identity-schema.mts'
 
 const requireNumericASchema = {
   parse(value: unknown): { a: number } {

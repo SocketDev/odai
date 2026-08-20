@@ -15,9 +15,7 @@
       "upstream": "llama.cpp",
       "criticality": 5,
       "materialization": "sparse",
-      "sparse_cone": [
-        "tools/server/"
-      ],
+      "sparse_cone": ["tools/server/"],
       "conformance_test": "test/integration/llama-cpp-server-conformance.test.mts",
       "notes": "odai never builds llama.cpp: it speaks the protocol on both sides, as a client through the llama-server backend and as a server through the shim. Only tools/server/ is tracked — the route table in server.cpp, the endpoint reference in README.md, and the test suite the conformance runner drives. A commit anywhere else in llama.cpp (ggml, the CLI, the model code) is not drift for us. Upgrade policy is locked because llama.cpp tags a b<build> release every few hours with no semver: adopting a pin is a deliberate re-verification, not an auto-bump.",
       "upgrade_policy": "locked"

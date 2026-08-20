@@ -199,7 +199,7 @@ rl.on('line', line => {
       })
       const raw = await session.prompt([{ content: 'hello', role: 'user' }])
       expect(raw).toBe('echo:hello')
-      const cloned = session.clone!()
+      const cloned = await session.clone!()
       const clonedRaw = await cloned.prompt([
         { content: 'world', role: 'user' },
       ])

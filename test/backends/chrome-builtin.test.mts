@@ -14,6 +14,8 @@ import {
 } from '../../src/backends/chrome-builtin.mts'
 import { createOdaiModel } from '../../src/model.mts'
 import { LanguageModelSimulator } from '../../src/simulator.mts'
+import type { LanguageModelFactory } from '@socketsecurity/lib/ai/builtin'
+
 import type {
   BrowserContextLike,
   ChromiumLauncherLike,
@@ -24,9 +26,10 @@ import type {
 // real resolver probes the runtime once and caches. Mock it to re-read the
 // per-case `globalThis.LanguageModel` install on every call.
 vi.mock(import('@socketsecurity/lib/ai/builtin'), () => ({
-  getLanguageModel: () =>
-    (globalThis as { LanguageModel?: unknown | undefined }).LanguageModel ??
-    undefined,
+  getLanguageModel: (): LanguageModelFactory | undefined =>
+    ((globalThis as { LanguageModel?: unknown | undefined }).LanguageModel as
+      | LanguageModelFactory
+      | undefined) ?? undefined,
 }))
 
 interface FakeBrowser {
@@ -220,7 +223,7 @@ describe('chrome-builtin backend', () => {
     })
     await backend.languageModel()
     expect(fake.launches).toHaveLength(1)
-    const launch = fake.launches[0]
+    const launch = fake.launches[0]!
     expect(launch.userDataDir).toBe(fixture.userDataDir)
     expect(launch.userDataDir).not.toBe(fixture.systemDir)
     expect(launch.options['executablePath']).toBe(fixture.chromePath)

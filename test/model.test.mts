@@ -13,6 +13,8 @@ import type { LanguageModelState } from '../src/model.mts'
 import type { OdaiBackend } from '../src/backends/types.mts'
 import type { Message, SessionLike } from '../src/types.mts'
 
+import { stubSession } from './_shared/session-stub.mts'
+
 describe('createOdaiModel', () => {
   it('drives structured prompts through the simulator backend', async () => {
     const model = await createOdaiModel({
@@ -115,13 +117,11 @@ describe('createOdaiModel', () => {
 
 describe('cloneSession', () => {
   it('clones a clone-capable session', async () => {
-    const clone = { prompt: async () => 'cloned' } as SessionLike
-    const base: SessionLike = {
+    const clone = stubSession({ prompt: async () => 'cloned' })
+    const base = stubSession({
       clone: () => clone,
-      async prompt() {
-        return 'base'
-      },
-    }
+      prompt: async () => 'base',
+    })
     const state: LanguageModelState = {
       cloneCapable: true,
       namespace: 'modern',
@@ -131,11 +131,7 @@ describe('cloneSession', () => {
   })
 
   it('returns the base session when cloning is not available', async () => {
-    const base: SessionLike = {
-      async prompt() {
-        return 'base'
-      },
-    }
+    const base = stubSession({ prompt: async () => 'base' })
     const state: LanguageModelState = {
       cloneCapable: false,
       namespace: 'modern',
@@ -148,31 +144,31 @@ describe('cloneSession', () => {
 describe('destroySession', () => {
   it('calls destroy when present and is a no-op otherwise', () => {
     let destroyed = false
-    destroySession({
-      destroy: () => {
-        destroyed = true
-      },
-      prompt: async () => 'x',
-    })
+    destroySession(
+      stubSession({
+        destroy: () => {
+          destroyed = true
+        },
+      }),
+    )
     expect(destroyed).toBe(true)
-    expect(() => destroySession({ prompt: async () => 'x' })).not.toThrow()
+    expect(() => destroySession(stubSession())).not.toThrow()
   })
 })
 
 describe('createModelFromState', () => {
   it('destroys the per-request clone after a structured prompt', async () => {
     let destroyed = 0
-    const session: SessionLike = {
-      clone: () => ({
-        destroy: () => {
-          destroyed += 1
-        },
-        prompt: async () => '{"ok":true}',
-      }),
-      async prompt() {
-        return '{"ok":true}'
-      },
-    }
+    const session = stubSession({
+      clone: () =>
+        stubSession({
+          destroy: () => {
+            destroyed += 1
+          },
+          prompt: async () => '{"ok":true}',
+        }),
+      prompt: async () => '{"ok":true}',
+    })
     const model = createModelFromState({
       cloneCapable: true,
       namespace: 'modern',

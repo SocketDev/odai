@@ -10,6 +10,8 @@ import {
 import type { OdaiModel } from '../src/model.mts'
 import type { TaskResult } from '../src/types.mts'
 
+import { stubSession } from './_shared/session-stub.mts'
+
 const FIXED_RESPONSE = '{"alsoVulnerable":[]}'
 
 describe('createSecurityFixPrompt', () => {
@@ -86,7 +88,7 @@ describe('assessSecurityFix', () => {
         return { raw: '' }
       },
       rawSession() {
-        return { prompt: async () => '' }
+        return stubSession()
       },
     }
     const result = await assessSecurityFix(model, {

@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import type { LanguageModelFactory } from '@socketsecurity/lib/ai/builtin'
 
 import {
   isAvailableState,
@@ -11,7 +12,9 @@ import type { LanguageModelLike } from '../src/types.mts'
 // and adapts the result. Mock that injection point so each case controls exactly which
 // factory (if any) the runtime resolves, without socket-lib's module-scope probe
 // cache leaking across cases.
-const builtin = vi.hoisted(() => ({ factory: undefined as unknown }))
+const builtin = vi.hoisted(() => ({
+  factory: undefined as LanguageModelFactory | undefined,
+}))
 vi.mock(import('@socketsecurity/lib/ai/builtin'), () => ({
   getLanguageModel: () => builtin.factory,
 }))
