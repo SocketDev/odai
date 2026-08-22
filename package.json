@@ -51,7 +51,7 @@
     "format": "node scripts/fleet/format.mts",
     "format:check": "node scripts/fleet/format.mts --check",
     "lint": "node scripts/fleet/lint.mts",
-    "prepare": "node scripts/repo/bootstrap/prepare.mts && node scripts/fleet/install-git-hooks.mts && node scripts/repo/bootstrap/prepare.mts && node scripts/fleet/install-git-hooks.mts && node scripts/fleet/prepare.mts",
+    "prepare": "node scripts/repo/bootstrap/prepare.mts && node scripts/fleet/install-git-hooks.mts && node scripts/fleet/prepare.mts",
     "security": "node scripts/fleet/security.mts",
     "setup:e2e": "node test/scripts/setup-e2e.mts",
     "sync-fleet": "node scripts/repo/bootstrap/fleet.mjs",
@@ -63,7 +63,7 @@
     "type": "node node_modules/typescript/bin/tsc --noEmit -p .config/fleet/tsconfig.check.json",
     "update": "node scripts/fleet/update.mts",
     "check:paths": "node scripts/fleet/check/paths-are-canonical.mts",
-    "ci:local": "node scripts/fleet/agent-ci-skip-locks.mts run --all --quiet --pause-on-failure --github-token",
+    "ci:local": "node scripts/fleet/local-ci-skip-locks.mts run --all --quiet --pause-on-failure --github-token",
     "clean": "node scripts/fleet/clean.mts",
     "cover": "node scripts/fleet/cover.mts",
     "doctor:auth": "node scripts/fleet/check/setup-is-prompt-less.mts",
@@ -111,15 +111,17 @@
     "gh:auth": "node scripts/fleet/gh-auth.mts",
     "offload:model": "node scripts/fleet/offload-model.mts",
     "setup:fireconnect": "node scripts/fleet/setup/fireconnect.mts",
-    "setup:offload-providers": "node scripts/fleet/setup/offload-providers.mts"
+    "setup:offload-providers": "node scripts/fleet/setup/offload-providers.mts",
+    "sync-global-hooks": "node scripts/fleet/sync-global-hooks.mts",
+    "backup": "node scripts/fleet/backup-work.mts"
   },
   "dependencies": {
     "@sinclair/typebox": "catalog:",
     "@types/dom-chromium-ai": "0.0.17"
   },
   "devDependencies": {
+    "@mdn/browser-compat-data": "catalog:",
     "@playwright/mcp": "catalog:",
-    "@redwoodjs/agent-ci": "catalog:",
     "@shadscan/cli": "catalog:",
     "@socketregistry/packageurl-js": "catalog:",
     "@socketregistry/packageurl-js-stable": "catalog:",
@@ -156,13 +158,15 @@
     "portless": "catalog:",
     "regjsparser": "catalog:",
     "rolldown": "catalog:",
+    "run-local-ci": "catalog:",
     "semver": "catalog:",
     "shell-quote": "catalog:",
     "taze": "catalog:",
     "typebox": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:",
-    "vitiate": "catalog:"
+    "vitiate": "catalog:",
+    "yaml": "catalog:"
   },
   "peerDependencies": {
     "playwright-core": ">=1.49.0"

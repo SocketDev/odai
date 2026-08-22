@@ -3,8 +3,8 @@
   "schemaVersion": 1,
   "repoName": "odai",
   "bundle": {
-    "ref": "fleet-pack-73f1772ac3a9f90c84e6cf7d2e2f19d1159d0307",
-    "cascadeSha": "73f1772ac3a9f90c84e6cf7d2e2f19d1159d0307"
+    "ref": "fleet-pack-290569a75ea039daaea31504b944a7fb7a6c9767",
+    "cascadeSha": "290569a75ea039daaea31504b944a7fb7a6c9767"
   },
   "repo": {
     "type": "solo"
