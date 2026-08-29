@@ -1,11 +1,10 @@
 catalog:
   '@mdn/browser-compat-data': 8.0.11
-  # agent-ci runs a repo's GitHub Actions workflows locally in Docker so a
-  # change can be validated before it's pushed (see the `agent-ci` skill).
-  # The published package is a self-contained Node CLI (`dist/cli.js`) — no
-  # platform-binary optionalDependencies, despite the monorepo's internal
-  # workspace layout. dtu-github-actions is its GitHub-Actions parser, pinned
-  # explicitly (not left transitive) so its version is uniform fleet-wide.
+  # run-local-ci (bin: local-ci, formerly published as @redwoodjs/agent-ci)
+  # runs a repo's GitHub Actions workflows locally in Docker so a change can
+  # be validated before it's pushed (see the `agent-ci` skill). dtu-github-
+  # actions is its GitHub-Actions parser, pinned explicitly (not left
+  # transitive) so its version is uniform fleet-wide.
   '@ultrathink/acorn.rs.wasm': 0.1.1
   'brace-expansion': 5.0.9
   'dtu-github-actions': 0.18.1
@@ -108,9 +107,6 @@ catalog:
   # override below pins every transitive `vite` (vitest, @vitest/*,
   # plugin authors) to it.
   'typescript': 7.0.2
-  # Declared by the root package.json as a catalog devDep; pinned to the fleet
-  # catalog's version (.config/fleet/pnpm-workspace.fleet.yaml).
-  'yaml': 2.9.0
   'vitest': 4.1.10
   '@vitest/coverage-v8': 4.1.10
   c8: 12.0.0
@@ -119,6 +115,9 @@ catalog:
   # init script (see .config/fleet/playwright/).
   '@playwright/mcp': 0.0.79
   '@vitest/ui': 4.1.10
+  # Declared by the root package.json as a catalog devDep; pinned to the fleet
+  # catalog's version (.config/fleet/pnpm-workspace.fleet.yaml).
+  'yaml': 2.9.0
   # agent-ci runs a repo's GitHub Actions workflows locally in Docker so a
   # change can be validated before it's pushed (see the `agent-ci` skill).
   # The published package is a self-contained Node CLI (`dist/cli.js`) — no
@@ -268,8 +267,6 @@ overrides:
   'vite': 'catalog:'
   'which@>=4': '7.0.0'
 
-  # </repo>
-
 patchedDependencies:
   # default-export interop (managed by socket-wheelhouse sync; do not edit):
   # 5.0.7 dropped the default export from BOTH builds. The CJS half breaks
@@ -410,14 +407,14 @@ minimumReleaseAgeExclude:
   # npm freshpub typosquats, not a first-party oxc release.
   - '@sdxgen/*'
   - 'sdxgen'
-  - '@abitious/*'
-  - '@decmpfs/*'
-  - '@node-smol/*'
-  - 'sockeye'
   # published: 2026-08-21 | removable: 2026-08-28
   - 'dtu-github-actions@0.18.1'
   # published: 2026-08-21 | removable: 2026-08-28
   - 'run-local-ci@0.18.1'
+  - '@abitious/*'
+  - '@decmpfs/*'
+  - '@node-smol/*'
+  - 'sockeye'
 
 # Native post-install build scripts. These three arrive transitively via
 # @redwoodjs/agent-ci's `ssh2` (optional crypto acceleration). agent-ci's
@@ -442,3 +439,20 @@ allowBuilds:
   '@socketsecurity/sdk': false
   # @swc/core native binding — vitiate's coverage-guided fuzz lane.
   '@swc/core': true
+
+# Proceed with a node_modules purge WITHOUT an interactive confirm. The fleet
+# runs pnpm non-interactively everywhere (skills, scripts, hooks, agents, CI) —
+# no TTY. pnpm's default ABORTS a purge for lack of a TTY
+# (ERR_PNPM_ABORTED_REMOVE_MODULES_DIR_NO_TTY), wedging any commit whose
+# pre-commit re-checks deps after a workspace/.npmrc change. Purging
+# node_modules is safe (gitignored + regenerable). Unlike CI=true this does NOT
+# force a frozen lockfile; CI keeps owning frozen-vs-update policy.
+confirmModulesPurge: false
+
+# Opt out of pnpm's packageManager-version self-check. CI installs pnpm from
+# its native bin via the shared setup workflow, not corepack, so the runner's
+# pnpm legitimately differs from the `packageManager` pin (which is
+# informational, not a version to enforce). Without this, pnpm hard-fails
+# ("This project is configured to use <pin> ... your current pnpm is <run>")
+# the moment the runner's pnpm differs from the pin.
+managePackageManagerVersions: false
