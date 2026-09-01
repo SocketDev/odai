@@ -16,9 +16,15 @@ import type * as fspNs from 'node:fs/promises'
 import type * as osNs from 'node:os'
 import type * as pathNs from 'node:path'
 
-export const ODAI_CHROME_ENV_VAR = 'ODAI_CHROME'
-export const ODAI_CHROME_ALLOW_DOWNLOAD_ENV_VAR = 'ODAI_CHROME_ALLOW_DOWNLOAD'
-export const ODAI_CHROME_USER_DATA_DIR_ENV_VAR = 'ODAI_CHROME_USER_DATA_DIR'
+import {
+  enabledLabsExperiments,
+  ODAI_CHROME_ALLOW_DOWNLOAD_ENV_VAR,
+  ODAI_CHROME_ENV_VAR,
+  ODAI_CHROME_USER_DATA_DIR_ENV_VAR,
+  parseChromeMajorVersion,
+  readEnvChromeModel,
+} from './chrome-models.mts'
+import type { ChromeModelKey } from './chrome-models.mts'
 
 /**
  * Directory carrying the 4 GB foundational model component in a Chrome
@@ -29,27 +35,22 @@ export const MODEL_COMPONENT_DIR = 'OptGuideOnDeviceModel'
 export const BRIDGE_PAGE_FILENAME = 'odai-bridge.html'
 
 /**
- * Chrome://flags selections, persisted the same way the flags UI does.
- * `optimization-guide-on-device-model@2` = Enabled BypassPerfRequirement,
- * `prompt-api-for-gemini-nano@1` = Enabled.
- */
-const ENABLED_LABS_EXPERIMENTS = [
-  'optimization-guide-on-device-model@2',
-  'prompt-api-for-gemini-nano@1',
-]
-
-/**
  * Component-updater id of the Optimization Guide On Device Model.
  */
 const ON_DEVICE_COMPONENT_ID = 'fklghjjljmnfjoepjmlobpekiapffcja'
 
 /**
  * Supplementary model dirs cloned alongside the foundational component when
- * present: the text-safety and adaptation model stores.
+ * present: the text-safety and adaptation model stores, plus the
+ * manifest-driven store. Gemma 4 ships as its own component under
+ * `OptGuideManifestModel/<sha256>/<version>` rather than into
+ * `OptGuideOnDeviceModel`, so a clone that skips it lands a profile holding
+ * only the Gemini Nano weights.
  */
 const OPTIONAL_MODEL_DIRS = [
   'optimization_guide_model_store',
   'OptGuideOnDeviceClassifierModel',
+  'OptGuideManifestModel',
 ]
 
 /**
@@ -66,6 +67,13 @@ export interface BridgeConfigInput {
   allowDownload?: boolean | undefined
   chromePath?: string | undefined
   env?: Record<string, string | undefined> | undefined
+  /**
+   * Which model Chrome should load, defaulting to `geminiNano`. Chrome
+   * publishes no way to name a model per request, so the selection is made
+   * once when the profile is seeded; confirm what actually answered with
+   * `detectModelName`.
+   */
+  model?: ChromeModelKey | undefined
   systemChromeUserDataDir?: string | undefined
   userDataDir?: string | undefined
 }
@@ -87,6 +95,7 @@ export interface ResolvedBridgeConfig {
   allowDownload: boolean
   chromePath: string | undefined
   chromePathCandidates: string[]
+  model: ChromeModelKey
   systemChromeUserDataDir: string
   userDataDir: string
 }
@@ -101,7 +110,9 @@ let nodeDepsPromise: Promise<NodeDeps> | undefined
 export function buildLocalStateSeed(
   existing: Record<string, unknown>,
   system: SystemLocalStateExtract,
+  options: { model?: ChromeModelKey | undefined } = {},
 ): Record<string, unknown> {
+  const opts = { __proto__: null, ...options } as typeof options
   const now = chromeNowMicros()
   const optimizationGuide = {
     ...(existing['optimization_guide'] as Record<string, unknown> | undefined),
@@ -112,7 +123,7 @@ export function buildLocalStateSeed(
   }
   const browser = {
     ...(existing['browser'] as Record<string, unknown> | undefined),
-    enabled_labs_experiments: ENABLED_LABS_EXPERIMENTS,
+    enabled_labs_experiments: enabledLabsExperiments(opts),
   }
   const seeded: Record<string, unknown> = {
     ...existing,
@@ -215,6 +226,7 @@ export function defaultBridgeUserDataDir(
  * because the Prompt API only exists in secure contexts. The system profile
  * is only ever read.
  */
+
 export async function ensureBridgeProfile(
   config: ResolvedBridgeConfig,
   source: ModelSource,
@@ -244,9 +256,10 @@ export async function ensureBridgeProfile(
     source.kind === 'download'
       ? { onDevice: {}, updaterApp: undefined }
       : await readSystemLocalState(config.systemChromeUserDataDir)
-  await fsp.writeFile(
+  const { writeJson } = await import('@socketsecurity/lib/fs/write-json')
+  await writeJson(
     localStatePath,
-    JSON.stringify(buildLocalStateSeed(existing, system)),
+    buildLocalStateSeed(existing, system, { model: config.model }),
   )
   const bridgePagePath = path.join(config.userDataDir, BRIDGE_PAGE_FILENAME)
   await fsp.writeFile(
@@ -313,6 +326,23 @@ export function pathToFileUrl(filePath: string): string {
   return `file://${encodeURI(prefixed)}`
 }
 
+/**
+ * Ask a Chrome binary for its major version. Resolves undefined when the
+ * binary cannot be run or prints no version, which the caller treats the same
+ * as too old.
+ */
+export async function readChromeMajorVersion(
+  chromePath: string,
+): Promise<number | undefined> {
+  const { childProcess } = await loadNodeDeps()
+  const stdout = await new Promise<string>(resolve => {
+    childProcess.execFile(chromePath, ['--version'], (error, out) => {
+      resolve(error === null ? out : '')
+    })
+  })
+  return parseChromeMajorVersion(stdout)
+}
+
 export async function readSystemLocalState(
   systemDir: string,
 ): Promise<SystemLocalStateExtract> {
@@ -357,6 +387,7 @@ export async function resolveBridgeConfig(
       opts.allowDownload ?? envFlag(env[ODAI_CHROME_ALLOW_DOWNLOAD_ENV_VAR]),
     chromePath,
     chromePathCandidates: candidates,
+    model: opts.model ?? readEnvChromeModel(env),
     systemChromeUserDataDir:
       opts.systemChromeUserDataDir ??
       systemChromeUserDataDirFor(platform, env, homeDir),

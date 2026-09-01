@@ -16,14 +16,16 @@ import {
   findModelSource,
   isNodeRuntime,
   MODEL_COMPONENT_DIR,
-  ODAI_CHROME_ALLOW_DOWNLOAD_ENV_VAR,
-  ODAI_CHROME_ENV_VAR,
-  ODAI_CHROME_USER_DATA_DIR_ENV_VAR,
   pathToFileUrl,
   readSystemLocalState,
   resolveBridgeConfig,
   systemChromeUserDataDirFor,
 } from '../../src/backends/chrome-profile.mts'
+import {
+  ODAI_CHROME_ALLOW_DOWNLOAD_ENV_VAR,
+  ODAI_CHROME_ENV_VAR,
+  ODAI_CHROME_USER_DATA_DIR_ENV_VAR,
+} from '../../src/backends/chrome-models.mts'
 import type { ResolvedBridgeConfig } from '../../src/backends/chrome-profile.mts'
 
 async function tmpDir(): Promise<string> {
@@ -242,6 +244,7 @@ describe('findModelSource', () => {
       allowDownload: false,
       chromePath: undefined,
       chromePathCandidates: [],
+      model: 'geminiNano' as const,
       systemChromeUserDataDir: path.join(root, 'sys'),
       userDataDir,
     })
@@ -256,6 +259,7 @@ describe('findModelSource', () => {
       allowDownload: false,
       chromePath: undefined,
       chromePathCandidates: [],
+      model: 'geminiNano' as const,
       systemChromeUserDataDir: systemDir,
       userDataDir: path.join(root, 'profile'),
     })
@@ -268,6 +272,7 @@ describe('findModelSource', () => {
       allowDownload: true,
       chromePath: undefined,
       chromePathCandidates: [],
+      model: 'geminiNano' as const,
       systemChromeUserDataDir: path.join(root, 'sys'),
       userDataDir: path.join(root, 'profile'),
     })
@@ -280,6 +285,7 @@ describe('findModelSource', () => {
       allowDownload: false,
       chromePath: undefined,
       chromePathCandidates: [],
+      model: 'geminiNano' as const,
       systemChromeUserDataDir: path.join(root, 'sys'),
       userDataDir: path.join(root, 'profile'),
     })
@@ -346,6 +352,7 @@ describe('ensureBridgeProfile', () => {
       allowDownload: false,
       chromePath: path.join(root, 'chrome'),
       chromePathCandidates: [],
+      model: 'geminiNano' as const,
       systemChromeUserDataDir: systemDir,
       userDataDir,
     }
@@ -372,6 +379,7 @@ describe('ensureBridgeProfile', () => {
       allowDownload: true,
       chromePath: path.join(root, 'chrome'),
       chromePathCandidates: [],
+      model: 'geminiNano' as const,
       systemChromeUserDataDir: path.join(root, 'no-sys'),
       userDataDir,
     }
@@ -381,5 +389,28 @@ describe('ensureBridgeProfile', () => {
       await readFile(path.join(userDataDir, 'Local State'), 'utf8'),
     ) as { optimization_guide: { on_device: Record<string, unknown> } }
     expect(seeded.optimization_guide.on_device).toBeDefined()
+  })
+})
+
+describe('buildLocalStateSeed model selection', () => {
+  it('seeds the Gemma 4 flag when that model is named', () => {
+    const seeded = buildLocalStateSeed(
+      {},
+      { onDevice: {}, updaterApp: undefined },
+      { model: 'gemma4' },
+    ) as { browser: { enabled_labs_experiments: string[] } }
+    expect(seeded.browser.enabled_labs_experiments).toContain(
+      'gemma4-for-built-in-ai@1',
+    )
+  })
+
+  it('leaves the Gemma 4 flag out by default', () => {
+    const seeded = buildLocalStateSeed(
+      {},
+      { onDevice: {}, updaterApp: undefined },
+    ) as { browser: { enabled_labs_experiments: string[] } }
+    expect(seeded.browser.enabled_labs_experiments).not.toContain(
+      'gemma4-for-built-in-ai@1',
+    )
   })
 })

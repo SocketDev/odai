@@ -19,12 +19,14 @@ import {
   STREAM_BINDING_NAME,
   waitForModelReady,
 } from './chrome-page.mts'
+import { modelUnsupportedReason } from './chrome-models.mts'
 import {
   chromeMissingReason,
   ensureBridgeProfile,
   findModelSource,
   isNodeRuntime,
   pathToFileUrl,
+  readChromeMajorVersion,
   resolveBridgeConfig,
 } from './chrome-profile.mts'
 import type { LanguageModelLike, Message, SessionLike } from '../types.mts'
@@ -34,6 +36,7 @@ import type {
   StreamPayload,
   StreamQueue,
 } from './chrome-page.mts'
+import type { ChromeModelKey } from './chrome-models.mts'
 import type { BackendAvailability, OdaiBackend } from './types.mts'
 
 export type {
@@ -42,11 +45,14 @@ export type {
   PageLike,
 } from './chrome-page.mts'
 export {
-  MODEL_COMPONENT_DIR,
+  CHROME_MODELS,
+  DEFAULT_CHROME_MODEL,
   ODAI_CHROME_ALLOW_DOWNLOAD_ENV_VAR,
   ODAI_CHROME_ENV_VAR,
+  ODAI_CHROME_MODEL_ENV_VAR,
   ODAI_CHROME_USER_DATA_DIR_ENV_VAR,
-} from './chrome-profile.mts'
+} from './chrome-models.mts'
+export { MODEL_COMPONENT_DIR } from './chrome-profile.mts'
 
 /**
  * Playwright defaults that break the on-device model and must not reach
@@ -96,6 +102,12 @@ export interface ChromeBuiltinOptions {
    * Injectable for tests.
    */
   launcher?: ChromiumLauncherLike | undefined
+  /**
+   * Which model Chrome should load, defaulting to `geminiNano`. The
+   * `ODAI_CHROME_MODEL` env var is the string form. Confirm what actually
+   * answered with `detectModelName`.
+   */
+  model?: ChromeModelKey | undefined
   /**
    * How long to wait for the model to report `available` after launch.
    * Defaults to 2 minutes, or 30 minutes when downloads are allowed.
@@ -148,6 +160,14 @@ export function createChromeBuiltinBackend(
       const config = await resolveBridgeConfig(opts)
       if (config.chromePath === undefined) {
         return { available: false, reason: chromeMissingReason(config) }
+      }
+      const unsupported = modelUnsupportedReason(
+        config.model,
+        await readChromeMajorVersion(config.chromePath),
+        config.chromePath,
+      )
+      if (unsupported !== undefined) {
+        return { available: false, reason: unsupported }
       }
       const { reason } = await loadLauncher(opts)
       if (reason !== undefined) {
@@ -221,6 +241,14 @@ export async function startBridge(
   const config = await resolveBridgeConfig(opts)
   if (config.chromePath === undefined) {
     throw new Error(chromeMissingReason(config))
+  }
+  const unsupported = modelUnsupportedReason(
+    config.model,
+    await readChromeMajorVersion(config.chromePath),
+    config.chromePath,
+  )
+  if (unsupported !== undefined) {
+    throw new Error(unsupported)
   }
   const { launcher, reason } = await loadLauncher(opts)
   if (launcher === undefined) {

@@ -18,10 +18,10 @@ import { getDefaultLogger } from '@socketsecurity/lib/logger/default'
 import { spawn } from '@socketsecurity/lib/process/spawn/child'
 
 import { createChromeBuiltinBackend } from '../../src/backends/chrome-builtin.mts'
+import { ODAI_CHROME_ALLOW_DOWNLOAD_ENV_VAR } from '../../src/backends/chrome-models.mts'
 import {
   chromePathCandidates,
   findModelSource,
-  ODAI_CHROME_ALLOW_DOWNLOAD_ENV_VAR,
   resolveBridgeConfig,
 } from '../../src/backends/chrome-profile.mts'
 import { createOdaiModel } from '../../src/model.mts'
