@@ -1,9 +1,5 @@
 # @socketsecurity/odai
 
-<div align="center">
-  <img src="https://raw.githubusercontent.com/SocketDev/odai/HEAD/assets/repo/odai-combomark.svg" width="240" alt="odai - the odai badge: the odai wordmark, on disk AI, socket labs, and stacked storage layers inside the violet shield">
-</div>
-
 <a href="https://badge.socket.dev/npm/package/@socketsecurity/odai"><img src="https://badge.socket.dev/npm/package/@socketsecurity/odai" alt="Socket Badge" height="20"></a>
 <img src="https://raw.githubusercontent.com/SocketDev/odai/HEAD/assets/repo/coverage.svg" width="97" height="20" alt="Coverage" />
 
@@ -165,3 +161,11 @@ pnpm run test
 ## License
 
 MIT
+
+<div align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/SocketDev/odai/HEAD/assets/fleet/socket-combomark-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/SocketDev/odai/HEAD/assets/fleet/socket-combomark-light.svg">
+    <img width="320" height="91" alt="Socket" src="https://raw.githubusercontent.com/SocketDev/odai/HEAD/assets/fleet/socket-combomark-light.svg">
+  </picture>
+</div>
