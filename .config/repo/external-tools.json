@@ -245,6 +245,96 @@
         }
       },
       "origin": "gh-asset"
+    },
+    "binutils": {
+      "description": "Private Gemma crash decoder binutils-x86-64-linux-gnu",
+      "version": "2.44-3",
+      "origin": "node-dist",
+      "platforms": {
+        "linux-x64": {
+          "asset": "https://deb.debian.org/debian/pool/main/b/binutils/binutils-x86-64-linux-gnu_2.44-3_amd64.deb",
+          "integrity": "sha256-e6741ce95ff0f7a131c8d9faa3528ccbbc453078bbc62a97da81340ed7462c53"
+        }
+      }
+    },
+    "binutils-lib": {
+      "description": "Private Gemma crash decoder libbinutils",
+      "version": "2.44-3",
+      "origin": "node-dist",
+      "platforms": {
+        "linux-x64": {
+          "asset": "https://deb.debian.org/debian/pool/main/b/binutils/libbinutils_2.44-3_amd64.deb",
+          "integrity": "sha256-4f4664c8a8f0ad0c8631c39fab02e3d8d86ccc6f4436a1d59f059dbcb0492679"
+        }
+      }
+    },
+    "binutils-sframe": {
+      "description": "Private Gemma crash decoder libsframe1",
+      "version": "2.44-3",
+      "origin": "node-dist",
+      "platforms": {
+        "linux-x64": {
+          "asset": "https://deb.debian.org/debian/pool/main/b/binutils/libsframe1_2.44-3_amd64.deb",
+          "integrity": "sha256-38f625dfdc582717029ac3a3e97c51d994ec2e7a0e9b230c6b44e40d1276311f"
+        }
+      }
+    },
+    "binutils-ctf": {
+      "description": "Private Gemma crash decoder libctf0",
+      "version": "2.44-3",
+      "origin": "node-dist",
+      "platforms": {
+        "linux-x64": {
+          "asset": "https://deb.debian.org/debian/pool/main/b/binutils/libctf0_2.44-3_amd64.deb",
+          "integrity": "sha256-120cafcd93132a276fa92a8fb4cf39b23d14e5a3e348f4f5580638d71ca95ac5"
+        }
+      }
+    },
+    "binutils-jansson": {
+      "description": "Private Gemma crash decoder libjansson4",
+      "version": "2.14-2+b3",
+      "origin": "node-dist",
+      "platforms": {
+        "linux-x64": {
+          "asset": "https://deb.debian.org/debian/pool/main/j/jansson/libjansson4_2.14-2+b3_amd64.deb",
+          "integrity": "sha256-60707a62fe6c1228c3389b12a13ca4efd76defc5532473e547a29e99cf7d2a6e"
+        }
+      }
+    },
+    "google-chrome-beta": {
+      "description": "Google Chrome Beta for the Gemma on-device AI backend",
+      "version": "153.0.8010.12-1",
+      "versionDate": "2026-08-26T16:44:52.610924Z",
+      "chromeVersionExclusions": [
+        {
+          "version": "154.0.8037.0-1",
+          "reason": "Linux Gemma session creation fails a cross-library TFLite allocation CFI check in libLiteRtWebGpuAccelerator.so."
+        }
+      ],
+      "notes": [
+        "The updater selects the newest Chrome Beta release that satisfies the workspace soak policy using Google Version History.",
+        "Linux x64 uses an immutable Google Debian package URL. Integrity comes from the official Packages index when listed; archived packages use SHA-512 measured from the official download.",
+        "Publication dates come from https://versionhistory.googleapis.com/v1/chrome/platforms/linux/channels/beta/versions/all/releases."
+      ],
+      "platforms": {
+        "linux-x64": {
+          "asset": "https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-beta/google-chrome-beta_153.0.8010.12-1_amd64.deb",
+          "integrity": "sha512-7UbGeK/cyROr8L0RNzpiNn5dc2oJOlvpTjyvXZvuCzXs87bDf3sE/MXREZvLPTOnBxNqioo5us09r7Xji/LPyA=="
+        }
+      },
+      "origin": "node-dist"
+    },
+    "playwright-seccomp": {
+      "description": "Reviewed seccomp profile for sandboxed Chromium containers",
+      "version": "1.62.1",
+      "versionDate": "2026-07-29T23:14:35Z",
+      "origin": "node-dist",
+      "platforms": {
+        "linux-x64": {
+          "asset": "https://raw.githubusercontent.com/microsoft/playwright/26a9e470a7b3c7822084b09fb7f13902c5f37b51/utils/docker/seccomp_profile.json",
+          "integrity": "sha256-cc3e61cabda6bbc1e53e54d27ba4d55a9d3be829b6dd1a596f4a7b31b1cc7849"
+        }
+      }
     }
   }
 }
