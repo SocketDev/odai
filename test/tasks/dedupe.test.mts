@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { createMockModel } from '../../src/node.mts'
+import { createMockModel } from '../../src/mock.mts'
 import { dedupeDependencies } from '../../src/tasks/dedupe.mts'
 
 describe('dedupeDependencies', () => {

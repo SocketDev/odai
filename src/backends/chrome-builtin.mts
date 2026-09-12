@@ -170,13 +170,13 @@ export function createChromeBuiltinBackend(
       if (unsupported !== undefined) {
         return { available: false, reason: unsupported }
       }
-      const { reason } = await loadLauncher(opts)
-      if (reason !== undefined) {
-        return { available: false, reason }
-      }
       const source = await findModelSource(config)
       if (source.reason !== undefined) {
         return { available: false, reason: source.reason }
+      }
+      const { reason } = await loadLauncher(opts)
+      if (reason !== undefined) {
+        return { available: false, reason }
       }
       return { available: true }
     },
@@ -251,13 +251,13 @@ export async function startBridge(
   if (unsupported !== undefined) {
     throw new Error(unsupported)
   }
-  const { launcher, reason } = await loadLauncher(opts)
-  if (launcher === undefined) {
-    throw new Error(reason)
-  }
   const source = await findModelSource(config)
   if (source.reason !== undefined) {
     throw new Error(source.reason)
+  }
+  const { launcher, reason } = await loadLauncher(opts)
+  if (launcher === undefined) {
+    throw new Error(reason)
   }
   const bridgePagePath = await ensureBridgeProfile(config, source)
   const context = await launcher.launchPersistentContext(config.userDataDir, {

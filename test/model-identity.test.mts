@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { detectModelName, matchModelName } from '../src/model-identity.mts'
-import { createMockSession } from '../src/node.mts'
+import { createMockSession } from '../src/mock.mts'
 
 describe('matchModelName', () => {
   it('prefers Gemma 4 over bare Gemma', () => {

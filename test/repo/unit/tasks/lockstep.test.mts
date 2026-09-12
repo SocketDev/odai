@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import { createLockstepExample } from '../../../../src/lockstep/examples.mts'
-import { createMockModel } from '../../../../src/node.mts'
+import { createMockModel } from '../../../../src/mock.mts'
 import { analyzeLockstep } from '../../../../src/tasks/lockstep.mts'
 
 describe('analyzeLockstep', () => {

@@ -167,7 +167,14 @@ export async function checkBrowserPackage(consumerRoot: string): Promise<void> {
 }
 
 export async function checkPackedPackage(): Promise<PackageCheckResult> {
-  await spawn('pnpm', ['run', 'build'], { cwd: REPO_ROOT, stdio: 'inherit' })
+  await spawn(
+    process.execPath,
+    [path.join(REPO_ROOT, 'scripts/repo/build.mts')],
+    {
+      cwd: REPO_ROOT,
+      stdio: 'inherit',
+    },
+  )
   const temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'odai-package-'))
   try {
     const consumerRoot = await preparePackageConsumer(temporaryRoot)

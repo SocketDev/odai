@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { runTask } from '../../src/cli/dispatch.mts'
-import { createMockModel } from '../../src/node.mts'
+import { createMockModel } from '../../src/mock.mts'
 
 describe('runTask', () => {
   const model = createMockModel(

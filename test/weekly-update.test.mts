@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { weeklyUpdateScenario } from '../src/bench/scenarios.mts'
-import { createMockModel } from '../src/node.mts'
+import { createMockModel } from '../src/mock.mts'
 import { createWeeklyUpdatePrompt } from '../src/prompts/weekly-update.mts'
 import {
   decideWeeklyUpdate,
