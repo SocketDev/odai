@@ -128,3 +128,4 @@ describe('lockstep command integration', () => {
     expect(() => parseCliArgs(['lockstep-port'])).toThrow()
   })
 })
+// oxlint-disable socket/

@@ -1,8 +1,8 @@
 import { expect, it } from 'vitest'
-import { createMockModel } from '../../src/mock.mts'
-import { formatReport, runEval } from '../../src/bench/index.mts'
-import { createIntentScenario } from '../../src/bench/intent/scenarios.mts'
-import { intentCases } from '../../src/bench/intent/fixtures.mts'
+import { createMockModel } from '../../../src/mock.mts'
+import { formatReport, runEval } from '../../../src/bench/index.mts'
+import { createIntentScenario } from '../../../src/bench/intent/scenarios.mts'
+import { intentCases } from '../../../src/bench/intent/fixtures.mts'
 
 const abstention: null = null
 

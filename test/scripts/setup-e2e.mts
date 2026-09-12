@@ -350,6 +350,7 @@ const SCRIPT_META: ScriptMeta = {
   describe:
     'provisions the opt-in e2e lanes: real Chrome, the on-device model component, and the llama.cpp conformance prerequisites',
   help: 'Usage: node test/scripts/setup-e2e.mts [--check] [--chrome] [--model] [--conformance]',
+  json: 'result',
 }
 
 if (isMainModule(import.meta.url)) {

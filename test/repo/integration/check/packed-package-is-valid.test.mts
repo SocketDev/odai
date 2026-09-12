@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest'
 
-import { checkPackedPackage } from '../../../../scripts/repo/check/package.mts'
+import { checkPackedPackage } from '../../../../scripts/repo/check/packed-package-is-valid.mts'
 
 it('runs the packed exports with complete declarations and browser globals', async () => {
   expect(await checkPackedPackage()).toEqual({

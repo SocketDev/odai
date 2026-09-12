@@ -7,8 +7,9 @@ import { getEnvValue } from '@socketsecurity/lib-stable/env/rewire'
 import { spawn } from '@socketsecurity/lib-stable/process/spawn/child'
 
 import { isMainModule } from '../../fleet/process/is-main-module.mts'
-import { getCacheArgs, runCacheMain } from './cli.mts'
-import type { CacheScriptMeta } from './cli.mts'
+import { getCacheArgs } from './cli.mts'
+import { runMain } from '../../fleet/process/run-main.mts'
+import type { ScriptMeta } from '../../fleet/process/run-main.mts'
 import { auditGemmaArchive } from './archive.mts'
 import { assertGemmaIdentity, probeGemmaBrowser } from './browser.mts'
 import { prepareGemmaImage } from './image.mts'
@@ -334,7 +335,7 @@ export async function main(argv: string[]) {
   return await runDockerProbe(config)
 }
 
-const SCRIPT_META: CacheScriptMeta = {
+const SCRIPT_META: ScriptMeta = {
   describe:
     'provisions Gemma, exports hashed model files, and verifies a copied cache without networking',
   help: 'Usage: pnpm run ai:odai:cache <audit-archive|prepare-image|provision|export|upload|verify> [options]\n--archive <path> Gzip tar archive to audit or upload\n--release-tag <tag> Existing draft release for upload\n--base-image <digest> Pinned Linux x64 Node image for prepare-image\n--builder <name> Local Docker builder for prepare-image\n--browser-pin <file> Verified Chrome package descriptor for an isolated comparison; does not change fleet pins\n--profile <directory> Dedicated Gemma profile\n--browser <path> Chrome Beta executable; defaults to the image binary or ODAI_CHROME\n--cpu-override Force Chrome CPU inference and permit provisioning below the core and RAM minimums\n--destination <new-directory> Image context, export or verification copy\n--diagnostics <new-directory> Retain private crash reports, native logs and resource context\n--image <digest> Prepared Docker image with /opt/odai-cache/browser.mts and playwright-core\n--seccomp <path> Reviewed Chrome sandbox seccomp profile\n--timeout <milliseconds> Bounded model startup, default 600000\nProvision permits component downloads and requires 22 GiB free disk. Without --cpu-override, Linux requires 4 cores and 15000 MiB RAM. Verify uses Docker --network none. Export excludes personal browser data.\n--json Emit a single structured result',
@@ -342,5 +343,5 @@ const SCRIPT_META: CacheScriptMeta = {
 }
 
 if (isMainModule(import.meta.url)) {
-  runCacheMain(() => main(getCacheArgs()), SCRIPT_META)
+  runMain(() => main(getCacheArgs()), SCRIPT_META)
 }

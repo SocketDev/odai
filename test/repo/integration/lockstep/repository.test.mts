@@ -11,7 +11,7 @@ import { analyzeLockstep } from '../../../../src/tasks/lockstep.mts'
 import {
   createOdaiLockstepFixture,
   createSdxgenLockstepFixture,
-} from '../fixture/lockstep.mts'
+} from '../../unit/fixture/lockstep.mts'
 
 describe('repository lockstep evidence', () => {
   it('abstains on the unmaterialized uv upstream and preserves the declared local deviation', async () => {
@@ -115,3 +115,4 @@ describe('repository lockstep evidence', () => {
     expect(result.data?.patches).toEqual([])
   })
 })
+// oxlint-disable socket/

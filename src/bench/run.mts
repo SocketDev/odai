@@ -5,7 +5,6 @@ import { createChromeBuiltinBackend } from '../backends/chrome-builtin.mts'
 import { createSimulatorBackend } from '../backends/simulator.mts'
 import { createBackend, isBackendName } from '../backends/registry.mts'
 import { closeBackend, withTimeout } from '../cli/run.mts'
-import { isMainModule } from '../is-main-module.mts'
 import { createOdaiModel, destroySession } from '../model.mts'
 import { createMockModel } from '../mock.mts'
 import { preferredTaskBackend } from '../routing.mts'
@@ -175,11 +174,4 @@ export async function main(
       await closeBackend(entry.backend)
     }
   }
-}
-
-if (isMainModule(import.meta.url)) {
-  main().catch((error: unknown) => {
-    logger.fail(error)
-    process.exitCode = 1
-  })
 }

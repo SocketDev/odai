@@ -20,6 +20,6 @@ export const packageDir: string = REPO_ROOT
 
 export const config: ExportsConfig = {
   files: ['dist/**/*.{cjs,js,mjs,d.ts,d.mts,d.cts}', 'package.json'],
-  ignore: ['dist/**/*.d.mts', 'dist/chunk/**', 'dist/cli.js'],
+  ignore: ['dist/*.d.mts', 'dist/**/*.d.mts', 'dist/chunk/**', 'dist/cli.js'],
   outDir: 'dist',
 }

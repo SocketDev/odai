@@ -46,7 +46,7 @@
         "test/cli/args.test.mts",
         "test/cli/dispatch.test.mts",
         "test/control-tokens.test.mts",
-        "test/decision-fuzz.test.mts",
+        "test/integration/decision-fuzz.test.mts",
         "test/generate-verify.test.mts",
         "test/hoist.test.mts",
         "test/json-fuzz.test.mts",
@@ -60,7 +60,7 @@
         "test/repo/unit/cache/crash.test.mts",
         "test/repo/unit/cache/diagnostic-sanitizers.test.mts",
         "test/repo/unit/cache/kernel.test.mts",
-        "test/repo/unit/lockstep/repository.test.mts",
+        "test/repo/integration/lockstep/repository.test.mts",
         "test/repo/unit/lockstep/validate.test.mts",
         "test/repo/unit/tasks/lockstep.test.mts",
         "test/routing.test.mts",
@@ -83,7 +83,7 @@
         "test/unit/llama-cpp-server-classifier.test.mts",
         "test/weekly-update.test.mts"
       ],
-      "slow": ["test/repo/integration/check/package.test.mts"]
+      "slow": ["test/repo/integration/check/packed-package-is-valid.test.mts"]
     }
   }
 }

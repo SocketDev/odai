@@ -52,6 +52,8 @@ Select `simulator` explicitly for testing.
 
 ### Command suggestions
 
+<!-- wh:fold allow -->
+
 Node consumers can classify a request against their own action catalog:
 
 ```js

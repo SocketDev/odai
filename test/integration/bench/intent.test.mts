@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { createMockModel } from '../../src/mock.mts'
-import { intentCases } from '../../src/bench/intent/fixtures.mts'
+import { createMockModel } from '../../../src/mock.mts'
+import { intentCases } from '../../../src/bench/intent/fixtures.mts'
 import {
   createIntentResponseRules,
   createIntentScenario,
-} from '../../src/bench/intent/scenarios.mts'
+} from '../../../src/bench/intent/scenarios.mts'
 
 describe('intent benchmark', () => {
   it.each(intentCases)('scores the declared oracle for $id', async fixture => {

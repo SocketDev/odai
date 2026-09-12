@@ -194,15 +194,15 @@ export async function checkPackedPackage(): Promise<PackageCheckResult> {
   }
 }
 
+const SCRIPT_META = {
+  describe:
+    'Build and verify the packed package in isolated Node, browser, and TypeScript consumers.',
+  help: 'Usage: pnpm run check:package',
+  json: 'result',
+} as const
+
 if (isMainModule(import.meta.url)) {
-  runMain(
-    async () => {
-      await checkPackedPackage()
-    },
-    {
-      describe:
-        'Build and verify the packed package in isolated Node, browser, and TypeScript consumers.',
-      help: 'Usage: pnpm run check:package',
-    },
-  )
+  runMain(async () => {
+    await checkPackedPackage()
+  }, SCRIPT_META)
 }

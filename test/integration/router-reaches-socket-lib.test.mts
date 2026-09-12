@@ -24,11 +24,11 @@ import { resolveTier } from '@socketsecurity/lib/ai/route'
 import { spawnTierWithFallback } from '@socketsecurity/lib/ai/spawn'
 import { isLocalEngineAvailable } from '@socketsecurity/lib/ai/spawn-local'
 
-import { createSimulatorBackend } from '../src/backends/simulator.mts'
-import { createLocalLanguageModelFactory } from '../src/provider.mts'
+import { createSimulatorBackend } from '../../src/backends/simulator.mts'
+import { createLocalLanguageModelFactory } from '../../src/provider.mts'
 
-import type { LanguageModelFactory } from '../src/provider.mts'
-import type { SessionLike } from '../src/types.mts'
+import type { LanguageModelFactory } from '../../src/provider.mts'
+import type { SessionLike } from '../../src/types.mts'
 import type { RouteContext } from '@socketsecurity/lib/ai/route'
 import type {
   LocalAgentProvider,

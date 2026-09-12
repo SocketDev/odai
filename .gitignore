@@ -4138,6 +4138,8 @@ test/fleet/unit/comment-voice.test.mts
 # Repo-specific re-inclusions: hand-authored files that must stay tracked
 # even though a fleet-managed block above matches them.
 !/.github/zizmor.yml
+!/.config/repo/vitest.config.mts
+!/.config/repo/vitest.settings.mts
 !/assets/fleet/badge-follow-bluesky.svg
 !/assets/fleet/badge-follow-x.svg
 !/assets/fleet/socket-combomark-dark.svg
