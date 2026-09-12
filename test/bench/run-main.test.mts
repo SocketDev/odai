@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
-import { main } from '../../src/bench/run.mts'
+import { logger, main } from '../../src/bench/run.mts'
 import type { BackendName, OdaiBackend } from '../../src/backends/types.mts'
 import type { OdaiModel } from '../../src/model.mts'
 
@@ -41,10 +41,6 @@ vi.mock(import('../../src/bench/index.mts'), async original => ({
     { name: 'example-second', run: boundary.run },
   ],
 }))
-vi.mock(import('@socketsecurity/lib-stable/logger/default'), () => ({
-  getDefaultLogger: () => ({ log: boundary.log }),
-}))
-
 const models: Array<{ model: OdaiModel; destroy: ReturnType<typeof vi.fn> }> =
   []
 const backends: Array<OdaiBackend & { close: ReturnType<typeof vi.fn> }> = []
@@ -80,6 +76,7 @@ function createOwnedModel(): OdaiModel {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  vi.spyOn(logger, 'log').mockImplementation(boundary.log)
   models.length = 0
   backends.length = 0
   boundary.createModel.mockImplementation(async () => createOwnedModel())
@@ -96,6 +93,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  vi.restoreAllMocks()
   vi.unstubAllGlobals()
   process.exitCode = initialExitCode
 })
