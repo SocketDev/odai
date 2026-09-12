@@ -5,7 +5,7 @@ import {
   parseLockstepInput,
   validateLockstepAnalysis,
 } from '../../../../src/lockstep/validate.mts'
-import { createMockModel } from '../../../../src/node.mts'
+import { createMockModel } from '../../../../src/mock.mts'
 import { openStreamChoice } from '../../../../src/shim/openai.mts'
 import { analyzeLockstep } from '../../../../src/tasks/lockstep.mts'
 import {

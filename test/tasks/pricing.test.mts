@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { createMockModel } from '../../src/node.mts'
+import { createMockModel } from '../../src/mock.mts'
 import { extractPrices } from '../../src/tasks/pricing.mts'
 
 const MODELS = ['claude-alpha-1', 'claude-beta-1']

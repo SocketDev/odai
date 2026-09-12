@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { hoistScenario } from '../src/bench/scenarios.mts'
-import { createMockModel } from '../src/node.mts'
+import { createMockModel } from '../src/mock.mts'
 import { createHoistPrompt } from '../src/prompts/hoist.mts'
 import {
   assessHoistSafety,

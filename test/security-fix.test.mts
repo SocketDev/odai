@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { securityFixScenario } from '../src/bench/scenarios.mts'
-import { createMockModel } from '../src/node.mts'
+import { createMockModel } from '../src/mock.mts'
 import { createSecurityFixPrompt } from '../src/prompts/security-fix.mts'
 import {
   assessSecurityFix,

@@ -9,7 +9,7 @@ import {
 } from '../../src/cli/batch.mts'
 import { CliUsageError, parseCliArgs } from '../../src/cli/args.mts'
 import { runCli } from '../../src/cli/run.mts'
-import { createMockModel } from '../../src/node.mts'
+import { createMockModel } from '../../src/mock.mts'
 import type { OdaiBackend } from '../../src/backends/types.mts'
 import type { OdaiModel } from '../../src/model.mts'
 import type { TaskResult } from '../../src/types.mts'
