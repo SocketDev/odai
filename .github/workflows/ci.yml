@@ -3,7 +3,8 @@
 # under .github/actions/fleet/ (cascade-updated), referenced by ./ path — no
 # cross-repo reusable workflow, no first-party `uses:@sha`. Add repo-specific
 # jobs anywhere under `jobs:`.
-name: ⚡ CI
+name: 🧪 CI
+run-name: CI
 
 on:
   push:
@@ -46,7 +47,7 @@ jobs:
   # `strategy.job-total < 2` skip runs it in the non-matrix check job, skips it
   # in the test matrix).
   check:
-    name: 🔎 Check
+    name: Check
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -74,7 +75,8 @@ jobs:
             git fetch "${FETCH_ARGS[@]}"
           fi
           git checkout -q --detach FETCH_HEAD
-      - uses: ./.github/actions/fleet/setup-and-install
+      - name: Set up and install
+        uses: ./.github/actions/fleet/setup-and-install
         with:
           # Full history: the commit-history checks (AI-attribution,
           # release-boundary) read the default branch's history and refuse a
@@ -89,12 +91,13 @@ jobs:
           # client-id var + private-key secret.
           payload-token-client-id: ${{ vars.SOCKET_PAYLOAD_CLIENT_ID }}
           payload-token-private-key: ${{ secrets.SOCKET_PAYLOAD_APP_PRIVATE_KEY }}
-      - uses: ./.github/actions/fleet/run-script
+      - name: Check
+        uses: ./.github/actions/fleet/run-script
         with:
           main-script: pnpm run check --all
 
   test:
-    name: 🧪 Test
+    name: Test (${{ matrix.os }})
     strategy:
       fail-fast: false
       max-parallel: 4
@@ -129,7 +132,8 @@ jobs:
             git fetch "${FETCH_ARGS[@]}"
           fi
           git checkout -q --detach FETCH_HEAD
-      - uses: ./.github/actions/fleet/setup-and-install
+      - name: Set up and install
+        uses: ./.github/actions/fleet/setup-and-install
         with:
           socket-api-token: ${{ secrets.SOCKET_API_TOKEN_FOR_CLI_AND_SFW }}
           # Thin-distribution CI auth: mint a contents:read-only token so the
@@ -140,7 +144,8 @@ jobs:
           # client-id var + private-key secret.
           payload-token-client-id: ${{ vars.SOCKET_PAYLOAD_CLIENT_ID }}
           payload-token-private-key: ${{ secrets.SOCKET_PAYLOAD_APP_PRIVATE_KEY }}
-      - uses: ./.github/actions/fleet/run-script
+      - name: Test
+        uses: ./.github/actions/fleet/run-script
         env:
           # Authenticate build-time GitHub API reads (release listings,
           # prebuilt-artifact downloads). Unauthenticated calls share the
@@ -156,7 +161,8 @@ jobs:
       # fleet bootstrap. The runner classifies every result against
       # .config/repo/llama-cpp-server.allowlist and fails on an unexpected
       # failure, a stale entry, or a run that measured nothing.
-      - uses: ./.github/actions/fleet/run-script
+      - name: Test conformance
+        uses: ./.github/actions/fleet/run-script
         with:
           setup-script: pnpm run setup:e2e --conformance
           main-script: pnpm run test:conformance
