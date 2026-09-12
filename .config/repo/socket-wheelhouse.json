@@ -3,8 +3,8 @@
   "schemaVersion": 1,
   "repoName": "odai",
   "bundle": {
-    "ref": "fleet-pack-1400cc2ed6b5b939a871f588000401cff6af17e4",
-    "cascadeSha": "1400cc2ed6b5b939a871f588000401cff6af17e4"
+    "ref": "fleet-pack-011e1c67ce8860fdf7dca52a45e1a8d6620379e6",
+    "cascadeSha": "011e1c67ce8860fdf7dca52a45e1a8d6620379e6"
   },
   "repo": {
     "type": "solo"
@@ -48,9 +48,7 @@
         "test/repo/unit/cache/retain.test.mts",
         "test/repo/unit/cache/util.test.mts"
       ],
-      "slow": [
-        "test/repo/integration/check/package.test.mts"
-      ]
+      "slow": ["test/repo/integration/check/package.test.mts"]
     }
   }
 }

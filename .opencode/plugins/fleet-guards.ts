@@ -14,13 +14,12 @@
  *   this is a translation, not a reimplementation: shape OpenCode's tool call
  *   into the PreToolUse payload, run the SAME dispatcher, and turn its exit 2
  *   back into a throw. One plugin, every guard.
- *   BASH ONLY, DELIBERATELY. The two hosts agree on the bash argument key
- *   (`command`), so that payload maps cleanly. They do NOT agree on the file
- *   tools: Claude Code sends `file_path` / `old_string` / `new_string` where
- *   OpenCode sends `filePath` / `oldString` / `newString`. Forwarding those
- *   unmapped would hand every file guard a payload whose fields it cannot
- *   read, and a guard that silently matches nothing is worse than one that is
- *   honestly absent. The key translation is a follow-up.
+ *   KEYS ARE TRANSLATED, NOT FORWARDED. The two hosts agree on the bash
+ *   argument key (`command`) but not on the file tools: Claude Code sends
+ *   `file_path` / `old_string` / `new_string` where OpenCode sends `filePath` /
+ *   `oldString` / `newString`. `toClaudeCodeArgs` maps them, because forwarding
+ *   them raw hands every file guard a payload whose fields it cannot read, and
+ *   a guard that silently matches nothing is worse than one honestly absent.
  *   FAILS OPEN, ALWAYS. A thin member has no payload until it is fetched, so a
  *   missing dispatcher is the normal state of a fresh clone, not an error. A
  *   dispatcher crash, a timeout, or a malformed payload all pass the call
@@ -30,16 +29,120 @@
  *   necessarily run.
  */
 
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import process from 'node:process'
 
+import { safeDeleteSync } from '@socketsecurity/lib-stable/fs/safe'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import { spawnSync } from '@socketsecurity/lib-stable/process/spawn/child'
-
-import { GUARD_TIMEOUT_MS, reviewAssistantProse } from './fleet-prose.ts'
+import { getEnvValue } from '@socketsecurity/lib-stable/env/rewire'
 
 const logger = getDefaultLogger()
+
+/**
+ * The Node binary that runs the fleet dispatcher.
+ *
+ * NOT `process.execPath`. That is the interpreter currently running, which is
+ * Node inside a Claude Code hook but is the HARNESS ITSELF here: an OpenCode
+ * plugin runs inside OpenCode's own Bun-based binary. Spawning that with a
+ * dispatcher path re-enters the OpenCode CLI, which rejects the arguments and
+ * exits non-zero. Because this bridge fails open by design, the result is not a
+ * visible error but a session where every fleet guard silently passes.
+ *
+ * Measured: the OpenCode server log carried one `ShowHelp: Help requested`
+ * failure per tool call, naming `.claude/hooks/fleet/index.cjs` as an argument
+ * to the opencode binary. Use the running interpreter only when it IS Node, and
+ * otherwise resolve `node` from PATH.
+ */
+function nodeBinary(): string {
+  const execName = path.basename(process.execPath).toLowerCase()
+  return execName === 'node' || execName === 'node.exe'
+    ? process.execPath
+    : 'node'
+}
+
+/**
+ * How many operator turns the synthetic grant transcript keeps.
+ *
+ * The bypass reader looks back over the last `BYPASS_LOOKBACK_USER_TURNS`
+ * turns, 8 at the time of writing. Holding a few more leaves that reader's own
+ * window authoritative while keeping the file bounded.
+ */
+const GRANT_TRANSCRIPT_TURNS = 12
+
+let grantTranscript: string | undefined
+
+/**
+ * This session's synthetic grant transcript, created on first use.
+ *
+ * An empty string records a failed attempt so the scratch directory is not
+ * retried on every hook call.
+ */
+function grantTranscriptPath(): string | undefined {
+  if (grantTranscript === undefined) {
+    try {
+      grantTranscript = path.join(
+        mkdtempSync(path.join(os.tmpdir(), 'fleet-grants-')),
+        'turns.jsonl',
+      )
+    } catch {
+      grantTranscript = ''
+    }
+  }
+  return grantTranscript || undefined
+}
+
+/**
+ * Record one operator turn so a bypass phrase typed here can be found later.
+ *
+ * WHY THIS EXISTS. Every fleet bypass phrase is read out of a transcript of
+ * HUMAN-authored user turns, via `readHumanUserText`. Claude Code writes that
+ * JSONL itself. OpenCode has no such file, so `transcript_path` was absent from
+ * every payload this bridge sent and `bypassPhrasePresent` had nothing to read.
+ * The effect was total: a guard could block, print the exact phrase to type,
+ * and then ignore that phrase forever, because the grant never reached a
+ * transcript. Typing it changed nothing and the agent stayed stuck.
+ *
+ * This is the same synthetic-transcript translation `reviewAssistantProse`
+ * already does for the prose guards, pointed at the other role.
+ *
+ * `origin.kind` and `promptSource` are written because `eventIsHumanAuthored`
+ * checks both. A turn omitting them still reads as human today; stating them
+ * keeps the provenance explicit and survives a stricter default.
+ *
+ * PROVENANCE HOLDS. Only text the operator personally typed reaches this
+ * function — OpenCode's prompt hook fires on the human's own submission. An
+ * agent cannot forge a turn here, which is the property the bypass contract
+ * depends on.
+ */
+function recordUserTurn(text: string): void {
+  const transcript = grantTranscriptPath()
+  if (!transcript || !text.trim()) {
+    return
+  }
+  try {
+    const turn = JSON.stringify({
+      content: text,
+      origin: { kind: 'human' },
+      promptSource: 'typed',
+      role: 'user',
+    })
+    const prior = existsSync(transcript)
+      ? readFileSync(transcript, 'utf8').split(/\r?\n/).filter(Boolean)
+      : []
+    prior.push(turn)
+    writeFileSync(
+      transcript,
+      `${prior.slice(-GRANT_TRANSCRIPT_TURNS).join('\n')}\n`,
+      'utf8',
+    )
+  } catch {
+    // A grant we cannot record costs the bypass, never the session.
+  }
+}
 
 /**
  * The checkout that `from` lives in, found by walking up to the nearest `.git`.
@@ -50,7 +153,7 @@ const logger = getDefaultLogger()
  * checkout is above `from`, which the caller treats as "do not guard" rather
  * than guessing at a root.
  */
-export function findCheckoutRoot(from: string): string | undefined {
+function findCheckoutRoot(from: string): string | undefined {
   let dir = from
   // A walk up cannot outlast the path's own depth.
   for (let hops = 0; hops < 64; hops += 1) {
@@ -75,11 +178,8 @@ const DISPATCHER_REL = ['.claude', 'hooks', 'fleet', 'index.cjs']
  * How long a guard may take before the call is let through. Guards are meant
  * to be fast; a slow one must not stall the session.
  */
-/**
- * OpenCode tool name to the Claude Code tool name the guards match on.
- *
- * Only bash is listed. See the file header for why the file tools are absent.
- */
+const GUARD_TIMEOUT_MS = 10_000
+
 /**
  * OpenCode tool id -> Claude Code tool name.
  *
@@ -88,14 +188,121 @@ const DISPATCHER_REL = ['.claude', 'hooks', 'fleet', 'index.cjs']
  * reports nothing, which is strictly worse than being absent: it looks
  * covered.
  */
+/**
+ * Tool ids this bridge deliberately leaves UNGUARDED, and why.
+ *
+ * Absence from `TOOL_NAMES` is how a tool goes unguarded, and absence is
+ * invisible. Naming the intended ones here turns the remaining silence into a
+ * signal: an id in neither table is UNCLASSIFIED, and the bridge says so once
+ * instead of waving it through. That gap let a host whose shell tool is named
+ * `shell` run a whole session with no guard on any command.
+ */
+export const UNGUARDED_TOOL_IDS: ReadonlySet<string> = new Set([
+  'list',
+  'lsp_diagnostics',
+  'lsp_hover',
+  'patch',
+  'task',
+  'todoread',
+  'todowrite',
+  'websearch',
+])
+
+/**
+ * The tool id when this bridge has no recorded opinion about it.
+ *
+ * Undefined means classified: either mapped to a guarded Claude Code tool, or
+ * named in `UNGUARDED_TOOL_IDS` on purpose.
+ */
+export function unclassifiedToolId(tool: string): string | undefined {
+  if (TOOL_NAMES[tool] !== undefined || UNGUARDED_TOOL_IDS.has(tool)) {
+    return undefined
+  }
+  return tool
+}
+
+// One warning per id per process. A bridge that shouts on every tool call is a
+// bridge someone turns off.
+const reportedUnclassifiedIds = new Set<string>()
+
+/**
+ * Say once that a tool ran unguarded, so the gap surfaces in the session that
+ * has it rather than in a postmortem.
+ */
+/**
+ * This file's own repo-root-relative path, for the "edit it here" half of the
+ * unclassified-tool error.
+ *
+ * Derived rather than written down: a literal is a second reference to a path
+ * `harness-adapters.mts` already owns, and it rots silently the moment the file
+ * moves. `findCheckoutRoot` is reused so this stays self-contained — a relative
+ * import of the fleet's own `paths.mts` would resolve in the source tree and
+ * break in the `.opencode/plugins/` copy, which is the whole reason this file
+ * carries its own helpers.
+ */
+function selfSourcePath(): string {
+  const self = fileURLToPath(import.meta.url)
+  const root = findCheckoutRoot(path.dirname(self))
+  return root ? path.relative(root, self) : self
+}
+
+export function warnUnclassifiedTool(tool: string): void {
+  const unknown = unclassifiedToolId(tool)
+  if (unknown === undefined || reportedUnclassifiedIds.has(unknown)) {
+    return
+  }
+  reportedUnclassifiedIds.add(unknown)
+  logger.error(
+    `[fleet-guards] tool \`${unknown}\` is in neither TOOL_NAMES nor ` +
+      `UNGUARDED_TOOL_IDS, so it runs UNGUARDED. Add it to one of them in ${selfSourcePath()}.`,
+  )
+}
+
 export const TOOL_NAMES: Readonly<Record<string, string>> = {
   bash: 'Bash',
   edit: 'Edit',
   glob: 'Glob',
   grep: 'Grep',
   read: 'Read',
+  // Same payload as `bash`, different id: a host may name its shell tool
+  // `shell`, and an id absent from this map is passed through UNGUARDED. That
+  // gap silently exempted every shell command in one harness, including the
+  // zsh word-split these guards exist to catch.
+  shell: 'Bash',
   webfetch: 'WebFetch',
   write: 'Write',
+}
+
+/**
+ * Translate OpenCode's camelCase tool arguments into the snake_case keys the
+ * Claude Code guards read.
+ *
+ * THE GAP THIS CLOSES. The two hosts agree on `command` for bash, which is why
+ * bash worked alone for so long. They agree on nothing else: OpenCode sends
+ * `filePath` / `oldString` / `newString` / `replaceAll` where every fleet
+ * Edit-layer guard reads `file_path` / `old_string` / `new_string` /
+ * `replace_all`. Forwarding unmapped left every file guard reading `undefined`
+ * and matching nothing — silent, total non-coverage of the Edit and Write
+ * surface while the bridge reported itself active.
+ *
+ * A general camelCase -> snake_case conversion rather than a hand-kept table:
+ * a table is one more thing to forget when a tool gains an argument, and the
+ * failure mode of forgetting is again silence.
+ */
+export function toClaudeCodeArgs(
+  input: unknown,
+): Record<string, unknown> | undefined {
+  if (typeof input !== 'object' || input === null) {
+    return undefined
+  }
+  const out: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(input as Record<string, unknown>)) {
+    // `filePath` -> `file_path`; an already-snake_case key is unchanged.
+    // oxlint-disable-next-line socket/require-regex-comment -- described above
+    const snake = key.replace(/[A-Z]/g, c => `_${c.toLowerCase()}`)
+    out[snake] = value
+  }
+  return out
 }
 
 /**
@@ -103,7 +310,7 @@ export const TOOL_NAMES: Readonly<Record<string, string>> = {
  * than imported from `@opencode-ai/plugin` so the bridge stays dependency-free
  * and runs on a member that has not installed anything yet.
  */
-export interface PluginContext {
+interface PluginContext {
   readonly event: {
     readonly subscribe: (
       options?: { signal?: AbortSignal | undefined } | undefined,
@@ -159,6 +366,46 @@ export interface PluginContext {
  */
 
 /**
+ * Run the fleet's Stop-event prose guards over one assistant turn.
+ *
+ * WHY A SYNTHETIC TRANSCRIPT. `anti-prose-guard` and its siblings read the
+ * assistant's last turn from a Claude Code JSONL transcript. OpenCode has no
+ * such file — it emits the finished text as an event. Rather than teach every
+ * prose guard a second input shape, the bridge writes the ONE line those
+ * readers need. That is the same translation this bridge already does for tool
+ * payloads, and it keeps the guards as the single source of prose law.
+ *
+ * OBSERVATIONAL, NOT PREVENTIVE. `session.text.ended` fires AFTER the text is
+ * emitted, so this reports; it cannot refuse the turn the way Claude Code's
+ * Stop hook does. That is a real capability difference between the harnesses,
+ * not an implementation gap — findings surface on the next turn.
+ */
+/**
+ * Run the fleet dispatcher for one event, returning what it said and whether
+ * it refused. Exit 2 is the fleet's block signal; every other exit is advice.
+ */
+export function runDispatcher(
+  dispatcher: string,
+  event: string,
+  payload: Record<string, unknown>,
+): { blocked: boolean; text: string } {
+  try {
+    const result = spawnSync(nodeBinary(), [dispatcher, event], {
+      encoding: 'utf8',
+      input: JSON.stringify(payload),
+      timeout: GUARD_TIMEOUT_MS,
+    })
+    return {
+      blocked: result.status === 2,
+      text: String(result.stderr || result.stdout || '').trim(),
+    }
+  } catch {
+    // A bridge bug must never deadlock or fail a session.
+    return { blocked: false, text: '' }
+  }
+}
+
+/**
  * The fleet output style, as system instructions.
  *
  * Claude Code applies `.claude/output-styles/<name>.md` by loading it into the
@@ -191,75 +438,120 @@ export function readOutputStyle(root: string, name: string): string {
 }
 
 /**
- * Run the fleet's Stop-event prose guards over one assistant turn.
- *
- * WHY A SYNTHETIC TRANSCRIPT. `anti-prose-guard` and its siblings read the
- * assistant's last turn from a Claude Code JSONL transcript. OpenCode has no
- * such file — it emits the finished text as an event. Rather than teach every
- * prose guard a second input shape, the bridge writes the ONE line those
- * readers need. That is the same translation this bridge already does for tool
- * payloads, and it keeps the guards as the single source of prose law.
- *
- * OBSERVATIONAL, NOT PREVENTIVE. `session.text.ended` fires AFTER the text is
- * emitted, so this reports; it cannot refuse the turn the way Claude Code's
- * Stop hook does. That is a real capability difference between the harnesses,
- * not an implementation gap — findings surface on the next turn.
+ * Hooks whose findings concern PROSE. Stop runs every Stop hook and most judge
+ * repo state: an unfiltered review returned 2,987 measured characters, none
+ * about prose. Those hooks still reach OpenCode through the Bash guards.
  */
-/**
- * Run the fleet dispatcher for one event, returning what it said and whether
- * it refused. Exit 2 is the fleet's block signal; every other exit is advice.
- */
-export function runDispatcher(
-  dispatcher: string,
-  event: string,
-  payload: Record<string, unknown>,
-): { blocked: boolean; text: string } {
-  try {
-    const result = spawnSync(process.execPath, [dispatcher, event], {
-      encoding: 'utf8',
-      input: JSON.stringify(payload),
-      timeout: GUARD_TIMEOUT_MS,
-    })
-    return {
-      blocked: result.status === 2,
-      text: (result.stderr || result.stdout || '').trim(),
-    }
-  } catch {
-    // A bridge bug must never deadlock or fail a session.
-    return { blocked: false, text: '' }
-  }
-}
+const PROSE_HOOK_NAMES: readonly string[] = [
+  'anti-prose-guard',
+  'convo-prose-nudge',
+  'outbound-voice-nudge',
+  'reply-prose-nudge',
+  'self-narration-nudge',
+]
 
 /**
- * Translate OpenCode's camelCase tool arguments into the snake_case keys the
- * Claude Code guards read.
- *
- * THE GAP THIS CLOSES. The two hosts agree on `command` for bash, which is why
- * bash worked alone for so long. They agree on nothing else: OpenCode sends
- * `filePath` / `oldString` / `newString` / `replaceAll` where every fleet
- * Edit-layer guard reads `file_path` / `old_string` / `new_string` /
- * `replace_all`. Forwarding unmapped left every file guard reading `undefined`
- * and matching nothing — silent, total non-coverage of the Edit and Write
- * surface while the bridge reported itself active.
- *
- * A general camelCase -> snake_case conversion rather than a hand-kept table:
- * a table is one more thing to forget when a tool gains an argument, and the
- * failure mode of forgetting is again silence.
+ * Keep only the lines a prose hook emitted, plus their indented detail.
  */
-export function toClaudeCodeArgs(
-  input: unknown,
-): Record<string, unknown> | undefined {
-  if (typeof input !== 'object' || input === null) {
-    return undefined
+export function keepProseFindings(output: string): string {
+  const kept: string[] = []
+  let inProseBlock = false
+  const lines = output.split(/\r?\n/)
+  for (let i = 0, { length } = lines; i < length; i += 1) {
+    const line = lines[i]!
+    const named = PROSE_HOOK_NAMES.some(name => line.includes(name))
+    if (named) {
+      inProseBlock = true
+      kept.push(line)
+      continue
+    }
+    // Continuation lines are indented or blank; a new unindented line that
+    // names no prose hook belongs to some other hook.
+    if (inProseBlock && (line.startsWith(' ') || line.trim() === '')) {
+      kept.push(line)
+      continue
+    }
+    inProseBlock = false
   }
-  const out: Record<string, unknown> = {}
-  for (const [key, value] of Object.entries(input as Record<string, unknown>)) {
-    // `filePath` -> `file_path`; an already-snake_case key is unchanged.
-    // oxlint-disable-next-line socket/require-regex-comment -- described above
-    const snake = key.replace(/[A-Z]/g, c => `_${c.toLowerCase()}`)
-    out[snake] = value
+  return kept.join('\n').trim()
+}
+
+export function reviewAssistantProse(
+  dispatcher: string,
+  root: string,
+  text: string,
+): string {
+  if (!text.trim() || !existsSync(dispatcher)) {
+    return ''
   }
-  return out
+  let dir = ''
+  try {
+    const bundle = path.join(
+      path.dirname(dispatcher),
+      '_dist',
+      'fleet-pack.generated.cjs',
+    )
+    if (
+      !readFileSync(bundle, 'utf8').includes('fleet-dispatch-single-hook-v1')
+    ) {
+      logger.warn(
+        'fleet-guards: prose review unavailable; rebuild the hook bundle for single-hook dispatch.',
+      )
+      return ''
+    }
+    dir = mkdtempSync(path.join(os.tmpdir(), 'fleet-prose-'))
+    const transcript = path.join(dir, 'turn.jsonl')
+    writeFileSync(
+      transcript,
+      `${JSON.stringify({
+        message: { content: [{ text, type: 'text' }] },
+        role: 'assistant',
+      })}\n`,
+      'utf8',
+    )
+    const input = JSON.stringify({
+      cwd: root,
+      hook_event_name: 'Stop',
+      transcript_path: transcript,
+    })
+    const findings: string[] = []
+    for (let i = 0, { length } = PROSE_HOOK_NAMES; i < length; i += 1) {
+      const hook = PROSE_HOOK_NAMES[i]!
+      const result = spawnSync(nodeBinary(), [dispatcher, 'Stop', hook], {
+        encoding: 'utf8',
+        input,
+        timeout: GUARD_TIMEOUT_MS,
+      })
+      // 0 is a clean pass, 2 is a hook that blocked with a finding. Exit 3 is
+      // the dispatcher saying it has no such hook, which is not a failure.
+      if (result.status === 0 || result.status === 2) {
+        const finding = `${result.stderr || ''}\n${result.stdout || ''}`.trim()
+        if (finding) {
+          findings.push(`[${hook}] ${finding}`)
+        }
+      } else if (result.status !== 3) {
+        logger.warn(
+          `fleet-guards: prose hook ${hook} failed; inspect the dispatcher.`,
+        )
+      }
+    }
+    return findings.join('\n')
+  } catch {
+    logger.warn(
+      'fleet-guards: prose review failed; inspect the hook bundle and scratch directory permissions.',
+    )
+    return ''
+  } finally {
+    if (dir) {
+      try {
+        safeDeleteSync(dir)
+      } catch {
+        logger.warn(
+          'fleet-guards: prose transcript cleanup failed; check scratch directory permissions.',
+        )
+      }
+    }
+  }
 }
 
 export const FleetGuards = {
@@ -283,6 +575,25 @@ export const FleetGuards = {
       return undefined
     }
     const dispatcher = path.join(root, ...DISPATCHER_REL)
+    // SessionStart parity. Claude Code fires this event and the dispatcher
+    // starts the ai-balancer proxy on it; OpenCode fires nothing equivalent, so
+    // an OpenCode session ran against whatever proxy happened to be up, or none
+    // — the same silent-absence failure this bridge exists to stop for
+    // PreToolUse. `setup` runs once per session, which is what SessionStart
+    // means, and the dispatcher is the SAME one Claude Code runs, so the two
+    // harnesses cannot start the balancer differently.
+    //
+    // Fits the budget: the proxy's spawn-and-health wait is 2s against the
+    // 10s dispatcher timeout, and an already-healthy proxy returns immediately.
+    // Non-blocking on purpose — a SessionStart hook advises, it does not gate,
+    // so a refusal here is reported and the session continues.
+    const sessionStart = runDispatcher(dispatcher, 'SessionStart', {
+      cwd: root,
+      hook_event_name: 'SessionStart',
+    })
+    if (sessionStart.text) {
+      logger.info(sessionStart.text)
+    }
     const controller = new AbortController()
     // ONE review per TURN, not per text block.
     //
@@ -334,16 +645,18 @@ export const FleetGuards = {
         const toolName = TOOL_NAMES[event.tool]
         // No mapping, or a thin member whose payload is not fetched yet.
         if (!toolName || !existsSync(dispatcher)) {
+          warnUnclassifiedTool(event.tool)
           return
         }
         let result
         try {
-          result = spawnSync(process.execPath, [dispatcher, 'PreToolUse'], {
+          result = spawnSync(nodeBinary(), [dispatcher, 'PreToolUse'], {
             encoding: 'utf8',
             input: JSON.stringify({
               cwd: root,
               tool_input: toClaudeCodeArgs(event.input) ?? {},
               tool_name: toolName,
+              transcript_path: grantTranscriptPath(),
             }),
             timeout: GUARD_TIMEOUT_MS,
           })
@@ -351,7 +664,7 @@ export const FleetGuards = {
           // A bridge bug must not deadlock every tool call.
           return
         }
-        const text = (result.stderr || result.stdout || '').trim()
+        const text = String(result.stderr || result.stdout || '').trim()
         // Exit 2 is the block. Throwing is how a plugin refuses a tool call,
         // and the guard's own text carries the reason and the bypass phrase.
         if (result.status === 2) {
@@ -368,12 +681,14 @@ export const FleetGuards = {
     void ctx.tool.hook('execute.after', event => {
       const toolName = TOOL_NAMES[event.tool]
       if (!toolName || !existsSync(dispatcher)) {
+        warnUnclassifiedTool(event.tool)
         return
       }
       const spoke = runDispatcher(dispatcher, 'PostToolUse', {
         cwd: root,
         tool_input: toClaudeCodeArgs(event.input) ?? {},
         tool_name: toolName,
+        transcript_path: grantTranscriptPath(),
       })
       if (spoke.text) {
         logger.warn(spoke.text)
@@ -384,13 +699,19 @@ export const FleetGuards = {
     // watchdog and the memory nudges run. A block here is advisory only —
     // OpenCode's prompt hook shapes input, it does not refuse admission.
     void ctx.session.hook('prompt', event => {
+      const prompt = String(event?.prompt?.text ?? '')
+      // Record BEFORE dispatching, and unconditionally: a grant the operator
+      // typed must survive even when no dispatcher exists to consume it now,
+      // because the tool call it releases comes on a later turn.
+      recordUserTurn(prompt)
       if (!existsSync(dispatcher)) {
         return
       }
       const spoke = runDispatcher(dispatcher, 'UserPromptSubmit', {
         cwd: root,
         hook_event_name: 'UserPromptSubmit',
-        prompt: event?.prompt?.text ?? '',
+        prompt,
+        transcript_path: grantTranscriptPath(),
       })
       if (spoke.text) {
         logger.warn(spoke.text)
@@ -406,7 +727,7 @@ export const FleetGuards = {
     // throws inside `SessionModelRequest.prepare`. That kills the whole drain
     // loop, so every turn hangs with no reply and the only trace is a
     // "Failed to drain Session" line in the server log.
-    const styleName = process.env['FLEET_OUTPUT_STYLE'] || 'fleet'
+    const styleName = getEnvValue('FLEET_OUTPUT_STYLE') || 'fleet'
     const styleText = readOutputStyle(root, styleName)
     if (styleText) {
       void ctx.session.hook('context', event => {
@@ -419,6 +740,4 @@ export const FleetGuards = {
   },
 }
 
-// OpenCode discovers a plugin through its default export.
-// oxlint-disable-next-line socket/no-default-export -- opencode plugin contract
 export default FleetGuards
