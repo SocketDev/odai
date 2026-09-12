@@ -57,9 +57,11 @@
 **/.claude/hooks/fleet/_shared/dispatch-table.excluded.generated.mts
 **/.claude/hooks/fleet/_shared/dispatch-table.snapshot.generated.mts
 **/.claude/hooks/fleet/_shared/dispatch-table.generated.mts
+**/.claude/hooks/fleet/_dist/fleet-pack.excluded.generated.cjs
 **/.claude/hooks/fleet/_shared/validators.generated.mts
 **/.claude/hooks/fleet/_shared/node.path
 **/.claude/hooks/fleet/_shared/snapshot-blob.path
+**/.claude/hooks/fleet/_dist/fleet-pack.snapshot.generated.cjs
 **/.claude/hooks/fleet/_shared/dispatch-manifest.generated.json
 # The rolldown-bundled fleet oxlint plugin (build-oxlint-bundle.mts): members
 # load this single artifact via jsPlugins instead of the ~100 rule source
@@ -2489,6 +2491,8 @@ opencode.json
 .config/fleet/tsconfig.check.base.json
 .config/fleet/vitest.coverage.fleet.config.mts
 .config/fleet/vitest.fuzz.fleet.config.mts
+.config/repo/vitest.config.mts
+.config/repo/vitest.settings.mts
 .github/actions/fleet/cleanup-git-signing/action.yml
 .github/actions/fleet/crates-io-auth/action.yml
 .github/actions/fleet/download-artifact/action.yml
@@ -2509,6 +2513,7 @@ opencode.json
 .github/actions/fleet/setup-rust-toolchain/action.yml
 .github/actions/fleet/upload-artifact/action.yml
 .github/local-ci.Dockerfile
+.github/zizmor.yml
 .mcp.json
 docs/design/fleet/README.md
 docs/design/fleet/components.css
@@ -3469,6 +3474,7 @@ scripts/fleet/github/actions-runtime.mts
 scripts/fleet/github/app-credentials.mts
 scripts/fleet/github/apps.mts
 scripts/fleet/github/ci/secrets.json
+scripts/fleet/github/ci/variables.json
 scripts/fleet/github/commit.mts
 scripts/fleet/github/ghcr-package.mts
 scripts/fleet/github/managed-ruleset-identity.mts
@@ -4002,6 +4008,7 @@ scripts/fleet/team-activity/lib/state.mts
 scripts/fleet/team-activity/lib/types.mts
 scripts/fleet/temporal/calendar-month.mts
 scripts/fleet/test-runner/cli-args.mts
+scripts/fleet/test-runner/discovery.mts
 scripts/fleet/test-runner/git-files.mts
 scripts/fleet/test-runner/mirror-resolver.mts
 scripts/fleet/test-runner/read-summary.mts
@@ -4090,6 +4097,7 @@ scripts/fleet/worktree/sweep/worker.mts
 scripts/fleet/write-handoff.mts
 test/fleet/_shared/lib/coverage-env.mts
 test/fleet/_shared/lib/env.mts
+test/fleet/_shared/lib/isolate-home-env.mts
 test/fleet/_shared/lib/matchers.mts
 test/fleet/_shared/lib/network-preload.mjs
 test/fleet/_shared/lib/output.mts

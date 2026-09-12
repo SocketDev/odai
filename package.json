@@ -99,7 +99,7 @@
     "soak:bypass": "node scripts/fleet/soak-bypass.mts",
     "npm:trust": "node scripts/fleet/registry-infra/npm/settings/trust.mts",
     "prune:branch-backups": "node scripts/fleet/backup-branches.mts prune",
-    "preflight": "node scripts/repo/bootstrap/fleet.mjs --ensure-current --quiet && node scripts/fleet/preflight.mts",
+    "preflight": "node scripts/repo/bootstrap/fleet.mjs --quiet && node scripts/fleet/preflight.mts",
     "npm:auth:browser": "node scripts/fleet/npm-auth-browser.mts",
     "npm:auth:cli": "node scripts/fleet/npm-auth-cli.mts",
     "prune:gha-caches": "node scripts/fleet/prune-actions-caches.mts",

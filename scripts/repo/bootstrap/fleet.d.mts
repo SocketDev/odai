@@ -357,8 +357,8 @@ export interface InstallConfig {
    */
   readonly fromTemplate?: boolean | undefined;
   readonly preserveTracked?: boolean | undefined;
+  readonly repairTracked?: boolean | undefined;
   readonly dryRun?: boolean | undefined;
-  readonly ensureCurrent?: boolean | undefined;
   readonly expectedReceipt?: OciManifestReceipt | undefined;
   readonly json?: boolean | undefined;
   readonly manifest?: string | undefined;

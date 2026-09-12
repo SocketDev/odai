@@ -1330,13 +1330,17 @@ function readFleetTrackedPaths(dest) {
       execFileSync('git', ['ls-files', '--cached', '-z'], {
         cwd: dest,
         encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'pipe'],
       })
         .split('\0')
         .filter(Boolean)
         .map(normalizeBundlePath),
     )
-  } catch {
-    return /* @__PURE__ */ new Set()
+  } catch (error) {
+    throw new Error(
+      `install-fleet: cannot read the tracked-path inventory for ${dest}; automatic hydration stopped before writing files: ${errorMessage(error)}. Fix the Git checkout, then retry.`,
+      { cause: error },
+    )
   }
 }
 function refreshFleetPackCheckoutExcludes(config) {
@@ -3504,6 +3508,86 @@ async function resolveGreenPack(repo) {
 }
 
 //#endregion
+//#region scripts/repo/gen/bootstrap/src/tracked-hydration.mts
+function completeRegion(content, begin, end) {
+  const lines = content.split(/\r?\n/)
+  const start = lines.indexOf(begin)
+  const finish = start === -1 ? -1 : lines.indexOf(end, start + 1)
+  if (start === -1 || finish === -1) return
+  return lines.slice(start, finish + 1).join('\n')
+}
+function isManagedGitignoreResult(index, current) {
+  const fleetBlock = completeRegion(current, '# <fleet>', '# </fleet>')
+  const packBlock = completeRegion(current, packBeginMarker(), packEndMarker())
+  if (fleetBlock === void 0 || packBlock === void 0) return false
+  const withFleet = composeGitignore({
+    fleetBlock,
+    target: index,
+  })
+  return (
+    composeGitignore({
+      packBlock,
+      target: withFleet,
+    }) === current
+  )
+}
+function readIndexFile(dest, relative) {
+  return execFileSync('git', ['show', `:${relative}`], {
+    cwd: dest,
+    encoding: 'buffer',
+    stdio: ['ignore', 'pipe', 'pipe'],
+  })
+}
+function restoreIndexFile(dest, relative) {
+  execFileSync('git', ['checkout-index', '--force', '--', relative], {
+    cwd: dest,
+    stdio: 'ignore',
+  })
+}
+function repairTrackedHydration(dest, options) {
+  if (!existsSync(path.join(dest, '.git'))) return []
+  const appliedFiles = new Set(
+    (readAppliedFiles(dest) ?? []).map(normalizeBundlePath),
+  )
+  const appliedManifest = readAppliedManifest(dest) ?? {}
+  if (appliedFiles.size === 0 && Object.keys(appliedManifest).length === 0)
+    return []
+  const repaired = []
+  for (const relative of readFleetTrackedPaths(dest)) {
+    if (
+      relative !== '.gitignore' &&
+      !appliedFiles.has(relative) &&
+      !Object.hasOwn(appliedManifest, relative)
+    )
+      continue
+    const target = path.join(dest, relative)
+    if (!existsSync(target)) {
+      if (options?.restoreMissing === true && appliedFiles.has(relative)) {
+        restoreIndexFile(dest, relative)
+        repaired.push(relative)
+      }
+      continue
+    }
+    const current = readFileSync(target)
+    const appliedDigest = appliedManifest[relative]
+    const index = readIndexFile(dest, relative)
+    const isAppliedPayload =
+      appliedDigest !== void 0 && computeSha256(current) === appliedDigest
+    const isManagedGitignoreOnly =
+      relative === '.gitignore' &&
+      isManagedGitignoreResult(index.toString('utf8'), current.toString('utf8'))
+    if (
+      !current.equals(index) &&
+      (isAppliedPayload || isManagedGitignoreOnly)
+    ) {
+      restoreIndexFile(dest, relative)
+      repaired.push(relative)
+    }
+  }
+  return repaired
+}
+
+//#endregion
 //#region scripts/repo/gen/bootstrap/src/fleet.mts
 const SCRIPT_META = {
   describe:
@@ -3532,12 +3616,12 @@ function parseArgs(argv) {
     bundle: void 0,
     dest: repoRoot,
     dryRun: false,
-    ensureCurrent: false,
     json: false,
     manifest: void 0,
     quiet: false,
     refreshTracked: false,
     preserveTracked: false,
+    repairTracked: false,
     ref: '',
     repo: DEFAULT_REPO,
     fromTemplate: false,
@@ -3550,12 +3634,12 @@ function parseArgs(argv) {
     if (arg === '--dest') opts.dest = argv[++i] ?? repoRoot
     else if (arg === '--bundle') opts.bundle = argv[++i]
     else if (arg === '--dry-run') opts.dryRun = true
-    else if (arg === '--ensure-current') opts.ensureCurrent = true
     else if (arg === '--json') opts.json = true
     else if (arg === '--from-template') opts.fromTemplate = true
     else if (arg === '--manifest') opts.manifest = argv[++i]
     else if (arg === '--quiet') opts.quiet = true
     else if (arg === '--preserve-tracked') opts.preserveTracked = true
+    else if (arg === '--repair-tracked') opts.repairTracked = true
     else if (arg === '--refresh-tracked') opts.refreshTracked = true
     else if (arg === '--ref') opts.ref = argv[++i] ?? ''
     else if (arg === '--repo') opts.repo = argv[++i] ?? DEFAULT_REPO
@@ -3696,6 +3780,7 @@ async function ensureCurrentFleet(config, dependencies) {
   }
   const dest = path.resolve(cfg.dest ?? repoRoot)
   if (existsSync(sharedTemplateBasePath(dest))) return 0
+  repairTrackedHydration(dest, { restoreMissing: cfg.repairTracked === true })
   const now = deps.now ?? Date.now
   const receipt = readEnsureCurrentReceipt(dest)
   if (
@@ -3757,7 +3842,6 @@ async function ensureCurrentFleet(config, dependencies) {
     if (readAppliedRef(dest) !== ref || !appliedPayloadIsComplete(dest, ref)) {
       const result = await (deps.install ?? installFleet)({
         ...cfg,
-        ensureCurrent: false,
         expectedReceipt: oci,
         ref,
       })

@@ -718,10 +718,8 @@ export function fetchBundle(): boolean {
     }
     return true
   }
-  if (!tryRun('node', [fleet, '--ensure-current'])) {
-    log(
-      'bundle refresh (fleet.mjs --ensure-current) reported a problem — continuing',
-    )
+  if (!tryRun('node', [fleet])) {
+    log('bundle refresh (fleet.mjs) reported a problem — continuing')
     return false
   }
   return true

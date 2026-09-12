@@ -39,7 +39,7 @@ jobs:
 
       - name: Ensure current fleet pack
         shell: bash
-        run: node scripts/repo/bootstrap/fleet.mjs --ensure-current
+        run: node scripts/repo/bootstrap/fleet.mjs
 
       - name: Verify tracked tree stayed clean
         shell: bash
