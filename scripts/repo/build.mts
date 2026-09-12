@@ -33,7 +33,10 @@ async function run(command: string, args: string[]): Promise<number> {
 async function main(): Promise<void> {
   await safeDelete(distPath)
 
-  let exitCode = await run('rolldown', [
+  let exitCode = await run(process.execPath, [
+    fileURLToPath(
+      new URL('./bin/cli.mjs', import.meta.resolve('rolldown/package.json')),
+    ),
     '--config',
     '.config/repo/rolldown.config.mts',
   ])
@@ -43,7 +46,13 @@ async function main(): Promise<void> {
     return
   }
 
-  exitCode = await run('tsc', ['--project', 'tsconfig.dts.json'])
+  exitCode = await run(process.execPath, [
+    fileURLToPath(
+      new URL('./bin/tsc', import.meta.resolve('typescript/package.json')),
+    ),
+    '--project',
+    'tsconfig.dts.json',
+  ])
   if (exitCode !== 0) {
     logger.error('Type declarations failed')
     process.exitCode = exitCode
