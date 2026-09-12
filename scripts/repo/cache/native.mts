@@ -313,6 +313,7 @@ export async function createGemmaNativeDiagnostics(
     try {
       const handle = await fs.open(logFile, 'r')
       try {
+        // oxlint-disable-next-line socket/prefer-exists-sync -- metadata
         const size = (await handle.stat()).size
         if (size >= MAX_LOG_BYTES && !notified) {
           notified = true

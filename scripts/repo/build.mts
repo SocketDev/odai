@@ -3,7 +3,7 @@
  *   emits TypeScript declarations with tsc.
  */
 
-import { readdir } from 'node:fs/promises'
+import { chmod } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -11,7 +11,8 @@ import { safeDelete } from '@socketsecurity/lib-stable/fs/safe'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import { spawn } from '@socketsecurity/lib-stable/process/spawn/child'
 
-import { isMainModule } from '../fleet/_shared/is-main-module.mts'
+import { isMainModule } from '../fleet/process/is-main-module.mts'
+import { runMain } from '../fleet/process/run-main.mts'
 
 const logger = getDefaultLogger()
 const rootPath = path.resolve(
@@ -48,32 +49,12 @@ async function main(): Promise<void> {
     process.exitCode = exitCode
     return
   }
-
-  await removeInternalDeclarations(distPath)
-}
-
-const PUBLIC_DECLARATION_FILES = new Set([
-  'bench/index.d.mts',
-  'index.d.mts',
-  'node.d.mts',
-])
-
-async function removeInternalDeclarations(dir: string): Promise<void> {
-  const entries = await readdir(dir, { recursive: true, withFileTypes: true })
-  for (const entry of entries) {
-    if (!entry.isFile() || !entry.name.endsWith('.d.mts')) {
-      continue
-    }
-    if (PUBLIC_DECLARATION_FILES.has(entry.name)) {
-      continue
-    }
-    await safeDelete(path.join(entry.parentPath, entry.name))
-  }
+  await chmod(path.join(distPath, 'cli.js'), 0o755)
 }
 
 if (isMainModule(import.meta.url)) {
-  main().catch(error => {
-    logger.error(error)
-    process.exitCode = 1
+  runMain(main, {
+    describe: 'Build the runtime bundles and their declaration dependencies.',
+    help: 'Usage: pnpm run build',
   })
 }

@@ -1,12 +1,12 @@
 /**
- * @file Rolldown configuration for the Gemini Nano library. Bundles the browser
- *   entry to a CJS artifact at `dist/index.js`.
+ * @file Build the browser, Node, CLI, and benchmark entries as CommonJS.
  */
 
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import type { RolldownOptions } from 'rolldown'
+import { acornWasmPlugin } from './rolldown-plugin/acorn.mts'
 
 const rootPath = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -20,6 +20,7 @@ const baseConfig = {
   // gemini-nano-headless bridge; bundling it drags in native fsevents.
   external: ['@sinclair/typebox', 'playwright-core'],
   output: {
+    chunkFileNames: 'chunk/[name]-[hash].js',
     dir: distPath,
     format: 'cjs' as const,
     minify: false,
@@ -36,6 +37,23 @@ const browserConfig: RolldownOptions = {
     entryFileNames: 'index.js',
   },
   platform: 'browser',
+  plugins: [
+    {
+      name: 'browser-backends',
+      resolveId(source, importer) {
+        if (importer === undefined || !source.startsWith('.')) {
+          return undefined
+        }
+        const resolved = path.resolve(path.dirname(importer), source)
+        for (const backend of ['apple-fm', 'chrome-builtin']) {
+          if (resolved === path.join(srcPath, 'backends', `${backend}.mts`)) {
+            return path.join(srcPath, 'backends', `${backend}.browser.mts`)
+          }
+        }
+        return undefined
+      },
+    },
+  ],
 }
 
 const nodeConfig: RolldownOptions = {
@@ -61,12 +79,13 @@ const cliConfig: RolldownOptions = {
 
 const benchConfig: RolldownOptions = {
   ...baseConfig,
+  plugins: [acornWasmPlugin()],
   external: ['playwright-core'],
   input: path.join(srcPath, 'bench/index.mts'),
   output: {
     ...baseConfig.output,
     entryFileNames: 'bench/index.js',
-    format: 'esm',
+    format: 'cjs',
   },
   platform: 'browser',
 }

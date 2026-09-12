@@ -61,6 +61,7 @@ const WeeklyUpdateExtractionSchemaLike = {
     )
     return {
       candidates: parsed.candidates.map(candidate => ({
+        __proto__: null,
         daysSincePublished: candidate.daysSincePublished,
         from: candidate.from,
         name: candidate.name,

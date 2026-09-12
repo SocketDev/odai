@@ -11,13 +11,13 @@ import { fileURLToPath } from 'node:url'
 
 import { getDefaultLogger } from '@socketsecurity/lib/logger/default'
 
-import { runMain } from '../../scripts/fleet/_shared/run-main.mts'
+import { runMain } from '../../scripts/fleet/process/run-main.mts'
 import { loadAllowlist } from './llama-cpp-server/allowlist.mts'
 import { classifyRun, exitCodeFor } from './llama-cpp-server/classifier.mts'
 import { runSuite } from './llama-cpp-server/executor.mts'
 import { resolveSuiteDir, stageSuite } from './llama-cpp-server/harness.mts'
 import { formatSummary } from './llama-cpp-server/report.mts'
-import type { ScriptMeta } from '../../scripts/fleet/_shared/run-main.mts'
+import type { ScriptMeta } from '../../scripts/fleet/process/run-main.mts'
 
 const logger = getDefaultLogger()
 

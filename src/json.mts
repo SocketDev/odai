@@ -242,17 +242,7 @@ export function repairJson(raw: string): string {
       continue
     }
     if (char === ']' || char === '}') {
-      const wanted = char === '}' ? '{' : '['
-      while (stack.length > 0 && stack[stack.length - 1] !== wanted) {
-        out.push(stack.pop() === '[' ? ']' : '}')
-      }
-      if (stack.length === 0) {
-        // An unmatched closer with nothing open — drop it.
-        continue
-      }
-      stack.pop()
-      out.push(char)
-      if (stack.length === 0) {
+      if (repairJsonCloser(char, stack, out)) {
         return out.join('')
       }
       continue
@@ -260,6 +250,23 @@ export function repairJson(raw: string): string {
     out.push(char)
   }
   return '{}'
+}
+
+export function repairJsonCloser(
+  char: string,
+  stack: string[],
+  out: string[],
+): boolean {
+  const wanted = char === '}' ? '{' : '['
+  while (stack.length > 0 && stack[stack.length - 1] !== wanted) {
+    out.push(stack.pop() === '[' ? ']' : '}')
+  }
+  if (stack.length === 0) {
+    return false
+  }
+  stack.pop()
+  out.push(char)
+  return stack.length === 0
 }
 
 /**

@@ -62,6 +62,7 @@ const HoistExtractionSchemaLike = {
     )
     return {
       breakingChanges: parsed.breakingChanges.map(change => ({
+        __proto__: null,
         droppedNodeMajor: change.droppedNodeMajor ?? undefined,
         isNodeDrop: change.isNodeDrop,
         text: change.text,

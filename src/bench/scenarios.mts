@@ -6,6 +6,7 @@
  *   rubric, the inline scenarios, and the aggregate `allScenarios`.
  */
 
+import { lockstepScenarios } from './lockstep/scenarios.mts'
 import { Type } from '@sinclair/typebox'
 import type { Static } from '@sinclair/typebox'
 import { Value } from '@sinclair/typebox/value'
@@ -44,6 +45,9 @@ import {
   SEVERITY_COUNTS,
 } from './fixtures.mts'
 import {
+  callsSymbol,
+  hasStrictEquality,
+  importsSymbol,
   isTemplateLiteralPatch,
   repairResolvesLintErrors,
 } from './verify-oracles.mts'
@@ -68,6 +72,7 @@ export interface ScenarioResult {
 }
 
 export interface Scenario {
+  task?: 'patch' | 'lockstep' | undefined
   name: string
   run(model: OdaiModel): Promise<ScenarioResult>
 }
@@ -88,12 +93,13 @@ export function scoreTaskResult<T>(
 ): ScenarioResult {
   if (!result.ok || result.data === undefined) {
     return {
+      __proto__: null,
       assertion: result.error ?? 'task failed',
       name: '',
       ok: false,
       raw: result.raw,
       score: 0,
-    }
+    } as ScenarioResult
   }
   const verdict = assert(result.data)
   return {
@@ -177,6 +183,7 @@ export const alertSummaryScenario: Scenario = {
       const sentences = value.sentences
       const hasCritical = sentences.some(s => /critical/i.test(s))
       return {
+        __proto__: null,
         ok: hasCritical,
         assertion: hasCritical
           ? 'summary mentions critical findings'
@@ -213,6 +220,7 @@ export const askIntentScenario: Scenario = {
       const command = value.command
       const isFix = command[0] === 'fix'
       return {
+        __proto__: null,
         ok: isFix,
         assertion: isFix
           ? `routed "${query}" to fix command`
@@ -228,13 +236,13 @@ export const codePatchScenario: Scenario = {
     const result = await generateVerified(
       () =>
         generateCodePatch(model, CODE_PATCH_INPUT, 'use a template literal'),
-      isTemplateLiteralPatch,
+      value => isTemplateLiteralPatch(value, CODE_PATCH_INPUT),
       5,
     )
     return scoreTaskResult(result, value => {
-      const patch = value.patch
-      const hasTemplate = patch.includes('`Hello ${name}`')
+      const hasTemplate = isTemplateLiteralPatch(value, CODE_PATCH_INPUT)
       return {
+        __proto__: null,
         ok: hasTemplate,
         assertion: hasTemplate
           ? 'produced template-literal patch'
@@ -242,6 +250,7 @@ export const codePatchScenario: Scenario = {
       }
     })
   },
+  task: 'patch',
 }
 
 export const codeRepairScenario: Scenario = {
@@ -269,10 +278,9 @@ export const codeRepairScenario: Scenario = {
     )
     return scoreTaskResult(result, value => {
       const fixed = value.fixed
-      const usesStrictEquality = /name\s*===\s*(""|'')/.test(fixed)
-      const removedUnusedImport = !fixed.includes('deepEqual')
-      const keptLogic =
-        fixed.includes('join(root, ') && fixed.includes('default.json')
+      const usesStrictEquality = hasStrictEquality(fixed)
+      const removedUnusedImport = !importsSymbol(fixed, 'deepEqual')
+      const keptLogic = callsSymbol(fixed, 'join')
       const failures: string[] = []
       if (!usesStrictEquality) {
         failures.push('eqeqeq not fixed')
@@ -284,6 +292,7 @@ export const codeRepairScenario: Scenario = {
         failures.push('original join logic not preserved')
       }
       return {
+        __proto__: null,
         ok: failures.length === 0,
         assertion:
           failures.length === 0
@@ -292,6 +301,7 @@ export const codeRepairScenario: Scenario = {
       }
     })
   },
+  task: 'patch',
 }
 
 export const dedupeCandidateScenario: Scenario = {
@@ -322,6 +332,7 @@ export const dedupeCandidateScenario: Scenario = {
         s.packages.some(p => /chalk/i.test(p)),
       )
       return {
+        __proto__: null,
         ok: mentionsChalk,
         assertion: mentionsChalk
           ? 'suggested chalk deduplication'
@@ -339,6 +350,7 @@ export const lockfileDuplicateScenario: Scenario = {
     const findings = findRedundantPackages(LOCKFILE_DUPLICATE_LODASH)
     const hasLodash = findings.some(f => /lodash/i.test(f.name))
     return {
+      __proto__: null,
       assertion: hasLodash
         ? 'found lodash-related finding'
         : 'expected a lodash-related finding',
@@ -368,6 +380,7 @@ export const safeAlternativeScenario: Scenario = {
       const alternative = value.alternative
       const isLodashEs = /lodash-es/i.test(alternative)
       return {
+        __proto__: null,
         ok: isLodashEs,
         assertion: isLodashEs
           ? 'suggested lodash-es alternative'
@@ -387,6 +400,7 @@ export const sbomAnomalyScenario: Scenario = {
       /duplicate|multiple|two versions/i.test(a),
     )
     return {
+      __proto__: null,
       assertion: mentionsDuplicate
         ? 'flagged duplicate component versions'
         : 'expected duplicate-version anomaly',
@@ -399,6 +413,7 @@ export const sbomAnomalyScenario: Scenario = {
 }
 
 export const allScenarios: Scenario[] = [
+  ...lockstepScenarios,
   alertSummaryScenario,
   askIntentScenario,
   codePatchScenario,

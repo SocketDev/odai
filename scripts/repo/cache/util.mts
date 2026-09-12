@@ -145,7 +145,9 @@ export async function initializeCacheProfile(directory: string): Promise<void> {
 export async function assertCacheProfile(directory: string): Promise<void> {
   const paths = cachePaths(directory)
   if (
+    // oxlint-disable-next-line socket/prefer-exists-sync -- metadata
     !(await fs.lstat(directory)).isDirectory() ||
+    // oxlint-disable-next-line socket/prefer-exists-sync -- metadata
     !(await fs.lstat(paths.marker)).isFile()
   ) {
     throw new Error(
@@ -233,6 +235,7 @@ export async function exportGemmaCache(
   await assertCacheProfile(source)
   const files = await inventoryCache(source)
   const sourceState = cachePaths(source).state
+  // oxlint-disable-next-line socket/prefer-exists-sync -- metadata
   if (!(await fs.lstat(sourceState)).isFile()) {
     throw new Error(
       `Invalid cache state at ${source}. Saw a linked or special file; expected regular browser settings. Export a closed dedicated profile.`,
@@ -306,7 +309,9 @@ async function assertExportState(
 ): Promise<void> {
   const paths = cachePaths(directory)
   if (
+    // oxlint-disable-next-line socket/prefer-exists-sync -- metadata
     !(await fs.lstat(paths.state)).isFile() ||
+    // oxlint-disable-next-line socket/prefer-exists-sync -- metadata
     !(await fs.lstat(paths.bridge)).isFile()
   ) {
     throw new Error(

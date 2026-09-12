@@ -18,12 +18,48 @@ import {
   createBackend,
   selectBackend,
 } from '../backends/registry.mts'
-import { createOdaiModel } from '../model.mts'
-import { startShimServer } from '../shim/server.mts'
+import { preferredTaskBackend } from '../routing.mts'
+import { parseLockstepInput } from '../lockstep/validate.mts'
+import { parseJsonInput } from './dispatch.mts'
+import { createOdaiModel, destroySession } from '../model.mts'
+import type { OdaiModel } from '../model.mts'
+import {
+  closeBackend,
+  DEFAULT_PROMPT_TIMEOUT_MS,
+  DEFAULT_SERVE_PORT,
+  EXIT_NO_BACKEND,
+  EXIT_OK,
+  EXIT_TASK_FAILURE,
+  EXIT_USAGE,
+  ODAI_TIMEOUT_ENV_VAR,
+  readInputText,
+  truncateForLog,
+  withTimeout,
+} from './runtime.mts'
+import type { LineWriter } from './runtime.mts'
+import { runServeCommand } from './serve.mts'
+export {
+  CliTimeoutError,
+  closeBackend,
+  DEFAULT_PROMPT_TIMEOUT_MS,
+  DEFAULT_SERVE_PORT,
+  EXIT_NO_BACKEND,
+  EXIT_OK,
+  EXIT_TASK_FAILURE,
+  EXIT_USAGE,
+  ODAI_TIMEOUT_ENV_VAR,
+  readInputText,
+  truncateForLog,
+  withTimeout,
+} from './runtime.mts'
+export type { LineWriter } from './runtime.mts'
+export { runServeCommand } from './serve.mts'
+export type { RunServeCommandOptions } from './serve.mts'
 import { CliUsageError, parseCliArgs, usageText } from './args.mts'
 import { parseBatchManifest, runBatchEntries } from './batch.mts'
 import { runTask } from './dispatch.mts'
 import type { CliArgs } from './args.mts'
+import type { TaskCommand } from './commands.mts'
 import type { ShimServerHandle } from '../shim/server.mts'
 import type { BatchEntry } from './batch.mts'
 import type {
@@ -32,28 +68,7 @@ import type {
   OdaiBackend,
 } from '../backends/types.mts'
 
-export const EXIT_OK = 0
-export const EXIT_TASK_FAILURE = 1
-export const EXIT_USAGE = 2
-/**
- * Sysexits EX_UNAVAILABLE. A fleet CI step that sees this code skips its AI
- * leg cleanly instead of failing the job.
- */
-export const EXIT_NO_BACKEND = 69
-
-export const DEFAULT_PROMPT_TIMEOUT_MS = 120_000
-export const DEFAULT_SERVE_PORT = 8402
-export const ODAI_TIMEOUT_ENV_VAR = 'ODAI_TIMEOUT_MS'
-
-const RAW_REPLY_LOG_LIMIT = 400
-
-/**
- * A prompt that blew its time budget. The runner reports it as a task
- * failure with the budget and the knobs that raise it.
- */
-export class CliTimeoutError extends Error {}
-
-export type LineWriter = (line: string) => void
+const logger = getDefaultLogger()
 
 export interface RunCliOptions {
   /**
@@ -95,15 +110,6 @@ export interface RunCliOptions {
   stopServing?: Promise<void> | undefined
 }
 
-export async function closeBackend(
-  backend: OdaiBackend | undefined,
-): Promise<void> {
-  const closeable = backend as
-    | { close?: (() => Promise<void>) | undefined }
-    | undefined
-  await closeable?.close?.().catch(() => undefined)
-}
-
 export function promptTimeoutMs(
   args: CliArgs,
   env: Record<string, string | undefined>,
@@ -142,33 +148,20 @@ export function provisioningHelp(): string {
   ].join('\n')
 }
 
-export async function readInputText(
-  args: CliArgs,
-  readStdin: (() => Promise<string>) | undefined,
-): Promise<string> {
-  if (args.input !== undefined) {
-    const { readFile } = await import('node:fs/promises')
-    try {
-      return await readFile(args.input, 'utf8')
-    } catch (error) {
-      throw new CliUsageError(
-        `odai: cannot read --input ${args.input}: ${errorMessage(error)}`,
-      )
-    }
+export async function readCliTaskInput(
+  context: CliContext,
+  command: TaskCommand | 'batch',
+): Promise<{ input: string; batchEntries: BatchEntry[] | undefined }> {
+  const input = await readInputText(context.args, context.options.readStdin)
+  if (input.trim() === '') {
+    throw new CliUsageError(`odai ${command}: the input is empty.`)
   }
-  if (readStdin !== undefined) {
-    return await readStdin()
+  const prepared = {
+    __proto__: null,
+    input,
+    batchEntries: command === 'batch' ? parseBatchManifest(input) : undefined,
   }
-  if (process.stdin.isTTY) {
-    throw new CliUsageError(
-      'odai: nothing to read — pass --input <path> or pipe content on stdin.',
-    )
-  }
-  const chunks: Buffer[] = []
-  for await (const chunk of process.stdin) {
-    chunks.push(chunk as Buffer)
-  }
-  return Buffer.concat(chunks).toString('utf8')
+  return prepared
 }
 
 export async function runBackendsCommand(
@@ -182,7 +175,8 @@ export async function runBackendsCommand(
     name: BackendName
     reason?: string | undefined
   }> = []
-  for (const backend of backends) {
+  for (let i = 0, { length } = backends; i < length; i += 1) {
+    const backend = backends[i]!
     let availability: BackendAvailability
     try {
       availability = await backend.availability()
@@ -209,16 +203,29 @@ export async function runBatchCommand(
   stdout: LineWriter,
   stderr: LineWriter,
 ): Promise<number> {
+  let model: OdaiModel | undefined
   try {
-    const model = await createOdaiModel({ backend, temperature: 0, topK: 1 })
+    model = await createOdaiModel({ backend, temperature: 0, topK: 1 })
     await runBatchEntries(model, entries, timeoutMs, stdout)
     return EXIT_OK
   } catch (error) {
     stderr(`odai batch: ${errorMessage(error)}`)
     return EXIT_TASK_FAILURE
   } finally {
+    if (model !== undefined) {
+      destroySession(model.rawSession())
+    }
     await closeBackend(backend)
   }
+}
+
+export interface CliContext {
+  args: CliArgs
+  env: Record<string, string | undefined>
+  options: RunCliOptions
+  stderr: LineWriter
+  stdout: LineWriter
+  timeoutMs: number
 }
 
 export async function runCli(
@@ -226,7 +233,6 @@ export async function runCli(
   options?: RunCliOptions | undefined,
 ): Promise<number> {
   const opts = { __proto__: null, ...options } as RunCliOptions
-  const logger = getDefaultLogger()
   const stdout = opts.stdout ?? ((line: string) => logger.log(line))
   const stderr = opts.stderr ?? ((line: string) => logger.error(line))
   const env = opts.env ?? (process.env as Record<string, string | undefined>)
@@ -256,87 +262,54 @@ export async function runCli(
   if (command === 'backends') {
     return await runBackendsCommand(opts.probeBackends, stdout)
   }
+  const context: CliContext = {
+    args,
+    env,
+    options: opts,
+    stderr,
+    stdout,
+    timeoutMs,
+  }
   if (command === 'serve') {
-    let backend: OdaiBackend
-    try {
-      backend = await selectBackend({
-        backend: opts.backend ?? args.backend,
-        env,
-      })
-    } catch (error) {
-      stderr(`odai serve: no usable backend — ${errorMessage(error)}`)
-      stderr(provisioningHelp())
-      return EXIT_NO_BACKEND
-    }
-    return await runServeCommand(
-      backend,
-      args.port ?? DEFAULT_SERVE_PORT,
-      stderr,
-      {
-        ...(opts.onServeStart === undefined
-          ? {}
-          : { onStart: opts.onServeStart }),
-        ...(opts.stopServing === undefined ? {} : { stop: opts.stopServing }),
-      },
-    )
+    return await runConfiguredServe(context)
   }
+  return await runInputCommand(context, command)
+}
 
-  let input: string
-  try {
-    input = await readInputText(args, opts.readStdin)
-  } catch (error) {
-    if (error instanceof CliUsageError) {
-      stderr(error.message)
-      return EXIT_USAGE
-    }
-    throw error
-  }
-  if (input.trim() === '') {
-    stderr(`odai ${command}: the input is empty.`)
-    return EXIT_USAGE
-  }
-
-  let batchEntries: BatchEntry[] | undefined
-  if (command === 'batch') {
-    try {
-      batchEntries = parseBatchManifest(input)
-    } catch (error) {
-      if (error instanceof CliUsageError) {
-        stderr(error.message)
-        return EXIT_USAGE
-      }
-      throw error
-    }
-  }
-
+export async function runConfiguredServe(context: CliContext): Promise<number> {
+  const { args, env, options, stderr } = context
   let backend: OdaiBackend
   try {
     backend = await selectBackend({
-      backend: opts.backend ?? args.backend,
+      backend: options.backend ?? args.backend,
       env,
     })
   } catch (error) {
-    stderr(`odai ${command}: no usable backend — ${errorMessage(error)}`)
+    stderr(`odai serve: no usable backend — ${errorMessage(error)}`)
     stderr(provisioningHelp())
     return EXIT_NO_BACKEND
   }
+  return await runServeCommand(
+    backend,
+    args.port ?? DEFAULT_SERVE_PORT,
+    stderr,
+    {
+      onStart: options.onServeStart,
+      stop: options.stopServing,
+    },
+  )
+}
 
-  if (batchEntries !== undefined) {
-    return await runBatchCommand(
-      backend,
-      batchEntries,
-      timeoutMs,
-      stdout,
-      stderr,
-    )
-  }
-
+export async function runConfiguredTask(
+  context: CliContext,
+  command: TaskCommand,
+  input: string,
+  backend: OdaiBackend,
+): Promise<number> {
+  const { args, stderr, stdout, timeoutMs } = context
+  let model: OdaiModel | undefined
   try {
-    const model = await createOdaiModel({
-      backend,
-      temperature: 0,
-      topK: 1,
-    })
+    model = await createOdaiModel({ backend, temperature: 0, topK: 1 })
     const result = await withTimeout(
       runTask(command, model, input, args.instruction),
       timeoutMs,
@@ -347,8 +320,7 @@ export async function runCli(
       return EXIT_OK
     }
     stderr(
-      `odai ${command}: the ${backend.name} reply failed validation — ` +
-        (result.error ?? 'no parse error recorded'),
+      `odai ${command}: the ${backend.name} reply failed validation — ${result.error ?? 'no parse error recorded'}`,
     )
     stderr(`raw reply: ${truncateForLog(result.raw)}`)
     return EXIT_TASK_FAILURE
@@ -356,102 +328,96 @@ export async function runCli(
     stderr(`odai ${command}: ${errorMessage(error)}`)
     return EXIT_TASK_FAILURE
   } finally {
+    if (model !== undefined) {
+      destroySession(model.rawSession())
+    }
     await closeBackend(backend)
   }
 }
 
-export interface RunServeCommandOptions {
-  /**
-   * Called once the shim is listening; the test injection point for learning
-   * the bound port.
-   */
-  onStart?: ((handle: ShimServerHandle) => void) | undefined
-  /**
-   * Resolves when the server should shut down. Defaults to SIGINT/SIGTERM.
-   */
-  stop?: Promise<void> | undefined
-}
-
-/**
- * The serve lifecycle: bring the loopback shim up over the selected
- * backend, print the client connection hint, and hold until the stop signal.
- * The shim handle's close also closes the backend.
- */
-export async function runServeCommand(
-  backend: OdaiBackend,
-  port: number,
-  stderr: LineWriter,
-  options?: RunServeCommandOptions | undefined,
+export async function runInputCommand(
+  context: CliContext,
+  command: TaskCommand | 'batch',
 ): Promise<number> {
-  const opts = { __proto__: null, ...options } as RunServeCommandOptions
-  let handle: ShimServerHandle
+  const { stderr, stdout, timeoutMs } = context
+  let prepared: Awaited<ReturnType<typeof readCliTaskInput>>
   try {
-    handle = await startShimServer({
-      backend,
-      log: stderr,
-      port,
-    })
+    prepared = await readCliTaskInput(context, command)
   } catch (error) {
-    stderr(
-      `odai serve: ${errorMessage(error)} — pass --port <n> for a different ` +
-        'port or --port 0 for an OS-assigned one.',
-    )
-    await closeBackend(backend)
-    return EXIT_TASK_FAILURE
+    if (error instanceof CliUsageError) {
+      stderr(error.message)
+      return EXIT_USAGE
+    }
+    throw error
   }
-  opts.onStart?.(handle)
-  stderr(
-    `ANTHROPIC_BASE_URL=${handle.url} ANTHROPIC_API_KEY=<any non-empty value>`,
+  const { input, batchEntries } = prepared
+  try {
+    validateCliLockstepInputs(input, command, batchEntries)
+  } catch (error) {
+    stderr(`odai ${command}: invalid lockstep input — ${errorMessage(error)}`)
+    return EXIT_USAGE
+  }
+  let backend: OdaiBackend
+  try {
+    backend = await selectCliBackend(
+      context,
+      batchEntries?.map(entry => entry.task) ?? [command],
+    )
+  } catch (error) {
+    stderr(`odai ${command}: no usable backend — ${errorMessage(error)}`)
+    stderr(provisioningHelp())
+    return EXIT_NO_BACKEND
+  }
+  if (batchEntries !== undefined) {
+    return await runBatchCommand(
+      backend,
+      batchEntries,
+      timeoutMs,
+      stdout,
+      stderr,
+    )
+  }
+  return await runConfiguredTask(
+    context,
+    command as TaskCommand,
+    input,
+    backend,
   )
-  stderr(
-    `OPENAI_BASE_URL=${handle.url}/v1 OPENAI_API_KEY=<any non-empty ` +
-      'value> — Ctrl-C stops.',
-  )
-  const stop =
-    opts.stop ??
-    /* c8 ignore start - process signal wait; the bin entry's real stop path,
-       covered in-process through the injected opts.stop instead */
-    new Promise<void>(resolve => {
-      process.once('SIGINT', resolve)
-      process.once('SIGTERM', resolve)
-    })
-  /* c8 ignore stop */
-  await stop
-  await handle.close()
-  return EXIT_OK
 }
 
-export function truncateForLog(value: string): string {
-  if (value.length <= RAW_REPLY_LOG_LIMIT) {
-    return value
-  }
-  return `${value.slice(0, RAW_REPLY_LOG_LIMIT)}…`
-}
-
-export function withTimeout<T>(
-  promise: Promise<T>,
-  timeoutMs: number,
-  label: string,
-): Promise<T> {
-  return new Promise<T>((resolve, reject) => {
-    const timer = setTimeout(() => {
-      reject(
-        new CliTimeoutError(
-          `${label} did not finish within ${timeoutMs}ms. Raise --timeout or ` +
-            `${ODAI_TIMEOUT_ENV_VAR}; a CPU-only backend can need several ` +
-            'minutes for its first prompt.',
-        ),
-      )
-    }, timeoutMs)
-    promise.then(
-      value => {
-        clearTimeout(timer)
-        resolve(value)
-      },
-      (error: unknown) => {
-        clearTimeout(timer)
-        reject(error instanceof Error ? error : new Error(errorMessage(error)))
-      },
-    )
+export async function selectCliBackend(
+  context: CliContext,
+  tasks: readonly string[],
+): Promise<OdaiBackend> {
+  return await selectBackend({
+    backend:
+      context.options.backend ??
+      context.args.backend ??
+      (context.env['ODAI_BACKEND'] ? undefined : preferredTaskBackend(tasks)),
+    env: context.env,
   })
+}
+
+export function validateCliLockstepInputs(
+  input: string,
+  command: TaskCommand | 'batch',
+  batchEntries: BatchEntry[] | undefined,
+): void {
+  const inputs =
+    batchEntries === undefined
+      ? command === 'lockstep'
+        ? [input]
+        : []
+      : batchEntries
+          .filter(entry => entry.task === 'lockstep')
+          .map(entry => entry.input)
+  for (let i = 0, { length } = inputs; i < length; i += 1) {
+    parseLockstepInput(
+      parseJsonInput(
+        inputs[i]!,
+        'lockstep',
+        '{ version: 1, row, evidence, truncated }',
+      ),
+    )
+  }
 }

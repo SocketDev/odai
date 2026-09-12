@@ -22,6 +22,7 @@ const mocks = vi.hoisted(() => ({
     vi.fn<(callback: () => Promise<unknown>, meta: ScriptMeta) => void>(),
   prepare: vi.fn<
     (config: GemmaImageConfig) => Promise<{
+      __proto__: null
       imageId: string
       seccompPath: string
       browserPath: string
@@ -121,6 +122,7 @@ beforeEach(async () => {
   )
   mocks.verifyManifest.mockResolvedValue({ files: [] })
   mocks.prepare.mockImplementation(async config => ({
+    __proto__: null,
     imageId,
     browserPath: '/usr/bin/google-chrome-beta',
     seccompPath: path.join(config.directory, 'seccomp.json'),
@@ -222,6 +224,7 @@ test('preserves the verified candidate integrity and optional builder', async ()
     })
     expect((await fs.stat(config.browserPinFile!)).mode & 0o777).toBe(0o600)
     return {
+      __proto__: null,
       imageId,
       seccompPath: path.join(config.directory, 'seccomp.json'),
       browserPath: '/usr/bin/google-chrome-beta',
@@ -310,6 +313,7 @@ test('accepts the Stable package and exact Chrome product version', async () => 
     'linux-x64'
   ].asset.replaceAll('google-chrome-beta', 'google-chrome-stable')
   mocks.prepare.mockImplementationOnce(async config => ({
+    __proto__: null,
     imageId,
     seccompPath: path.join(config.directory, 'seccomp.json'),
     browserPath: '/usr/bin/google-chrome-stable',

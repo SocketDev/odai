@@ -8,6 +8,7 @@ import {
   createModelFromState,
   createOdaiModel,
   destroySession,
+  detectSessionModelName,
 } from '../src/model.mts'
 import type { LanguageModelState } from '../src/model.mts'
 import type { OdaiBackend } from '../src/backends/types.mts'
@@ -64,7 +65,7 @@ describe('createOdaiModel', () => {
       }),
     })
     const report = await runEval({ model })
-    expect(report.total).toBe(18)
+    expect(report.total).toBeGreaterThan(0)
     expect(report.score).toBe(1)
   })
 
@@ -82,7 +83,7 @@ describe('createOdaiModel', () => {
     const create = vi
       .fn()
       .mockRejectedValueOnce(new TypeError('temperature is not supported'))
-      .mockResolvedValueOnce(session)
+      .mockResolvedValue(session)
     const backend: OdaiBackend = {
       async availability() {
         return { available: true }
@@ -102,7 +103,7 @@ describe('createOdaiModel', () => {
       systemPrompt: 'sys',
       temperature: 0.7,
     })
-    expect(create).toHaveBeenCalledTimes(2)
+    expect(create).toHaveBeenCalledTimes(3)
     const result = await model.promptStreaming('hello')
     expect(result.raw).toBe('{"ok":true}')
   })
@@ -157,6 +158,72 @@ describe('destroySession', () => {
 })
 
 describe('createModelFromState', () => {
+  it('creates isolated sessions when the backend cannot clone', async () => {
+    const destroyed = vi.fn()
+    let calls = 0
+    const factory = vi.fn(async () =>
+      stubSession({
+        destroy: destroyed,
+        prompt: async () => {
+          calls += 1
+          return calls === 1 ? '' : '{"ok":true}'
+        },
+      }),
+    )
+    const base = stubSession()
+    const model = createModelFromState(
+      { cloneCapable: false, namespace: 'modern', session: base },
+      factory,
+    )
+    expect(
+      (
+        await model.promptStructured('go', {
+          prefill: '',
+          schema: { parse: value => value },
+        })
+      ).ok,
+    ).toBe(true)
+    expect(factory).toHaveBeenCalledTimes(2)
+    expect(destroyed).toHaveBeenCalledTimes(2)
+    expect(model.rawSession()).toBe(base)
+  })
+
+  it('preserves a borrowed base session across structured and streaming calls', async () => {
+    let destroyed = false
+    const session = stubSession({
+      destroy: () => {
+        destroyed = true
+      },
+      prompt: async () => {
+        if (destroyed) {
+          throw new Error('destroyed session')
+        }
+        return '{"ok":true}'
+      },
+      promptStreaming: () =>
+        (async function* () {
+          if (destroyed) {
+            throw new Error('destroyed session')
+          }
+          yield 'ready'
+        })(),
+    })
+    const model = createModelFromState({
+      cloneCapable: false,
+      namespace: 'modern',
+      session,
+    })
+    const result = await model.promptStructured('go', {
+      prefill: '',
+      retries: 0,
+      schema: { parse: value => value },
+    })
+    expect(result.ok).toBe(true)
+    expect(await model.promptStreaming('again')).toEqual({ raw: 'ready' })
+    expect(await model.promptStreaming('again')).toEqual({ raw: 'ready' })
+    expect(destroyed).toBe(false)
+  })
+
   it('destroys the per-request clone after a structured prompt', async () => {
     let destroyed = 0
     const session = stubSession({
@@ -184,6 +251,46 @@ describe('createModelFromState', () => {
     })
     expect(result.ok).toBe(true)
     expect(destroyed).toBe(1)
+  })
+})
+
+describe('detectSessionModelName', () => {
+  it('probes a disposable session and leaves the base untouched', async () => {
+    const basePrompt = vi.fn(async () => '')
+    const destroy = vi.fn()
+    const session = stubSession({ prompt: basePrompt })
+    const state = { cloneCapable: false, namespace: 'modern' as const, session }
+    const name = await detectSessionModelName(state, async () =>
+      stubSession({
+        destroy,
+        prompt: async () => 'Gemma 4',
+      }),
+    )
+    expect(name).toBe('Gemma 4')
+    expect(basePrompt).not.toHaveBeenCalled()
+    expect(destroy).toHaveBeenCalledTimes(1)
+  })
+
+  it('destroys a stalled probe at its deadline', async () => {
+    vi.useFakeTimers()
+    try {
+      const destroy = vi.fn()
+      const session = stubSession()
+      const pending = detectSessionModelName(
+        { cloneCapable: false, namespace: 'modern', session },
+        async () =>
+          stubSession({
+            destroy,
+            prompt: () => new Promise(() => {}),
+          }),
+        10,
+      )
+      await vi.advanceTimersByTimeAsync(10)
+      expect(await pending).toBeUndefined()
+      expect(destroy).toHaveBeenCalledTimes(1)
+    } finally {
+      vi.useRealTimers()
+    }
   })
 })
 

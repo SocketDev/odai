@@ -6,26 +6,18 @@
 import { joinOr } from '@socketsecurity/lib/arrays/join'
 
 import { backendNames, isBackendName } from '../backends/registry.mts'
+import { TASK_COMMANDS, TASK_NAMES } from './commands.mts'
+import type { TaskCommand } from './commands.mts'
 import type { BackendName } from '../backends/types.mts'
 
 export const CLI_COMMANDS = [
   'backends',
   'batch',
-  'classify-deps',
-  'commit-msg',
-  'dedupe',
-  'hoist',
-  'lockfile',
-  'patch',
-  'pricing',
-  'security-fix',
+  ...TASK_NAMES,
   'serve',
-  'summarize',
-  'triage',
-  'weekly-update',
-] as const
+].toSorted()
 
-export type CliCommand = (typeof CLI_COMMANDS)[number]
+export type CliCommand = TaskCommand | 'backends' | 'batch' | 'serve'
 
 export interface CliArgs {
   backend: BackendName | undefined
@@ -47,6 +39,60 @@ export class CliUsageError extends Error {}
 
 const MAX_PORT = 65_535
 
+export function assignCliArgument(
+  args: CliArgs,
+  token: string,
+  next: () => string | undefined,
+): void {
+  const eq = token.indexOf('=')
+  const hasInline = token.startsWith('--') && eq !== -1
+  const flag = hasInline ? token.slice(0, eq) : token
+  const inline = hasInline ? token.slice(eq + 1) : undefined
+  switch (flag) {
+    case '--backend':
+      args.backend = parseCliBackend(takeCliValue(flag, inline, next))
+      break
+    case '--help':
+    case '-h':
+      args.help = true
+      break
+    case '--input':
+      args.input = takeCliValue(flag, inline, next)
+      break
+    case '--instruction':
+      args.instruction = takeCliValue(flag, inline, next)
+      break
+    case '--port':
+      args.port = parseCliPort(takeCliValue(flag, inline, next))
+      break
+    case '--raw':
+      args.raw = true
+      break
+    case '--timeout':
+      args.timeoutMs = parseCliTimeout(takeCliValue(flag, inline, next))
+      break
+    default:
+      assignCliCommand(args, token)
+  }
+}
+
+export function assignCliCommand(args: CliArgs, token: string): void {
+  if (token.startsWith('-')) {
+    throw new CliUsageError(`odai: unknown option ${token}.`)
+  }
+  if (args.command !== undefined) {
+    throw new CliUsageError(
+      `odai: unexpected argument "${token}" after the ${args.command} command.`,
+    )
+  }
+  if (!isCliCommand(token)) {
+    throw new CliUsageError(
+      `odai: unknown command "${token}"; expected ${joinOr([...CLI_COMMANDS])}.`,
+    )
+  }
+  args.command = token
+}
+
 export function isCliCommand(value: string): value is CliCommand {
   return (CLI_COMMANDS as readonly string[]).includes(value)
 }
@@ -62,101 +108,92 @@ export function parseCliArgs(argv: string[]): CliArgs {
     raw: false,
     timeoutMs: undefined,
   }
-  const takeValue = (
-    flag: string,
-    inline: string | undefined,
-    next: () => string | undefined,
-  ): string => {
-    if (inline !== undefined) {
-      return inline
-    }
-    const value = next()
-    if (value === undefined) {
-      throw new CliUsageError(`odai: ${flag} needs a value.`)
-    }
-    return value
-  }
-  for (let i = 0; i < argv.length; i += 1) {
-    const token = argv[i]!
-    const eq = token.indexOf('=')
-    const flag =
-      token.startsWith('--') && eq !== -1 ? token.slice(0, eq) : token
-    const inline =
-      token.startsWith('--') && eq !== -1 ? token.slice(eq + 1) : undefined
-    const next = (): string | undefined => {
+  for (let i = 0, { length } = argv; i < length; i += 1) {
+    assignCliArgument(args, argv[i]!, () => {
       i += 1
       return argv[i]
-    }
-    switch (flag) {
-      case '--backend': {
-        const value = takeValue(flag, inline, next)
-        if (!isBackendName(value)) {
-          throw new CliUsageError(
-            `odai: --backend ${value} is not a declared backend; expected ` +
-              `${joinOr([...backendNames])}.`,
-          )
-        }
-        args.backend = value
-        break
-      }
-      case '--help':
-      case '-h': {
-        args.help = true
-        break
-      }
-      case '--input': {
-        args.input = takeValue(flag, inline, next)
-        break
-      }
-      case '--instruction': {
-        args.instruction = takeValue(flag, inline, next)
-        break
-      }
-      case '--port': {
-        const value = takeValue(flag, inline, next)
-        const parsed = Number(value)
-        if (!Number.isInteger(parsed) || parsed < 0 || parsed > MAX_PORT) {
-          throw new CliUsageError(
-            `odai: --port ${value} is not a valid port; expected an integer ` +
-              `from 0 to ${MAX_PORT} (0 lets the OS pick a free port).`,
-          )
-        }
-        args.port = parsed
-        break
-      }
-      case '--raw': {
-        args.raw = true
-        break
-      }
-      case '--timeout': {
-        const value = takeValue(flag, inline, next)
-        const parsed = Number(value)
-        if (!Number.isFinite(parsed) || parsed <= 0) {
-          throw new CliUsageError(
-            `odai: --timeout ${value} is not a positive number of milliseconds.`,
-          )
-        }
-        args.timeoutMs = parsed
-        break
-      }
-      default: {
-        if (token.startsWith('-')) {
-          throw new CliUsageError(`odai: unknown option ${token}.`)
-        }
-        if (args.command !== undefined) {
-          throw new CliUsageError(
-            `odai: unexpected argument "${token}" after the ${args.command} command.`,
-          )
-        }
-        if (!isCliCommand(token)) {
-          throw new CliUsageError(
-            `odai: unknown command "${token}"; expected ${joinOr([...CLI_COMMANDS])}.`,
-          )
-        }
-        args.command = token
-      }
-    }
+    })
   }
+  validateCliArgs(args)
+  return args
+}
+
+export function parseCliBackend(value: string): BackendName {
+  if (!isBackendName(value)) {
+    throw new CliUsageError(
+      `odai: --backend ${value} is not a declared backend; expected ${joinOr([...backendNames])}.`,
+    )
+  }
+  return value
+}
+
+export function parseCliPort(value: string): number {
+  const parsed = Number(value)
+  if (!Number.isInteger(parsed) || parsed < 0 || parsed > MAX_PORT) {
+    throw new CliUsageError(
+      `odai: --port ${value} is not a valid port; expected an integer from 0 to ${MAX_PORT} (0 lets the OS pick a free port).`,
+    )
+  }
+  return parsed
+}
+
+export function parseCliTimeout(value: string): number {
+  const parsed = Number(value)
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    throw new CliUsageError(
+      `odai: --timeout ${value} is not a positive number of milliseconds.`,
+    )
+  }
+  return parsed
+}
+
+export function takeCliValue(
+  flag: string,
+  inline: string | undefined,
+  next: () => string | undefined,
+): string {
+  if (inline !== undefined) {
+    return inline
+  }
+  const value = next()
+  if (value === undefined) {
+    throw new CliUsageError(`odai: ${flag} needs a value.`)
+  }
+  return value
+}
+
+export function usageText(): string {
+  return [
+    'Usage: odai <command> [options]',
+    '',
+    'Single-shot, keyless, on-device AI. Input arrives on stdin or --input;',
+    'the parsed result prints as one JSON line on stdout.',
+    '',
+    'Commands:',
+    '  backends              probe every declared backend, print availability JSON',
+    '  batch                 run many tasks from a JSONL manifest over one backend launch',
+    ...TASK_NAMES.map(
+      name => `  ${name.padEnd(22)}${TASK_COMMANDS[name].description}`,
+    ),
+    '  serve                 listen on loopback for Anthropic Messages and OpenAI chat requests',
+    '',
+    'Options:',
+    `  --backend <name>      pick a backend: ${backendNames.join(', ')};`,
+    '                        default: ODAI_BACKEND, then llama-server for lockstep/patch,',
+    '                        otherwise the availability probe. Use chrome-builtin to evaluate Gemma.',
+    '  --input <path>        read input from a file instead of stdin',
+    '  --instruction <text>  the change patch should make; required for patch',
+    '  --port <n>            loopback port for serve; default 8402, 0 picks a free port',
+    '  --raw                 print the raw model reply instead of the parsed JSON',
+    '  --timeout <ms>        per-prompt budget; default 120000, env ODAI_TIMEOUT_MS',
+    '  -h, --help            show this help',
+    '',
+    'Exit codes: 0 success, 1 model or task failure, 2 usage error,',
+    '69 no backend available — CI steps treat 69 as a clean skip.',
+  ].join('\n')
+}
+
+export function validateCliArgs(args: CliArgs): void {
   if (
     args.command === 'patch' &&
     !args.help &&
@@ -189,43 +226,4 @@ export function parseCliArgs(argv: string[]): CliArgs {
       'odai: --raw does not apply to the batch command — batch output is always JSONL.',
     )
   }
-  return args
-}
-
-export function usageText(): string {
-  return [
-    'Usage: odai <command> [options]',
-    '',
-    'Single-shot, keyless, on-device AI. Input arrives on stdin or --input;',
-    'the parsed result prints as one JSON line on stdout.',
-    '',
-    'Commands:',
-    '  backends              probe every declared backend, print availability JSON',
-    '  batch                 run many tasks from a JSONL manifest over one backend launch',
-    '  classify-deps         flag a narrowed dependency diff as routine or surprise',
-    '  commit-msg            suggest a Conventional Commits subject for a diff',
-    '  dedupe                which package versions collapse safely (JSON stdin)',
-    '  hoist                 assess a cross-major hoist from a changelog (JSON stdin)',
-    '  lockfile              reason about a lockfile excerpt',
-    '  patch                 generate a unified-diff code patch for a file',
-    '  pricing               extract per-token model prices from a pricing page (JSON stdin)',
-    '  security-fix          pick the minimal safe upgrade for an advisory (JSON stdin)',
-    '  serve                 listen on loopback for Anthropic Messages and OpenAI chat requests',
-    '  summarize             condense text into a summary plus key points',
-    '  triage                explain aggregate security findings in plain language',
-    '  weekly-update         plan soak-gated dependency updates (JSON stdin)',
-    '',
-    'Options:',
-    `  --backend <name>      pick a backend: ${backendNames.join(', ')};`,
-    '                        default: ODAI_BACKEND env var, then the availability probe',
-    '  --input <path>        read input from a file instead of stdin',
-    '  --instruction <text>  the change patch should make; required for patch',
-    '  --port <n>            loopback port for serve; default 8402, 0 picks a free port',
-    '  --raw                 print the raw model reply instead of the parsed JSON',
-    '  --timeout <ms>        per-prompt budget; default 120000, env ODAI_TIMEOUT_MS',
-    '  -h, --help            show this help',
-    '',
-    'Exit codes: 0 success, 1 model or task failure, 2 usage error,',
-    '69 no backend available — CI steps treat 69 as a clean skip.',
-  ].join('\n')
 }

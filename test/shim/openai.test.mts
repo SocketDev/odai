@@ -247,9 +247,7 @@ describe('buildChatCompletionChunks', () => {
       fingerprint: FINGERPRINT,
       promptTokens: 4,
     })
-    const frames = buildChatCompletionChunks(completion, {
-      includeUsage: false,
-    })
+    const frames = buildChatCompletionChunks(completion)
     expect(frames).toHaveLength(4)
     expect(
       frames.every(frame => frame['object'] === 'chat.completion.chunk'),

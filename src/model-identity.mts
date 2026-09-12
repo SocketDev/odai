@@ -52,7 +52,7 @@ export async function detectModelName(
  */
 export function matchModelName(reply: string): string | undefined {
   for (let i = 0, { length } = KNOWN_MODELS; i < length; i += 1) {
-    const [pattern, name] = KNOWN_MODELS[i]!
+    const { 0: pattern, 1: name } = KNOWN_MODELS[i]!
     if (pattern.test(reply)) {
       return name
     }

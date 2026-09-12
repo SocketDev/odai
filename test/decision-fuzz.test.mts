@@ -14,8 +14,9 @@
  *     separate message the task prepends, so nothing in the untrusted content
  *     can become a system instruction through the builder.
  *   - The tasks never throw on garbage model output: a non-conforming response
- *     yields a `TaskResult` with `ok: false`, not an exception (the JSON-repair
- *     + schema layer absorbs it).
+ *     yields a `TaskResult` with `ok: false`, not an exception (the
+ *     JSON-repair
+ *   - schema layer absorbs it).
  */
 
 import fc from 'fast-check'

@@ -47,7 +47,7 @@ describe.skipIf(skipTests)('llama.cpp server conformance', () => {
   it(
     'no unexpected failures vs the allowlist',
     async () => {
-      const result = await spawn('node', [RUNNER], {
+      const result = await spawn(process.execPath, [RUNNER], {
         cwd: REPO_ROOT,
         stdio: 'inherit',
       })

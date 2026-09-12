@@ -9,6 +9,9 @@
 
 import { joinOr } from '@socketsecurity/lib/arrays/join'
 
+import { analyzeLockstep } from '../tasks/lockstep.mts'
+import { parseLockstepInput } from '../lockstep/validate.mts'
+import { TASK_NAMES } from './commands.mts'
 import { classifyDependencyChange } from '../tasks/classify-deps.mts'
 import { suggestCommitMessage } from '../tasks/commit.mts'
 import { dedupeDependencies } from '../tasks/dedupe.mts'
@@ -77,6 +80,17 @@ export async function runTask(
           '{ "changelog", "currentVersion", "targetVersion", "minNodeSupported" }',
         ) as HoistInput,
       )
+    case 'lockstep':
+      return await analyzeLockstep(
+        model,
+        parseLockstepInput(
+          parseJsonInput(
+            input,
+            'lockstep',
+            '{ version: 1, row, evidence, truncated }',
+          ),
+        ),
+      )
     case 'lockfile':
       return await reasonAboutLockfile(model, input)
     case 'patch': {
@@ -121,19 +135,7 @@ export async function runTask(
     default:
       throw new CliUsageError(
         `odai: "${command}" is not a prompt command; expected ` +
-          `${joinOr([
-            'classify-deps',
-            'commit-msg',
-            'dedupe',
-            'hoist',
-            'lockfile',
-            'patch',
-            'pricing',
-            'security-fix',
-            'summarize',
-            'triage',
-            'weekly-update',
-          ])}.`,
+          `${joinOr(TASK_NAMES)}.`,
       )
   }
 }

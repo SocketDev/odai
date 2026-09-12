@@ -73,7 +73,7 @@ export const SBOM_ANOMALY_INPUT = `Components:
 - pkg:npm/chalk@5.3.0
 - pkg:npm/chalk@4.1.2
 - pkg:npm/left-pad@1.3.0 (deprecated)
-- pkg:npm/eval-evil@1.0.0 (git dependency, no tag)`
+- pkg:npm/untrusted-example@1.0.0 (git dependency, no tag)`
 
 // Hoist decision fixtures. The project's minimum supported Node major is 22 in
 // every hoist scenario, so a changelog that only drops Node <= 22 is safe.

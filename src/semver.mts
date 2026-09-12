@@ -45,7 +45,11 @@ export interface SemverParts {
 }
 
 export function parseSemverParts(version: string): SemverParts {
-  const [major = 0, minor = 0, patch = 0] = version
+  const {
+    0: major = 0,
+    1: minor = 0,
+    2: patch = 0,
+  } = version
     .trim()
     .split('.')
     .map(part => {

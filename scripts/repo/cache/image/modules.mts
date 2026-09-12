@@ -6,6 +6,7 @@ import type { Dirent } from 'node:fs'
 async function hashElf(file: string): Promise<string | undefined> {
   const handle = await fs.open(file, 'r')
   try {
+    // oxlint-disable-next-line socket/prefer-exists-sync -- metadata
     if ((await handle.stat()).size > 1024 * 1024 * 1024) {
       throw new RangeError('ELF exceeds inventory size limit')
     }
@@ -47,6 +48,7 @@ async function inventoryEntry(
   ) {
     return undefined
   }
+  // oxlint-disable-next-line socket/prefer-exists-sync -- metadata
   if (!(await fs.stat(file)).isFile()) {
     return undefined
   }

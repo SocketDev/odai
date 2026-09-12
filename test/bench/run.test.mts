@@ -1,33 +1,42 @@
 import { describe, expect, it } from 'vitest'
-
 import { parseArgs } from '../../src/bench/run.mts'
 
-describe('bench run parseArgs', () => {
-  it('defaults to the simulator with no mock', () => {
-    expect(parseArgs([])).toEqual({ backend: undefined, mock: false })
+describe('benchmark arguments', () => {
+  it('defaults to deterministic evaluation', () => {
+    const args = parseArgs([])
+    expect(args.backend).toBeUndefined()
+    expect(args.routed).toBe(false)
+    expect(args.mock).toBe(false)
   })
-
-  it('reads a declared --backend=', () => {
-    expect(parseArgs(['--backend=llama-server'])).toEqual({
-      backend: 'llama-server',
-      mock: false,
+  it('selects explicit local evaluation with a bounded scenario', () => {
+    const args = parseArgs([
+      '--backend',
+      'chrome-builtin',
+      '--scenario=lockstep',
+      '--timeout=5000',
+      '--json',
+    ])
+    expect(args).toMatchObject({
+      backend: 'chrome-builtin',
+      scenario: 'lockstep',
+      timeoutMs: 5000,
+      json: true,
     })
   })
-
-  it('sets mock when --mock is present', () => {
-    expect(parseArgs(['--mock'])).toEqual({ backend: undefined, mock: true })
+  it.each([
+    ['--unknown'],
+    ['--backend=gpt-9'],
+    ['--backend'],
+    ['--timeout=0'],
+    ['--timeout=Infinity'],
+    ['--mock', '--backend=simulator'],
+    ['--routed', '--backend=chrome-builtin'],
+  ])('rejects invalid arguments %j', (...args) => {
+    expect(() => parseArgs(args)).toThrow()
   })
-
-  it('combines --backend= and --mock', () => {
-    expect(parseArgs(['--backend=simulator', '--mock'])).toEqual({
-      backend: 'simulator',
-      mock: true,
-    })
-  })
-
-  it('rejects an undeclared --backend= value', () => {
-    expect(() => parseArgs(['--backend=gpt-9'])).toThrow(
-      /not a declared backend/,
-    )
+  it('supports task routing and explicit mock mode', () => {
+    expect(parseArgs(['--routed']).routed).toBe(true)
+    expect(parseArgs(['--mock']).mock).toBe(true)
+    expect(parseArgs(['--help']).help).toBe(true)
   })
 })

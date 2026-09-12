@@ -1,18 +1,12 @@
 /**
- * @file Resolve the built-in on-device LanguageModel factory and probe its
- *   availability. Resolution is delegated to `@socketsecurity/lib/ai/builtin`,
- *   which discovers the browser `globalThis.LanguageModel`, the smol Node
- *   `node:smol-ai` Prompt API, and the optional `@node-smol/ai` native addon —
- *   a strict superset of the browser-only global this module used to fork. The
- *   resolved factory is adapted to odai's richer `LanguageModelLike` session
- *   interface. This module returns a normalized availability answer without
- *   creating an expensive session.
+ * @file Resolve local model factories through the bundled runtime helper.
+ *   Availability checks do not create an expensive session.
  */
 
 import { getLanguageModel as getBuiltinLanguageModel } from '@socketsecurity/lib/ai/builtin'
 
 import type { LanguageModelLike, SessionLike } from './types.mts'
-import type { LanguageModelFactory } from '@socketsecurity/lib/ai/builtin'
+import type { LanguageModelFactory } from './provider.mts'
 
 export interface AvailabilityResult {
   available: boolean

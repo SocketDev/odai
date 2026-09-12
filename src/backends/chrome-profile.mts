@@ -17,6 +17,7 @@ import type * as osNs from 'node:os'
 import type * as pathNs from 'node:path'
 
 import {
+  DEFAULT_CHROME_MODEL,
   enabledLabsExperiments,
   ODAI_CHROME_ALLOW_DOWNLOAD_ENV_VAR,
   ODAI_CHROME_ENV_VAR,
@@ -24,6 +25,7 @@ import {
   parseChromeMajorVersion,
   readEnvChromeModel,
 } from './chrome-models.mts'
+import { hasChromeModelAssets } from './chrome-assets.mts'
 import type { ChromeModelKey } from './chrome-models.mts'
 
 /**
@@ -101,6 +103,7 @@ export interface ResolvedBridgeConfig {
 }
 
 export interface SystemLocalStateExtract {
+  modelExecution?: Record<string, unknown> | undefined
   onDevice: Record<string, unknown>
   updaterApp: unknown
 }
@@ -114,12 +117,34 @@ export function buildLocalStateSeed(
 ): Record<string, unknown> {
   const opts = { __proto__: null, ...options } as typeof options
   const now = chromeNowMicros()
+  const existingGuide = (existing['optimization_guide'] ?? {}) as Record<
+    string,
+    unknown
+  >
+  const execution = {
+    ...(existingGuide['model_execution'] as
+      | Record<string, unknown>
+      | undefined),
+    ...system.modelExecution,
+  }
+  const feature =
+    opts.model === 'gemma4' ? 'prompt_api_gemma4' : PROMPT_API_FEATURE_ID
   const optimizationGuide = {
-    ...(existing['optimization_guide'] as Record<string, unknown> | undefined),
+    ...existingGuide,
     model_execution: {
-      last_usage_by_feature: { [PROMPT_API_FEATURE_ID]: now },
+      ...execution,
+      last_usage_by_feature: {
+        ...(execution['last_usage_by_feature'] as
+          | Record<string, unknown>
+          | undefined),
+        [feature]: now,
+      },
     },
-    on_device: { ...system.onDevice, last_time_eligible_for_download: now },
+    on_device: {
+      ...system.onDevice,
+      ...(existingGuide['on_device'] as Record<string, unknown> | undefined),
+      last_time_eligible_for_download: now,
+    },
   }
   const browser = {
     ...(existing['browser'] as Record<string, unknown> | undefined),
@@ -191,13 +216,14 @@ export function chromePathCandidates(
  * model clone is instant and free on APFS/btrfs/XFS.
  */
 export async function cloneDir(source: string, target: string): Promise<void> {
-  const { childProcess, fsp } = await loadNodeDeps()
+  const { childProcess, fs, fsp } = await loadNodeDeps()
   const platform = process.platform
+  const copySource = fs.existsSync(target) ? `${source}/.` : source
   const args =
     platform === 'darwin'
-      ? ['-R', '-c', source, target]
+      ? ['-R', '-c', copySource, target]
       : platform === 'linux'
-        ? ['-R', '--reflink=auto', source, target]
+        ? ['-R', '--reflink=auto', copySource, target]
         : undefined
   if (args !== undefined) {
     const copied = await new Promise<boolean>(resolve => {
@@ -214,9 +240,10 @@ export function defaultBridgeUserDataDir(
   env: Record<string, string | undefined>,
   homeDir: string,
   path: NodeDeps['path'],
+  model: ChromeModelKey = DEFAULT_CHROME_MODEL,
 ): string {
   const cacheHome = env['XDG_CACHE_HOME'] ?? path.join(homeDir, '.cache')
-  return path.join(cacheHome, 'odai', 'chrome-builtin')
+  return path.join(cacheHome, 'odai', 'chrome-builtin', model)
 }
 
 /**
@@ -237,7 +264,7 @@ export async function ensureBridgeProfile(
     for (const dir of [MODEL_COMPONENT_DIR, ...OPTIONAL_MODEL_DIRS]) {
       const from = path.join(config.systemChromeUserDataDir, dir)
       const to = path.join(config.userDataDir, dir)
-      if (fs.existsSync(from) && !fs.existsSync(to)) {
+      if (fs.existsSync(from)) {
         await cloneDir(from, to)
       }
     }
@@ -255,7 +282,11 @@ export async function ensureBridgeProfile(
   const system =
     source.kind === 'download'
       ? { onDevice: {}, updaterApp: undefined }
-      : await readSystemLocalState(config.systemChromeUserDataDir)
+      : await readSystemLocalState(
+          source.kind === 'profile'
+            ? config.userDataDir
+            : config.systemChromeUserDataDir,
+        )
   const { writeJson } = await import('@socketsecurity/lib/fs/write-json')
   await writeJson(
     localStatePath,
@@ -276,14 +307,11 @@ export function envFlag(value: string | undefined): boolean {
 export async function findModelSource(
   config: ResolvedBridgeConfig,
 ): Promise<ModelSource> {
-  const { fs, path } = await loadNodeDeps()
-  if (fs.existsSync(path.join(config.userDataDir, MODEL_COMPONENT_DIR))) {
+  if (await hasChromeModelAssets(config.userDataDir, config.model)) {
     return { kind: 'profile' }
   }
   if (
-    fs.existsSync(
-      path.join(config.systemChromeUserDataDir, MODEL_COMPONENT_DIR),
-    )
+    await hasChromeModelAssets(config.systemChromeUserDataDir, config.model)
   ) {
     return { kind: 'system' }
   }
@@ -293,9 +321,9 @@ export async function findModelSource(
   return {
     kind: 'download',
     reason:
-      `no Chrome built-in AI model component: neither the bridge profile at ` +
+      `no populated ${config.model} model component: neither the bridge profile at ` +
       `${config.userDataDir} nor the system Chrome profile at ` +
-      `${config.systemChromeUserDataDir} has ${MODEL_COMPONENT_DIR}, and ` +
+      `${config.systemChromeUserDataDir} has the selected model's weights (${MODEL_COMPONENT_DIR} for Gemini Nano, OptGuideManifestModel for Gemma), and ` +
       `downloads are off. Let Chrome download the model once, or set ` +
       `${ODAI_CHROME_ALLOW_DOWNLOAD_ENV_VAR}=1 to fetch it here (CI mode).`,
   }
@@ -309,6 +337,7 @@ export function isNodeRuntime(): boolean {
 
 export async function loadNodeDeps(): Promise<NodeDeps> {
   nodeDepsPromise ??= (async () => ({
+    __proto__: null,
     childProcess: await import('node:child_process'),
     fs: await import('node:fs'),
     fsp: await import('node:fs/promises'),
@@ -351,13 +380,17 @@ export async function readSystemLocalState(
     const raw = await fsp.readFile(path.join(systemDir, 'Local State'), 'utf8')
     const parsed = JSON.parse(raw) as {
       optimization_guide?:
-        | { on_device?: Record<string, unknown> | undefined }
+        | {
+            on_device?: Record<string, unknown> | undefined
+            model_execution?: Record<string, unknown> | undefined
+          }
         | undefined
       updateclientdata?:
         | { apps?: Record<string, unknown> | undefined }
         | undefined
     }
     return {
+      modelExecution: parsed.optimization_guide?.model_execution,
       onDevice: parsed.optimization_guide?.on_device ?? {},
       updaterApp: parsed.updateclientdata?.apps?.[ON_DEVICE_COMPONENT_ID],
     }
@@ -382,12 +415,13 @@ export async function resolveBridgeConfig(
         ? [env[ODAI_CHROME_ENV_VAR]]
         : chromePathCandidates(platform, env, homeDir)
   const chromePath = candidates.find(candidate => fs.existsSync(candidate))
+  const model = opts.model ?? readEnvChromeModel(env)
   return {
     allowDownload:
       opts.allowDownload ?? envFlag(env[ODAI_CHROME_ALLOW_DOWNLOAD_ENV_VAR]),
     chromePath,
     chromePathCandidates: candidates,
-    model: opts.model ?? readEnvChromeModel(env),
+    model,
     systemChromeUserDataDir:
       opts.systemChromeUserDataDir ??
       systemChromeUserDataDirFor(platform, env, homeDir),
@@ -396,7 +430,7 @@ export async function resolveBridgeConfig(
       (env[ODAI_CHROME_USER_DATA_DIR_ENV_VAR] !== undefined &&
       env[ODAI_CHROME_USER_DATA_DIR_ENV_VAR] !== ''
         ? env[ODAI_CHROME_USER_DATA_DIR_ENV_VAR]
-        : defaultBridgeUserDataDir(env, homeDir, path)),
+        : defaultBridgeUserDataDir(env, homeDir, path, model)),
   }
 }
 

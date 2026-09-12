@@ -274,7 +274,7 @@ export async function ensureShimBinary(cacheDir: string): Promise<string> {
  * the model continues it — `mergePrefill` reconciles echo and continuation.
  */
 export function flattenMessages(messages: Message[]): string {
-  const [first] = messages
+  const { 0: first } = messages
   if (messages.length === 1 && first !== undefined && first.role === 'user') {
     return first.content
   }

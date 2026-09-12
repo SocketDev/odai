@@ -99,40 +99,8 @@ export function closeUnbalancedJson(raw: string): string | undefined {
   if (start === -1) {
     return undefined
   }
-  const stack: string[] = []
-  let inString = false
-  let escaped = false
-  for (let i = start; i < raw.length; i += 1) {
-    const char = raw[i]!
-    if (inString) {
-      if (escaped) {
-        escaped = false
-      } else if (char === '\\') {
-        escaped = true
-      } else if (char === '"') {
-        inString = false
-      }
-      continue
-    }
-    if (char === '"') {
-      inString = true
-    } else if (char === '{') {
-      stack.push('}')
-    } else if (char === '[') {
-      stack.push(']')
-    } else if (char === ']' || char === '}') {
-      if (stack.pop() !== char) {
-        return undefined
-      }
-      if (stack.length === 0) {
-        return undefined
-      }
-    }
-  }
-  if (inString || stack.length === 0) {
-    return undefined
-  }
-  return raw.slice(start) + stack.toReversed().join('')
+  const suffix = findJsonClosingSuffix(raw, start)
+  return suffix === undefined ? undefined : raw.slice(start) + suffix
 }
 
 export function estimateTokens(text: string): number {
@@ -194,6 +162,46 @@ export function extractToolCall(
     return undefined
   }
   return candidate
+}
+
+export function findJsonClosingSuffix(
+  raw: string,
+  start: number,
+): string | undefined {
+  const stack: string[] = []
+  let inString = false
+  let escaped = false
+  for (let i = start; i < raw.length; i += 1) {
+    const char = raw[i]!
+    if (inString) {
+      if (escaped) {
+        escaped = false
+      } else if (char === '\\') {
+        escaped = true
+      } else if (char === '"') {
+        inString = false
+      }
+      continue
+    }
+    if (char === '"') {
+      inString = true
+    } else if (char === '{') {
+      stack.push('}')
+    } else if (char === '[') {
+      stack.push(']')
+    } else if (char === ']' || char === '}') {
+      if (stack.pop() !== char) {
+        return undefined
+      }
+      if (stack.length === 0) {
+        return undefined
+      }
+    }
+  }
+  if (inString || stack.length === 0) {
+    return undefined
+  }
+  return stack.toReversed().join('')
 }
 
 /**

@@ -86,6 +86,9 @@ export function enabledLabsExperiments(
 ): string[] {
   const opts = { __proto__: null, ...options } as typeof options
   const spec = CHROME_MODELS[opts.model ?? DEFAULT_CHROME_MODEL]
+  if (opts.model === 'gemma4') {
+    return ['prompt-api@1', CHROME_MODELS.gemma4.labsExperiment]
+  }
   return spec.labsExperiment === undefined
     ? [...ENABLED_LABS_EXPERIMENTS]
     : [...ENABLED_LABS_EXPERIMENTS, spec.labsExperiment]

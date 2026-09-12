@@ -89,7 +89,7 @@ export async function uploadGemmaArchive(archive: string, releaseTag: string) {
       timeout: 30_000,
     },
   )
-  const release: unknown = JSON.parse(String(state.stdout))
+  const release: unknown = JSON.parse(state.stdout)
   if (
     !release ||
     typeof release !== 'object' ||

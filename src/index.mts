@@ -47,7 +47,6 @@ import { suggestCommitMessage } from './tasks/commit.mts'
 import { dedupeDependencies } from './tasks/dedupe.mts'
 import { assessHoistSafety, decideHoistVerdict } from './tasks/hoist.mts'
 import { reasonAboutLockfile } from './tasks/lockfile.mts'
-import { fetchChangelog } from './changelog.mts'
 import { generateCodePatch } from './tasks/patch.mts'
 import { assessSecurityFix, decideSecurityFix } from './tasks/security-fix.mts'
 import { summarizeText } from './tasks/summarize.mts'
@@ -77,7 +76,6 @@ export {
   decideSecurityFix,
   decideWeeklyUpdate,
   dedupeDependencies,
-  fetchChangelog,
   DEFAULT_LLAMA_URL,
   defaultProbeOrder,
   generateCodePatch,
@@ -158,3 +156,14 @@ export type {
   StructuredPromptOptions,
   TaskResult,
 } from './types.mts'
+
+export { analyzeLockstep } from './tasks/lockstep.mts'
+export {
+  parseLockstepInput,
+  validateLockstepAnalysis,
+} from './lockstep/validate.mts'
+export {
+  LockstepInputSchema,
+  LockstepAnalysisSchema,
+} from './lockstep/schema.mts'
+export type { LockstepInput, LockstepAnalysis } from './lockstep/schema.mts'

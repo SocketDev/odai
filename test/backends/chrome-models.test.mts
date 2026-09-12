@@ -30,7 +30,7 @@ describe('enabledLabsExperiments', () => {
 
   it('adds the Gemma 4 flag when that model is named', () => {
     const flags = enabledLabsExperiments({ model: 'gemma4' })
-    expect(flags).toContain('prompt-api-for-gemini-nano@1')
+    expect(flags).toContain('prompt-api@1')
     expect(flags).toContain('gemma4-for-built-in-ai@1')
   })
 })

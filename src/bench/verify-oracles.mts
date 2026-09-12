@@ -1,83 +1,168 @@
-/**
- * @file General verify oracles for the generate-and-verify code-generation
- *   scenarios. Each oracle is deliberately broader than the scenario rubric it
- *   backs: the rubric scores one exact answer, the oracle accepts any answer of
- *   the right SHAPE so the verify loop keeps a well-formed generation rather
- *   than a memorized string.
- */
+import { parse } from '../external/acorn.js'
+import { isLockstepPatch } from '../lockstep/patch.mts'
+import { applyOraclePatch } from './patch.mts'
 
-export function hasBalancedBraces(code: string): boolean {
-  let depth = 0
-  for (let i = 0, { length } = code; i < length; i += 1) {
-    const char = code[i]
-    if (char === '{') {
-      depth += 1
-    } else if (char === '}') {
-      depth -= 1
-      if (depth < 0) {
-        return false
-      }
-    }
-  }
-  return depth === 0
+export interface OracleNode {
+  type: string
+  [key: string]: unknown
 }
 
-export function hasLooseEquality(code: string): boolean {
-  return /(?<![=!])==(?!=)/.test(code) || /!=(?!=)/.test(code)
-}
-
-export function importsSymbol(code: string, symbol: string): boolean {
-  const escaped = symbol.replaceAll(/[$()*+.?[\\\]^{|}]/g, '\\$&')
-  return new RegExp(`import[^\\n]*\\b${escaped}\\b`).test(code)
-}
-
-/**
- * A well-formed unified diff (an `@@` hunk header plus `+`/`-` lines) whose
- * added lines introduce a template literal (a backtick followed by a `${`
- * interpolation).
- */
-export function isTemplateLiteralPatch(value: { patch: string }): boolean {
-  const lines = value.patch.split(/\r?\n/)
-  const hasHunkHeader = lines.some(line => line.includes('@@'))
-  const hasAdditionLine = lines.some(line => line.startsWith('+'))
-  const hasRemovalLine = lines.some(line => line.startsWith('-'))
-  const addedTemplateLiteral = lines.some(line => {
-    if (!line.startsWith('+')) {
-      return false
-    }
-    const backtick = line.indexOf('`')
-    return backtick !== -1 && line.indexOf('${', backtick) !== -1
-  })
+export function callsSymbol(code: string, symbol: string): boolean {
   return (
-    hasHunkHeader && hasAdditionLine && hasRemovalLine && addedTemplateLiteral
+    parseOracleNodes(code)?.some(
+      node =>
+        node.type === 'CallExpression' &&
+        isOracleNode(node['callee']) &&
+        node['callee'].type === 'Identifier' &&
+        node['callee']['name'] === symbol,
+    ) ?? false
   )
 }
 
-/**
- * Confirm the reported lint errors are resolved generally — derived from the
- * lint-error text, not the scenario asserts: the fixed source has balanced
- * braces, uses no loose `==`/`!=`, and no longer imports any symbol the lint
- * errors flagged as an unused import.
- */
+export function countInterpolatedTemplates(code: string): number {
+  return (
+    parseOracleNodes(code)?.filter(
+      node =>
+        node.type === 'TemplateLiteral' &&
+        Array.isArray(node['expressions']) &&
+        node['expressions'].length > 0,
+    ).length ?? 0
+  )
+}
+
+export function hasInterpolatedTemplateLiteral(code: string): boolean {
+  return countInterpolatedTemplates(code) > 0
+}
+
+export function hasLooseEquality(code: string): boolean {
+  return (
+    parseOracleNodes(code)?.some(
+      node =>
+        node.type === 'BinaryExpression' &&
+        (node['operator'] === '!=' || node['operator'] === '=='),
+    ) ?? false
+  )
+}
+
+export function hasStrictEquality(code: string): boolean {
+  return (
+    parseOracleNodes(code)?.some(
+      node => node.type === 'BinaryExpression' && node['operator'] === '===',
+    ) ?? false
+  )
+}
+
+export function importsSymbol(code: string, symbol: string): boolean {
+  return (
+    parseOracleNodes(code)?.some(node =>
+      isImportedOracleSymbol(node, symbol),
+    ) ?? false
+  )
+}
+
+export function isImportedOracleSymbol(
+  node: OracleNode,
+  symbol: string,
+): boolean {
+  return (
+    [
+      'ImportDefaultSpecifier',
+      'ImportNamespaceSpecifier',
+      'ImportSpecifier',
+    ].includes(node.type) &&
+    isOracleNode(node['local']) &&
+    node['local']['name'] === symbol
+  )
+}
+
+export function isOracleNode(value: unknown): value is OracleNode {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'type' in value &&
+    typeof value.type === 'string'
+  )
+}
+
+// Original source makes partial hunks verifiable. Otherwise only replacement snippets can be checked.
+export function isTemplateLiteralPatch(
+  value: { patch: string },
+  original?: string | undefined,
+): boolean {
+  if (original !== undefined) {
+    const updated = applyOraclePatch(original, value.patch)
+    return (
+      updated !== undefined &&
+      countInterpolatedTemplates(updated) > countInterpolatedTemplates(original)
+    )
+  }
+  const patch = value.patch.endsWith('\n') ? value.patch : `${value.patch}\n`
+  const lines = patch.split(/\r?\n/)
+  const newHeader = lines[1] ?? ''
+  if (
+    !newHeader.startsWith('+++ b/') ||
+    !isLockstepPatch(newHeader.slice(6), patch)
+  ) {
+    return false
+  }
+  const updated = lines
+    .slice(2)
+    .filter(line => line.startsWith('+') || line.startsWith(' '))
+    .map(line => line.slice(1))
+    .join('\n')
+  return hasInterpolatedTemplateLiteral(updated)
+}
+
+export function isValidJavaScript(code: string): boolean {
+  return parseOracleNodes(code) !== undefined
+}
+
+export function parseOracleNodes(code: string): OracleNode[] | undefined {
+  let root: unknown
+  try {
+    root = parse(code, { ecmaVersion: 'latest', sourceType: 'module' })
+  } catch {
+    return undefined
+  }
+  if (!isOracleNode(root)) {
+    return undefined
+  }
+  const nodes: OracleNode[] = []
+  const pending = [root]
+  while (pending.length > 0) {
+    const node = pending.pop()!
+    nodes.push(node)
+    const values = Object.values(node)
+    for (let i = 0, length = values.length; i < length; i += 1) {
+      const value = values[i]
+      if (isOracleNode(value)) {
+        pending.push(value)
+      } else if (Array.isArray(value)) {
+        pending.push(...value.filter(isOracleNode))
+      }
+    }
+  }
+  return nodes
+}
+
 export function repairResolvesLintErrors(
   value: { fixed: string },
   lintErrors: string,
 ): boolean {
-  const { fixed } = value
-  if (!hasBalancedBraces(fixed)) {
+  const nodes = parseOracleNodes(value.fixed)
+  if (!nodes) {
     return false
   }
-  if (hasLooseEquality(fixed)) {
-    return false
-  }
-  for (const symbol of unusedImportSymbols(lintErrors)) {
-    if (importsSymbol(fixed, symbol)) {
-      return false
-    }
-  }
-  return true
+  const unused = unusedImportSymbols(lintErrors)
+  return !nodes.some(
+    node =>
+      (node.type === 'BinaryExpression' &&
+        (node['operator'] === '!=' || node['operator'] === '==')) ||
+      unused.some(symbol => isImportedOracleSymbol(node, symbol)),
+  )
 }
 
+// Diagnostic messages are text. Only JavaScript source goes through the parser.
 export function unusedImportSymbols(lintErrors: string): string[] {
   const symbols: string[] = []
   for (const match of lintErrors.matchAll(/'([^']+)'[^\n]*never used/g)) {

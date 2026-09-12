@@ -24,6 +24,7 @@ export interface EvalRunOptions {
   // oxlint-disable-next-line socket/no-required-in-options-bag -- public API
   model: OdaiModel
   scenarios?: Scenario[] | undefined
+  modelForScenario?: ((scenario: Scenario) => Promise<OdaiModel>) | undefined
 }
 
 export interface EvalReport {
@@ -64,7 +65,11 @@ export async function runEval(options: EvalRunOptions): Promise<EvalReport> {
   const results: ScenarioResult[] = []
   for (const scenario of scenarios) {
     const startedAt = performance.now()
-    const partial = await scenario.run(opts.model)
+    const model =
+      opts.modelForScenario === undefined
+        ? opts.model
+        : await opts.modelForScenario(scenario)
+    const partial = await scenario.run(model)
     const durationMs = Math.round(performance.now() - startedAt)
     results.push({ ...partial, durationMs, name: scenario.name })
   }

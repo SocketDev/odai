@@ -1,7 +1,6 @@
 /**
- * @file High-level model wrapper. Holds a warm base session, clones it per
- *   request, and destroys the clone afterwards. This avoids the state-growth
- *   gotcha where every prompt appends to the same conversation history.
+ * @file Hold a warm base session and clone or recreate a session per request.
+ *   Request cleanup preserves the base session for the model's owner.
  *   `createOdaiModel` builds the wrapper on any registry backend;
  *   `createBuiltinModel` is the browser-direct entry bound to the runtime's
  *   built-in `LanguageModel` global — no backend registry, so a browser bundle
@@ -53,21 +52,28 @@ export interface CreateOdaiModelOptions extends CreateSessionOptions {
 
 export async function cloneSession(
   state: LanguageModelState,
+  createSession?: (() => Promise<SessionLike>) | undefined,
 ): Promise<SessionLike> {
   if (state.cloneCapable && typeof state.session.clone === 'function') {
     return state.session.clone()
   }
-  return state.session
+  return createSession === undefined ? state.session : createSession()
 }
 
 export async function createBuiltinModel(
   options: CreateSessionOptions = {},
 ): Promise<OdaiModel> {
   const state = await createLanguageModel(options)
-  return createModelFromState(state)
+  return createModelFromState(
+    state,
+    async () => (await createLanguageModel(options)).session,
+  )
 }
 
-export function createModelFromState(state: LanguageModelState): OdaiModel {
+export function createModelFromState(
+  state: LanguageModelState,
+  createSession?: (() => Promise<SessionLike>) | undefined,
+): OdaiModel {
   return {
     async promptStructured<T>(
       userContent: string,
@@ -88,14 +94,16 @@ export function createModelFromState(state: LanguageModelState): OdaiModel {
         raw: '',
       }
       for (let attempt = 0; attempt < attempts; attempt += 1) {
-        const session = await cloneSession(state)
+        const session = await cloneSession(state, createSession)
         try {
           last = await promptStructured(session, userContent, {
             ...opts,
             retries: 0,
           })
         } finally {
-          destroySession(session)
+          if (session !== state.session) {
+            destroySession(session)
+          }
         }
         if (last.ok) {
           break
@@ -116,13 +124,15 @@ export function createModelFromState(state: LanguageModelState): OdaiModel {
       userContent: string,
       streamOptions: StreamOptions = {},
     ): Promise<{ raw: string }> {
-      const session = await cloneSession(state)
+      const session = await cloneSession(state, createSession)
       try {
         const messages: Message[] = [{ content: userContent, role: 'user' }]
         const result = await streamPrompt(session, messages, streamOptions)
         return { raw: result.raw }
       } finally {
-        destroySession(session)
+        if (session !== state.session) {
+          destroySession(session)
+        }
       }
     },
 
@@ -142,41 +152,58 @@ export async function createOdaiModel(
   })
   const factory = await backend.languageModel()
   const session = await createWithFallback(factory, opts)
-  // Query the model's identity once at creation and cache it on the state,
-  // at the cost of one extra prompt. The weights behind a backend change
-  // over time (Gemini Nano today, Gemma 4 later), so the stamp names the
-  // model, not the host. Detection failure is silent - the backend name
-  // remains the fallback.
-  // Timeout-bounded: a hanging or slow backend degrades to the registry
-  // fallback in 5s instead of stalling model creation forever. Single-shot
-  // deadline wrapper (not Promise.race): the winner's handler clears the
-  // timer, and a late probe settles into an already-resolved outer promise
-  // instead of attaching unbounded handlers per call.
-  const modelName = await new Promise<string | undefined>(resolve => {
-    const timer = setTimeout(() => resolve(undefined), 5000)
-    detectModelName(session).then(
-      identity => {
-        clearTimeout(timer)
-        resolve(identity.name)
-      },
-      () => {
-        clearTimeout(timer)
-        resolve(undefined)
-      },
-    )
-  })
   const state: LanguageModelState = {
     backendName: backend.name,
     cloneCapable: typeof session.clone === 'function',
-    modelName,
     namespace: 'modern',
     session,
   }
-  return createModelFromState(state)
+  const createSession = () => createWithFallback(factory, opts)
+  state.modelName = await detectSessionModelName(state, createSession)
+  return createModelFromState(state, createSession)
 }
 
 export function destroySession(session: SessionLike): void {
   if (typeof session.destroy === 'function') {
     session.destroy()
   }
+}
+
+export function detectSessionModelName(
+  state: LanguageModelState,
+  createSession: () => Promise<SessionLike>,
+  timeoutMs = 5000,
+): Promise<string | undefined> {
+  return new Promise(resolve => {
+    let probe: SessionLike | undefined
+    let settled = false
+    const finish = (name?: string | undefined): void => {
+      if (settled) {
+        return
+      }
+      settled = true
+      clearTimeout(timer)
+      if (probe !== undefined && probe !== state.session) {
+        destroySession(probe)
+      }
+      resolve(name)
+    }
+    const timer = setTimeout(() => finish(), timeoutMs)
+    cloneSession(state, createSession).then(
+      session => {
+        probe = session
+        if (settled) {
+          if (session !== state.session) {
+            destroySession(session)
+          }
+          return
+        }
+        detectModelName(session).then(
+          identity => finish(identity.name),
+          () => finish(),
+        )
+      },
+      () => finish(),
+    )
+  })
 }

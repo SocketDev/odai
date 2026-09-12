@@ -447,7 +447,6 @@ allowBuilds:
 # pre-commit re-checks deps after a workspace/.npmrc change. Purging
 # node_modules is safe (gitignored + regenerable). Unlike CI=true this does NOT
 # force a frozen lockfile; CI keeps owning frozen-vs-update policy.
-confirmModulesPurge: false
 
 # Opt out of pnpm's packageManager-version self-check. CI installs pnpm from
 # its native bin via the shared setup workflow, not corepack, so the runner's
@@ -455,4 +454,3 @@ confirmModulesPurge: false
 # informational, not a version to enforce). Without this, pnpm hard-fails
 # ("This project is configured to use <pin> ... your current pnpm is <run>")
 # the moment the runner's pnpm differs from the pin.
-managePackageManagerVersions: false

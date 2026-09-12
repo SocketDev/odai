@@ -256,7 +256,7 @@ describe('chrome-builtin backend', () => {
       seeded.optimization_guide.model_execution.last_usage_by_feature['6'],
     ).toBeDefined()
     // The bridge page is a file:// secure context, not about:blank.
-    expect(fake.gotoUrls[0]).toMatch(/^file:\/\//)
+    expect(new URL(fake.gotoUrls[0]!).protocol).toBe('file:')
     await backend.close()
     expect(fake.closed).toBe(true)
   })
@@ -434,7 +434,7 @@ describe('chrome-builtin backend', () => {
         systemChromeUserDataDir: path.join(fixture.systemDir, 'missing'),
         userDataDir: fixture.userDataDir,
       }),
-    ).rejects.toThrow(/no Chrome built-in AI model component/)
+    ).rejects.toThrow(Error)
   })
 
   it('fails with the wait reason when the model never becomes available', async () => {

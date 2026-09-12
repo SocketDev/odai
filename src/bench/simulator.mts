@@ -4,6 +4,8 @@
  *   Chrome.
  */
 
+import { createLockstepResponseRules } from './lockstep/scenarios.mts'
+
 import {
   ALTERNATIVE_PACKAGE_PROMPT,
   ASK_QUERIES,
@@ -19,6 +21,7 @@ import type { ResponseRule } from '../simulator.mts'
 
 export function createBenchResponseRules(): ResponseRule[] {
   return [
+    ...createLockstepResponseRules(),
     {
       response: JSON.stringify({
         findings: [
@@ -99,7 +102,7 @@ export function createBenchResponseRules(): ResponseRule[] {
         anomalies: [
           'duplicate component: chalk appears as 5.3.0 and 4.1.2',
           'deprecated component: left-pad@1.3.0',
-          'untrusted source: eval-evil is a git dependency without a tag',
+          'untrusted source: untrusted-example is a git dependency without a tag',
         ],
         summary:
           'duplicate component versions, one deprecated package, and one untrusted git dependency.',

@@ -98,7 +98,7 @@ export interface OpenAiChatCompletion {
   usage: OpenAiUsage
 }
 
-export interface ChatCompletionOptions {
+export interface ChatCompletionMetadata {
   /**
    * Unix seconds stamped into the reply. Passed in so the translation stays
    * pure and a test can assert an exact value.
@@ -126,7 +126,7 @@ export interface BuildChunkOptions {
    * Append a usage-only final frame, which an OpenAI client asks for through
    * `stream_options.include_usage`.
    */
-  includeUsage: boolean
+  includeUsage?: boolean | undefined
 }
 
 /**
@@ -139,9 +139,9 @@ export interface BuildChunkOptions {
  */
 export function buildChatCompletionChunks(
   completion: OpenAiChatCompletion,
-  options: BuildChunkOptions,
+  options?: BuildChunkOptions | undefined,
 ): Array<Record<string, unknown>> {
-  const opts = { __proto__: null, ...options } as typeof options
+  const opts = { __proto__: null, ...options } as BuildChunkOptions
   const choice = completion.choices[0]!
   const envelope = {
     created: completion.created,
@@ -228,15 +228,9 @@ export function flattenOpenAiContent(content: unknown): string {
   return parts.join('\n')
 }
 
-/**
- * Translate the whole request into odai's `Message[]`. Every system and
- * developer message folds into one leading system message alongside the tool
- * protocol; an assistant turn's `tool_calls` are re-serialized as the
- * canonical protocol line, and a `tool` turn becomes the tagged
- * `[tool_result id=...]` section the protocol tells the model to expect.
- */
-export function openAiToBackendMessages(request: OpenAiChatRequest): Message[] {
-  const messages: Message[] = []
+export function openAiSystemMessage(
+  request: OpenAiChatRequest,
+): Message | undefined {
   const systemParts: string[] = []
   for (const turn of request.messages) {
     if (turn.role === 'developer' || turn.role === 'system') {
@@ -250,7 +244,23 @@ export function openAiToBackendMessages(request: OpenAiChatRequest): Message[] {
     systemParts.push(buildToolProtocol(toProtocolTools(request.tools)))
   }
   if (systemParts.length > 0) {
-    messages.push({ content: systemParts.join('\n\n'), role: 'system' })
+    return { content: systemParts.join('\n\n'), role: 'system' }
+  }
+  return undefined
+}
+
+/**
+ * Translate the whole request into odai's `Message[]`. Every system and
+ * developer message folds into one leading system message alongside the tool
+ * protocol; an assistant turn's `tool_calls` are re-serialized as the
+ * canonical protocol line, and a `tool` turn becomes the tagged
+ * `[tool_result id=...]` section the protocol tells the model to expect.
+ */
+export function openAiToBackendMessages(request: OpenAiChatRequest): Message[] {
+  const messages: Message[] = []
+  const system = openAiSystemMessage(request)
+  if (system !== undefined) {
+    messages.push(system)
   }
   for (const turn of request.messages) {
     if (turn.role === 'developer' || turn.role === 'system') {
@@ -329,12 +339,12 @@ export function parseArguments(raw: string): Record<string, unknown> {
 export function replyToChatCompletion(
   raw: string,
   request: OpenAiChatRequest,
-  options: ChatCompletionOptions,
+  metadata: ChatCompletionMetadata,
 ): OpenAiChatCompletion {
   const { createdAt, fingerprint, promptTokens } = {
     __proto__: null,
-    ...options,
-  } as ChatCompletionOptions
+    ...metadata,
+  } as ChatCompletionMetadata
   const toolNames = new Set(
     (request.tools ?? []).map(tool => tool.function.name),
   )

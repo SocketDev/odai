@@ -215,3 +215,16 @@ export type {
   WeeklyUpdateInput,
   WeeklyUpdatePlan,
 } from './prompts/weekly-update.mts'
+
+export { analyzeLockstep } from './tasks/lockstep.mts'
+export {
+  parseLockstepInput,
+  validateLockstepAnalysis,
+} from './lockstep/validate.mts'
+export {
+  LockstepInputSchema,
+  LockstepAnalysisSchema,
+} from './lockstep/schema.mts'
+export type { LockstepInput, LockstepAnalysis } from './lockstep/schema.mts'
+
+export { fetchChangelog } from './changelog.mts'

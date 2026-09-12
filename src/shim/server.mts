@@ -93,7 +93,7 @@ export interface ShimState {
   modelId: string
 }
 
-export interface WriteErrorOptions {
+export interface ShimErrorReply {
   errorType: string
   format: ErrorFormat
   message: string
@@ -167,6 +167,22 @@ export async function handleChatCompletions(
   response.end()
 }
 
+export function handleGetRequest(
+  state: ShimState,
+  pathname: string,
+  response: ServerResponse,
+): boolean {
+  if (pathname === '/health' || pathname === '/v1/health') {
+    writeJson(response, 200, { status: 'ok' })
+    return true
+  }
+  if (pathname === '/models' || pathname === '/v1/models') {
+    writeJson(response, 200, toModelList(state.modelId, nowSeconds()))
+    return true
+  }
+  return false
+}
+
 export async function handleMessages(
   state: ShimState,
   body: string,
@@ -211,15 +227,11 @@ export async function handleRequest(
   const pathname = (request.url ?? '').split('?')[0] ?? ''
   const format = errorFormatFor(pathname)
   try {
-    if (request.method === 'GET') {
-      if (pathname === '/health' || pathname === '/v1/health') {
-        writeJson(response, 200, { status: 'ok' })
-        return
-      }
-      if (pathname === '/models' || pathname === '/v1/models') {
-        writeJson(response, 200, toModelList(state.modelId, nowSeconds()))
-        return
-      }
+    if (
+      request.method === 'GET' &&
+      handleGetRequest(state, pathname, response)
+    ) {
+      return
     }
     if (request.method !== 'POST') {
       writeError(response, {
@@ -448,12 +460,12 @@ export async function startShimServer(
 
 export function writeError(
   response: ServerResponse,
-  options: WriteErrorOptions,
+  reply: ShimErrorReply,
 ): void {
   const { errorType, format, message, status } = {
     __proto__: null,
-    ...options,
-  } as typeof options
+    ...reply,
+  } as ShimErrorReply
   writeJson(
     response,
     status,

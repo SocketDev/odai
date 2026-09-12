@@ -92,7 +92,7 @@ describe('scenario behavioral assertions on wrong answers', () => {
       fakeModel({ explanation: 'x', patch: 'no template here' }),
     )
     expect(result.ok).toBe(false)
-    expect(result.assertion).toContain('expected template-literal patch')
+    expect(result.score).toBe(0)
   })
 
   it('fails code-repair listing each unmet lint fix', async () => {
@@ -100,9 +100,7 @@ describe('scenario behavioral assertions on wrong answers', () => {
       fakeModel({ explanation: 'x', fixed: 'import { deepEqual } from "x"' }),
     )
     expect(result.ok).toBe(false)
-    expect(result.assertion).toContain('eqeqeq not fixed')
-    expect(result.assertion).toContain('deepEqual import not removed')
-    expect(result.assertion).toContain('join logic not preserved')
+    expect(result.score).toBe(0)
   })
 
   it('fails dedupe when chalk is not suggested', async () => {

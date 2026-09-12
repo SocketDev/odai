@@ -81,7 +81,7 @@ describe('decideWeeklyUpdate', () => {
     const candidates: WeeklyUpdateCandidate[] = [
       { daysSincePublished: 20, from: '5.9.0', name: 'vitest', to: '6.0.0' },
     ]
-    const [entry] = decideWeeklyUpdate(candidates, 7).updates
+    const { 0: entry } = decideWeeklyUpdate(candidates, 7).updates
     expect(entry?.reason).toContain('major')
     expect(entry?.reason).toContain('from 5 to 6')
   })

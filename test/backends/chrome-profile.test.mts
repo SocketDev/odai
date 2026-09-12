@@ -102,12 +102,14 @@ describe('defaultBridgeUserDataDir', () => {
         '/home/<user>',
         path,
       ),
-    ).toBe('/cache/odai/chrome-builtin')
+    ).toBe('/cache/odai/chrome-builtin/geminiNano')
   })
 
   it('falls back to the home cache dir without XDG_CACHE_HOME', () => {
     expect(defaultBridgeUserDataDir({}, '/home/<user>', path)).toBe(
-      ['/home/<user>', '.cache', 'odai', 'chrome-builtin'].join('/'),
+      ['/home/<user>', '.cache', 'odai', 'chrome-builtin', 'geminiNano'].join(
+        '/',
+      ),
     )
   })
 })
@@ -237,9 +239,18 @@ describe('findModelSource', () => {
   it('picks the bridge profile when it already has the component', async () => {
     const root = await tmpDir()
     const userDataDir = path.join(root, 'profile')
-    await mkdir(path.join(userDataDir, MODEL_COMPONENT_DIR), {
+    await mkdir(path.join(userDataDir, MODEL_COMPONENT_DIR, '2025.8.8.1141'), {
       recursive: true,
     })
+    await writeFile(
+      path.join(
+        userDataDir,
+        MODEL_COMPONENT_DIR,
+        '2025.8.8.1141',
+        'weights.bin',
+      ),
+      'weights',
+    )
     const source = await findModelSource({
       allowDownload: false,
       chromePath: undefined,
@@ -254,7 +265,13 @@ describe('findModelSource', () => {
   it('picks system Chrome when only it has the component', async () => {
     const root = await tmpDir()
     const systemDir = path.join(root, 'sys')
-    await mkdir(path.join(systemDir, MODEL_COMPONENT_DIR), { recursive: true })
+    await mkdir(path.join(systemDir, MODEL_COMPONENT_DIR, '2025.8.8.1141'), {
+      recursive: true,
+    })
+    await writeFile(
+      path.join(systemDir, MODEL_COMPONENT_DIR, '2025.8.8.1141', 'weights.bin'),
+      'weights',
+    )
     const source = await findModelSource({
       allowDownload: false,
       chromePath: undefined,

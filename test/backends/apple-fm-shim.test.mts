@@ -15,7 +15,6 @@ import {
   spawnShim,
   unrefStream,
 } from '../../src/backends/apple-fm-shim.mts'
-import { tolerantSleep } from '../fleet/_shared/lib/timing.mts'
 import type { ShimCommand } from '../../src/backends/apple-fm-shim.mts'
 import type { Message } from '../../src/types.mts'
 
@@ -109,7 +108,7 @@ describe('apple-fm shim internals', () => {
       const binaryPath = path.join(cacheDir, `apple-fm-shim-${key}`)
       await writeFile(binaryPath, '#!/bin/sh\n')
       await chmod(binaryPath, 0o755)
-      const [first, second] = await Promise.all([
+      const { 0: first, 1: second } = await Promise.all([
         ensureShimBinary(cacheDir),
         ensureShimBinary(cacheDir),
       ])
@@ -168,8 +167,9 @@ readline.createInterface({ input: process.stdin }).on('line', () => { process.ex
 `,
       )
       const handle = spawnShim(command)
-      // Give the process time to exit and settle the spawn promise.
-      await new Promise(resolve => setTimeout(resolve, tolerantSleep(200)))
+      await expect(
+        handle.request({ op: 'availability' }, 5000),
+      ).rejects.toThrow(/shim exited/)
       await expect(
         handle.request({ op: 'availability' }, 5000),
       ).rejects.toThrow(/already exited/)

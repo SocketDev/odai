@@ -1,26 +1,25 @@
 /**
- * @file Expose odai as a socket-lib-routable keyless local provider. socket-lib
- *   declares the built-in `LanguageModelFactory` interface in `ai/builtin` and
- *   drives local, keyless models through it. odai's backends already implement
- *   the richer `LanguageModelLike` session shape; this module selects a backend
- *   and adapts it to the socket-lib `LanguageModelFactory` contract, so
- *   socket-lib's router can invoke odai in-process — no key, no CLI, no hosted
- *   fallback. The dependency stays one-way: odai never imports socket-lib's
- *   router, only the `ai/builtin` factory shape it publishes.
+ * @file Expose a local model factory with an opaque session contract. Backend
+ *   selection is shared across availability checks and session creation.
  */
 
-import { isLanguageModelFactory } from '@socketsecurity/lib/ai/builtin'
+import { isLanguageModelFactory as isBuiltinLanguageModelFactory } from '@socketsecurity/lib/ai/builtin'
 
 import { selectBackend } from './backends/registry.mts'
 import type { SelectBackendOptions } from './backends/registry.mts'
 import type { OdaiBackend } from './backends/types.mts'
-import type {
-  LanguageModelAvailability,
-  LanguageModelFactory,
-} from '@socketsecurity/lib/ai/builtin'
+export type LanguageModelAvailability =
+  | 'available'
+  | 'downloadable'
+  | 'downloading'
+  | 'unavailable'
 
-export { isLanguageModelFactory }
-export type { LanguageModelAvailability, LanguageModelFactory }
+export interface LanguageModelFactory {
+  availability(
+    options?: unknown | undefined,
+  ): Promise<LanguageModelAvailability>
+  create(options?: unknown | undefined): Promise<unknown>
+}
 
 /**
  * Build a socket-lib `LanguageModelFactory` backed by an odai backend. The
@@ -58,4 +57,10 @@ export function createLocalLanguageModelFactory(
       return model.create(createOptions as object | undefined)
     },
   }
+}
+
+export function isLanguageModelFactory(
+  value: unknown,
+): value is LanguageModelFactory {
+  return isBuiltinLanguageModelFactory(value)
 }

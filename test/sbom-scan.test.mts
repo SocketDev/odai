@@ -19,10 +19,10 @@ describe('findSbomAnomalies', () => {
 
   it('flags a git dependency with no pinned tag', () => {
     const anomalies = findSbomAnomalies(
-      '- pkg:npm/eval-evil@1.0.0 (git dependency, no tag)',
+      '- pkg:npm/untrusted-example@1.0.0 (git dependency, no tag)',
     )
     expect(anomalies).toContain(
-      'eval-evil is a git dependency with no pinned tag.',
+      'untrusted-example is a git dependency with no pinned tag.',
     )
   })
 

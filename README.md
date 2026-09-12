@@ -65,6 +65,7 @@ printf 'Critical: 2\nHigh: 5\n' | odai triage
 odai summarize --input README.md
 odai patch --input src/greet.js --instruction "use a template literal"
 odai classify-deps --input narrowed-dep-diff.json
+odai lockstep --input prepared-lockstep.json
 odai backends
 printf '%s\n' '{"id":"a","task":"summarize","input":"release notes..."}' '{"id":"b","task":"commit-msg","input":"diff --git..."}' | odai batch
 ```
@@ -87,6 +88,13 @@ JSON with the reason for every unavailable engine.
 `odai batch` reads a JSONL manifest (stdin or `--input`), runs every task over a single backend launch, and prints one JSON line per entry in manifest order - `{"id","ok":true,"value":…}` or `{"id","ok":false,"error":…}`. It exits 0 when the batch ran even if every task failed (failures are in-band lines), 2 on a malformed manifest (checked in full before any task runs), and 69 when no backend is available. `--timeout` is the per-task budget; `--raw` is not accepted.
 
 </details>
+
+### Lockstep
+
+`odai lockstep` analyzes one lockstep row with full or sparse materialization.
+It validates cited evidence and proposed patches before returning a result.
+The fleet runner verifies changes in a temporary copy with trusted commands.
+See [lockstep assistance](docs/repo/lockstep/practices.md) for preparation, verification, and model evaluation.
 
 ### Serve
 
@@ -143,7 +151,11 @@ real backend with `--backend`:
 ```sh
 pnpm run bench
 pnpm run bench --backend=chrome-builtin
+pnpm run bench --scenario=lockstep --backend=chrome-builtin --json
 ```
+
+The default simulator checks the evaluation harness. Use an explicit backend to measure a real model.
+The lockstep cases check response contracts. Upstream conformance requires the separate fleet verifier.
 
 ## Development
 

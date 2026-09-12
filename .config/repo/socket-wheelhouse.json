@@ -34,5 +34,23 @@
         "reason": "Published before the provenance pipeline was wired up: the npm attestation endpoint answers 404 for this version, so it carries no SLSA statement at all. Same frozen-history shape as 0.1.0."
       }
     ]
+  },
+  "vitest": {
+    "lanes": {
+      "mid": [
+        "test/backends/apple-fm-shim.test.mts",
+        "test/backends/apple-fm.test.mts",
+        "test/fleet/e2e/comment-voice.test.mts",
+        "test/fleet/integration/comment-voice.test.mts",
+        "test/repo/integration/cache/image.test.mts",
+        "test/repo/unit/cache/archive.test.mts",
+        "test/repo/unit/cache/diagnostic/retain.test.mts",
+        "test/repo/unit/cache/retain.test.mts",
+        "test/repo/unit/cache/util.test.mts"
+      ],
+      "slow": [
+        "test/repo/integration/check/package.test.mts"
+      ]
+    }
   }
 }

@@ -33,14 +33,15 @@ async function kernelFile(contents: string): Promise<string> {
   return file
 }
 
-test.each([[], ['unknown'], ['kernel', 'extra'], ['kernel', '--unknown']])(
-  'rejects invalid arguments %j',
-  async argv => {
-    await expect(main(argv)).rejects.toThrow()
-    expect(mocks.collect).not.toHaveBeenCalled()
-    expect(mocks.replay).not.toHaveBeenCalled()
-  },
-)
+test.each(
+  [[], ['unknown'], ['kernel', 'extra'], ['kernel', '--unknown']].map(argv => ({
+    argv,
+  })),
+)('rejects invalid arguments %j', async ({ argv }) => {
+  await expect(main(argv)).rejects.toThrow()
+  expect(mocks.collect).not.toHaveBeenCalled()
+  expect(mocks.replay).not.toHaveBeenCalled()
+})
 
 test('preserves crash reports and returns parsed evidence', async () => {
   const data = {

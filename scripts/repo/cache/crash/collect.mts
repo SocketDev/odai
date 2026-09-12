@@ -46,6 +46,7 @@ async function readReport(
     }
     offset += bytesRead
   }
+  // oxlint-disable-next-line socket/prefer-exists-sync -- metadata
   if ((await handle.stat()).size !== size) {
     return { status: 'unavailable' }
   }

@@ -65,6 +65,7 @@ export function parseGemmaDisassembly(output: string): string | undefined {
 async function moduleInventory(): Promise<Map<string, string>> {
   const file = await fs.open('/opt/odai-cache/native-modules.json', 'r')
   try {
+    // oxlint-disable-next-line socket/prefer-exists-sync -- metadata
     if ((await file.stat()).size > 1024 * 1024) {
       return new Map()
     }

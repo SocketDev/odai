@@ -26,10 +26,10 @@ import {
 } from '../../src/backends/chrome-profile.mts'
 import { createOdaiModel } from '../../src/model.mts'
 import { PYTHON_PINS } from './llama-cpp-server/executor.mts'
-import { isMainModule } from '../../scripts/fleet/_shared/is-main-module.mts'
-import { runMain } from '../../scripts/fleet/_shared/run-main.mts'
+import { isMainModule } from '../../scripts/fleet/process/is-main-module.mts'
+import { runMain } from '../../scripts/fleet/process/run-main.mts'
 import { REPO_ROOT } from '../../scripts/fleet/paths.mts'
-import type { ScriptMeta } from '../../scripts/fleet/_shared/run-main.mts'
+import type { ScriptMeta } from '../../scripts/fleet/process/run-main.mts'
 
 const logger = getDefaultLogger()
 
@@ -125,7 +125,7 @@ export function findChrome(): string | undefined {
 export async function installChrome(): Promise<void> {
   logger.info('installing Google Chrome through playwright-core…')
   await spawn(
-    'node',
+    process.execPath,
     [path.join(REPO_ROOT, PLAYWRIGHT_CLI), 'install', 'chrome'],
     { cwd: REPO_ROOT, stdio: 'inherit' },
   )
@@ -249,7 +249,7 @@ export async function conformanceLane(
   }
   logger.info('checking out upstream/llama.cpp…')
   await spawn(
-    'node',
+    process.execPath,
     [
       path.join(REPO_ROOT, 'scripts', 'fleet', 'git-partial-submodule.mts'),
       'clone',

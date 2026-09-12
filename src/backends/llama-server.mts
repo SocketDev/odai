@@ -126,6 +126,7 @@ export function buildRequestBody(
   combined.push(...messages)
   const body: Record<string, unknown> = {
     messages: combined.map(message => ({
+      __proto__: null,
       content: message.content,
       role: message.role,
     })),

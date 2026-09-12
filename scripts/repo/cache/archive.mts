@@ -85,10 +85,10 @@ export async function auditGemmaArchive(
   )
   if (result.code !== 0) {
     throw new Error(
-      `Gemma archive audit failed at ${archivePath}. Saw ${String(result.stderr).trim() || `exit ${result.code}`}; expected a bounded portable gzip tar archive. Rebuild without metadata, links, or unsafe paths; ensure Python 3 is installed.`,
+      `Gemma archive audit failed at ${archivePath}. Saw ${result.stderr.trim() || `exit ${result.code}`}; expected a bounded portable gzip tar archive. Rebuild without metadata, links, or unsafe paths; ensure Python 3 is installed.`,
     )
   }
-  const data: unknown = JSON.parse(String(result.stdout))
+  const data: unknown = JSON.parse(result.stdout)
   if (
     !data ||
     typeof data !== 'object' ||

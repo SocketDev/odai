@@ -284,11 +284,13 @@ describe('runBatchEntries', () => {
 describe('runCli — batch end-to-end', () => {
   it('exits 0, prints two stdout lines in order, and creates the backend once', async () => {
     let createCount = 0
+    let factoryCount = 0
     const countingBackend: OdaiBackend = {
       async availability() {
         return { available: true }
       },
       async languageModel() {
+        factoryCount += 1
         return {
           availability: async () => 'available',
           create: async () => {
@@ -322,7 +324,8 @@ describe('runCli — batch end-to-end', () => {
     const second = JSON.parse(stdout.lines[1]!) as { id: string; ok: boolean }
     expect(first.id).toBe('a')
     expect(second.id).toBe('b')
-    expect(createCount).toBe(1)
+    expect(factoryCount).toBe(1)
+    expect(createCount).toBe(4)
   })
 
   it('exits 0 with every line ok:false when the simulator reply is not valid JSON', async () => {

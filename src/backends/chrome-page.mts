@@ -460,7 +460,10 @@ export async function waitForModelReady(
       // downloading/available; its session is destroyed on arrival.
       void page.evaluate<string>(pageKickDownload).catch(() => undefined)
     }
-    await new Promise(resolve => setTimeout(resolve, READY_POLL_INTERVAL_MS))
+    const remainingMs = Math.max(0, timeoutMs - (Date.now() - startedAt))
+    await new Promise(resolve =>
+      setTimeout(resolve, Math.min(READY_POLL_INTERVAL_MS, remainingMs)),
+    )
   }
   throw new Error(
     `the on-device model did not become available within ${timeoutMs}ms (last ` +

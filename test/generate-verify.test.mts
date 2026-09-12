@@ -28,14 +28,16 @@ describe('generateVerified', () => {
     expect(calls).toBe(2)
   })
 
-  it('returns the last ok result when none verifies', async () => {
+  it('rejects the last candidate when none verifies', async () => {
     const queue: Array<TaskResult<number>> = [ok(1), fail('boom'), ok(2)]
     const result = await generateVerified(
       async () => queue.shift()!,
       () => false,
       3,
     )
-    expect(result).toEqual(ok(2))
+    expect(result.ok).toBe(false)
+    expect(result.data).toBeUndefined()
+    expect(result.raw).toBe('2')
   })
 
   it('returns the last result when no attempt is ok', async () => {
@@ -62,12 +64,14 @@ describe('generateVerified', () => {
     expect(calls).toBe(1)
   })
 
-  it('runs a single attempt and returns it even when it does not verify', async () => {
+  it('rejects an unverified single attempt', async () => {
     const result = await generateVerified(
       async () => ok(7),
       () => false,
       1,
     )
-    expect(result).toEqual(ok(7))
+    expect(result.ok).toBe(false)
+    expect(result.data).toBeUndefined()
+    expect(result.raw).toBe('7')
   })
 })

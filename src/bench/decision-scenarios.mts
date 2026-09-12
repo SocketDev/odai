@@ -55,6 +55,7 @@ export function hoistScenario(
       return scoreTaskResult(result, value => {
         const ok = value.verdict === expected
         return {
+          __proto__: null,
           assertion: ok
             ? `verdict "${value.verdict}" matches expected`
             : `expected "${expected}", got "${value.verdict}"`,
@@ -82,6 +83,7 @@ export function securityFixScenario(
           value.verdict === expectedVerdict &&
           value.fixedVersion === expectedFixedVersion
         return {
+          __proto__: null,
           assertion: ok
             ? `verdict "${value.verdict}" and fixedVersion "${value.fixedVersion}" match expected`
             : `expected verdict "${expectedVerdict}" fixedVersion "${expectedFixedVersion}", got verdict "${value.verdict}" fixedVersion "${value.fixedVersion}"`,
@@ -109,6 +111,7 @@ export function weeklyUpdateScenario(
         const unexpected = names.filter(n => !expectedNames.includes(n))
         const ok = missing.length === 0 && unexpected.length === 0
         return {
+          __proto__: null,
           assertion: ok
             ? `updates match expected names ${JSON.stringify(expectedNames)}`
             : `expected updates ${JSON.stringify(expectedNames)}, got ${JSON.stringify(names)}`,

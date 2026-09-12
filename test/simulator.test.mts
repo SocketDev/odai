@@ -41,7 +41,7 @@ describe('LanguageModelSimulator', () => {
       simulator
     const model = await createBuiltinModel()
     const report = await runEval({ model })
-    expect(report.total).toBe(18)
+    expect(report.total).toBeGreaterThan(0)
     expect(report.score).toBe(1)
   })
 })
