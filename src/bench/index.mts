@@ -9,6 +9,8 @@ import { detectModelName } from '../model-identity.mts'
 import type { OdaiModel } from '../model.mts'
 import { allScenarios } from './scenarios.mts'
 import type { Scenario, ScenarioResult } from './scenarios.mts'
+import { assessIntentQuality } from './intent/quality.mts'
+import type { IntentObservation } from './intent/quality.mts'
 
 export { allScenarios }
 export type { Scenario, ScenarioResult }
@@ -16,6 +18,8 @@ export type { Scenario, ScenarioResult }
 // Published API shape; renaming the exported interface or reshaping the
 // bag is a breaking change.
 export interface EvalRunOptions {
+  evidence?: 'real' | 'simulator' | 'unverified' | undefined
+  intentBaseline?: ReadonlyMap<string, string | null> | undefined
   /**
    * When true, probe the running model's identity (an extra prompt) and record
    * it on the report as `model`. Failures are swallowed to `undefined`.
@@ -28,6 +32,9 @@ export interface EvalRunOptions {
 }
 
 export interface EvalReport {
+  evidence: 'real' | 'simulator' | 'unverified'
+  timing: 'warm-scenario'
+  intentQuality?: ReturnType<typeof assessIntentQuality> | undefined
   /**
    * The detected model name (e.g. "Gemma 4" / "Gemini Nano") when
    * `identifyModel` was set and the probe recognized the reply, else undefined.
@@ -42,6 +49,15 @@ export interface EvalReport {
 export function formatReport(report: EvalReport): string {
   const lines: string[] = []
   lines.push(`odai bench: ${report.passed}/${report.total} passed`)
+  lines.push(`evidence: ${report.evidence}; timing: ${report.timing}`)
+  if (report.intentQuality) {
+    lines.push(
+      `intent default enablement: ${report.intentQuality.eligible ? 'eligible' : 'not eligible'}`,
+    )
+    for (const reason of report.intentQuality.reasons) {
+      lines.push(`  ${reason}`)
+    }
+  }
   if (report.model !== undefined) {
     lines.push(`model: ${report.model}`)
   }
@@ -74,6 +90,22 @@ export async function runEval(options: EvalRunOptions): Promise<EvalReport> {
     results.push({ ...partial, durationMs, name: scenario.name })
   }
   const passed = results.reduce((acc, r) => acc + (r.ok ? 1 : 0), 0)
+  const observations: IntentObservation[] = []
+  for (let i = 0, { length } = results; i < length; i += 1) {
+    const result = results[i]!
+    if (result.intent?.split !== 'held-out') {
+      continue
+    }
+    observations.push({
+      caseId: result.intent.caseId,
+      expectedActionId: result.intent.expectedActionId,
+      actionId: result.intent.actionId,
+      validOutput: result.intent.validOutput,
+      baselineActionId: opts.intentBaseline?.get(result.intent.caseId),
+      totalDurationMs: result.durationMs ?? 0,
+    })
+  }
+  const evidence = opts.evidence ?? 'unverified'
   let model: string | undefined
   if (opts.identifyModel) {
     try {
@@ -84,6 +116,17 @@ export async function runEval(options: EvalRunOptions): Promise<EvalReport> {
     }
   }
   return {
+    evidence,
+    timing: 'warm-scenario',
+    ...(observations.length === 0
+      ? {}
+      : {
+          intentQuality: assessIntentQuality(
+            observations,
+            evidence,
+            'warm-scenario',
+          ),
+        }),
     model,
     passed,
     results,

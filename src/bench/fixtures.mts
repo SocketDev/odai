@@ -55,13 +55,6 @@ export const SEVERITY_COUNTS = {
   medium: 8,
 }
 
-export const ASK_QUERIES = [
-  'scan my project for vulnerabilities',
-  'fix critical issues',
-  'is express safe to use',
-  'optimize my dependencies',
-]
-
 export const ALTERNATIVE_PACKAGE_PROMPT = `Package: lodash@4.17.15
 Severity: high
 Alert types: prototype-pollution, cve

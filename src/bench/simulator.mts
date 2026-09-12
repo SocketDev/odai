@@ -4,11 +4,11 @@
  *   Chrome.
  */
 
+import { createIntentResponseRules } from './intent/scenarios.mts'
 import { createLockstepResponseRules } from './lockstep/scenarios.mts'
 
 import {
   ALTERNATIVE_PACKAGE_PROMPT,
-  ASK_QUERIES,
   CODE_PATCH_INPUT,
   CODE_REPAIR_INPUT,
   LOCKFILE_DEDUPE_CANDIDATE,
@@ -22,6 +22,7 @@ import type { ResponseRule } from '../simulator.mts'
 export function createBenchResponseRules(): ResponseRule[] {
   return [
     ...createLockstepResponseRules(),
+    ...createIntentResponseRules(),
     {
       response: JSON.stringify({
         findings: [
@@ -80,14 +81,6 @@ export function createBenchResponseRules(): ResponseRule[] {
         topConcern: 'critical',
       }),
       when: text => text.includes(`Critical: ${SEVERITY_COUNTS.critical}`),
-    },
-    {
-      response: JSON.stringify({
-        command: ['fix'],
-        confidence: 0.95,
-        intent: 'fix',
-      }),
-      when: text => text.includes(ASK_QUERIES[1]!),
     },
     {
       response: JSON.stringify({

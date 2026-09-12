@@ -27,6 +27,8 @@ describe('bench evaluator', () => {
 
   it('omits the timing suffix when a result carries no duration', () => {
     const printed = formatReport({
+      evidence: 'unverified',
+      timing: 'warm-scenario',
       passed: 1,
       results: [
         {
