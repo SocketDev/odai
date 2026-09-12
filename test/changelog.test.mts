@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { safeDelete } from '@socketsecurity/lib-stable/fs/safe'
 
-import { fetchChangelog } from '../src/changelog.mts'
+import { fetchChangelog, readLocalChangelog } from '../src/changelog.mts'
 
 const httpRequestMock = vi.hoisted(() => vi.fn())
 vi.mock(import('@socketsecurity/lib-stable/http-request'), () => ({
@@ -62,6 +62,13 @@ describe('fetchChangelog', () => {
     httpRequestMock.mockRejectedValue(new Error('offline'))
     const result = await fetchChangelog('some-lib', { root: dir })
     expect(result).toEqual({ source: 'none', text: '' })
+  })
+
+  it('ignores an unreadable local changelog candidate', () => {
+    const packageDir = path.join(dir, 'node_modules', 'some-lib')
+    mkdirSync(path.join(packageDir, 'CHANGELOG.md'), { recursive: true })
+
+    expect(readLocalChangelog(dir, 'some-lib')).toBeUndefined()
   })
 })
 

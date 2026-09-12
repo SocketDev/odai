@@ -94,6 +94,18 @@ describe('scenario behavioral assertions on wrong answers', () => {
     expect(result.score).toBe(0)
   })
 
+  it('rejects a valid repair that removes the original behavior', async () => {
+    const result = await codeRepairScenario.run(
+      fakeModel({
+        explanation: 'fixture',
+        fixed: 'export function resolveConfig() { return true }',
+      }),
+    )
+    expect(result.ok).toBe(false)
+    expect(result.assertion).toContain('eqeqeq not fixed')
+    expect(result.assertion).toContain('original join logic not preserved')
+  })
+
   it('fails dedupe when chalk is not suggested', async () => {
     const result = await dedupeCandidateScenario.run(
       fakeModel({ suggestions: [{ packages: ['other'] }] }),
