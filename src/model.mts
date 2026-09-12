@@ -7,6 +7,8 @@
  *   never pulls in the Node-only backends.
  */
 
+import { awaitCancellable } from './cancellation.mts'
+
 import { detectModelName } from './model-identity.mts'
 import { selectBackend } from './backends/registry.mts'
 import { promptStructured } from './json.mts'
@@ -38,6 +40,7 @@ export interface OdaiModel {
 }
 
 export interface CreateOdaiModelOptions extends CreateSessionOptions {
+  interactive?: boolean | undefined
   /**
    * Explicit backend: a registry name or a caller-built `OdaiBackend`.
    * Selection precedence when omitted: `ODAI_BACKEND` env var, then the
@@ -73,7 +76,13 @@ export async function createBuiltinModel(
 export function createModelFromState(
   state: LanguageModelState,
   createSession?: (() => Promise<SessionLike>) | undefined,
+  abortSignal?: AbortSignal | undefined,
 ): OdaiModel {
+  function disposeClone(session: SessionLike): void {
+    if (session !== state.session) {
+      destroySession(session)
+    }
+  }
   return {
     async promptStructured<T>(
       userContent: string,
@@ -83,6 +92,13 @@ export function createModelFromState(
         __proto__: null,
         ...structuredOptions,
       } as StructuredPromptOptions<T>
+      const signal =
+        abortSignal === undefined
+          ? opts.abortSignal
+          : opts.abortSignal === undefined
+            ? abortSignal
+            : AbortSignal.any([abortSignal, opts.abortSignal])
+      signal?.throwIfAborted()
       const attempts = (opts.retries ?? 2) + 1
       // Retry with a FRESH cloned session per attempt. A stateful backend
       // (Chrome's Nano) rejects a re-sent system message on an already-used
@@ -94,12 +110,21 @@ export function createModelFromState(
         raw: '',
       }
       for (let attempt = 0; attempt < attempts; attempt += 1) {
-        const session = await cloneSession(state, createSession)
+        signal?.throwIfAborted()
+        const session = await awaitCancellable(
+          cloneSession(state, createSession),
+          signal,
+          disposeClone,
+        )
         try {
-          last = await promptStructured(session, userContent, {
-            ...opts,
-            retries: 0,
-          })
+          last = await awaitCancellable(
+            promptStructured(session, userContent, {
+              ...opts,
+              abortSignal: signal,
+              retries: 0,
+            }),
+            signal,
+          )
         } finally {
           if (session !== state.session) {
             destroySession(session)
@@ -124,10 +149,27 @@ export function createModelFromState(
       userContent: string,
       streamOptions: StreamOptions = {},
     ): Promise<{ raw: string }> {
-      const session = await cloneSession(state, createSession)
+      const signal =
+        abortSignal === undefined
+          ? streamOptions.abortSignal
+          : streamOptions.abortSignal === undefined
+            ? abortSignal
+            : AbortSignal.any([abortSignal, streamOptions.abortSignal])
+      signal?.throwIfAborted()
+      const session = await awaitCancellable(
+        cloneSession(state, createSession),
+        signal,
+        disposeClone,
+      )
       try {
         const messages: Message[] = [{ content: userContent, role: 'user' }]
-        const result = await streamPrompt(session, messages, streamOptions)
+        const result = await awaitCancellable(
+          streamPrompt(session, messages, {
+            ...streamOptions,
+            abortSignal: signal,
+          }),
+          signal,
+        )
         return { raw: result.raw }
       } finally {
         if (session !== state.session) {
@@ -146,12 +188,25 @@ export async function createOdaiModel(
   options: CreateOdaiModelOptions = {},
 ): Promise<OdaiModel> {
   const opts = { __proto__: null, ...options } as typeof options
-  const backend = await selectBackend({
-    backend: opts.backend,
-    probe: opts.probe,
-  })
-  const factory = await backend.languageModel()
-  const session = await createWithFallback(factory, opts)
+  opts.abortSignal?.throwIfAborted()
+  const backend = await awaitCancellable(
+    selectBackend({
+      backend: opts.backend,
+      probe: opts.probe,
+      abortSignal: opts.abortSignal,
+      interactive: opts.interactive,
+    }),
+    opts.abortSignal,
+  )
+  const factory = await awaitCancellable(
+    backend.languageModel(),
+    opts.abortSignal,
+  )
+  const session = await awaitCancellable(
+    createWithFallback(factory, opts),
+    opts.abortSignal,
+    destroySession,
+  )
   const state: LanguageModelState = {
     backendName: backend.name,
     cloneCapable: typeof session.clone === 'function',
@@ -159,8 +214,18 @@ export async function createOdaiModel(
     session,
   }
   const createSession = () => createWithFallback(factory, opts)
-  state.modelName = await detectSessionModelName(state, createSession)
-  return createModelFromState(state, createSession)
+  try {
+    if (!opts.interactive) {
+      state.modelName = await awaitCancellable(
+        detectSessionModelName(state, createSession),
+        opts.abortSignal,
+      )
+    }
+    return createModelFromState(state, createSession, opts.abortSignal)
+  } catch (error) {
+    destroySession(session)
+    throw error
+  }
 }
 
 export function destroySession(session: SessionLike): void {

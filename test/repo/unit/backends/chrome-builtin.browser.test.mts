@@ -2,15 +2,15 @@ import { afterEach, expect, it, vi } from 'vitest'
 
 import {
   getLanguageModel,
-  probeAvailability,
-} from '../../../../src/availability.mts'
+  probeBuiltinAvailability,
+} from '../../../../src/builtin-availability.mts'
 import { createChromeBuiltinBackend } from '../../../../src/backends/chrome-builtin.browser.mts'
 
 import { stubSession } from '../../../_shared/session-stub.mts'
 
-vi.mock('../../../../src/availability.mts', () => ({
+vi.mock('../../../../src/builtin-availability.mts', () => ({
   getLanguageModel: vi.fn(),
-  probeAvailability: vi.fn(),
+  probeBuiltinAvailability: vi.fn(),
 }))
 
 afterEach(() => {
@@ -18,7 +18,7 @@ afterEach(() => {
 })
 
 it('reports unavailable browser factories without launching a bridge', async () => {
-  vi.mocked(probeAvailability).mockResolvedValue({
+  vi.mocked(probeBuiltinAvailability).mockResolvedValue({
     available: false,
     cloneCapable: false,
     namespace: 'none',
@@ -40,7 +40,7 @@ it('wraps native sessions and their clones with constraint fallback', async () =
     availability: async () => 'available',
     create: async () => stubSession({ clone: async () => clone }),
   })
-  vi.mocked(probeAvailability).mockResolvedValue({
+  vi.mocked(probeBuiltinAvailability).mockResolvedValue({
     available: true,
     cloneCapable: true,
     namespace: 'modern',

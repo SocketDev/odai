@@ -119,7 +119,7 @@ describe('backend registry', () => {
       originalLanguageModel
   })
 
-  it('declares all five backends and probes real engines before the simulator', () => {
+  it('declares five backends and excludes the simulator from automatic discovery', () => {
     expect([...backendNames].toSorted()).toEqual([
       'apple-fm',
       'chrome-builtin',
@@ -128,7 +128,7 @@ describe('backend registry', () => {
       'windows-phi-silica',
     ])
     expect(defaultProbeOrder[0]).toBe('chrome-builtin')
-    expect(defaultProbeOrder[defaultProbeOrder.length - 1]).toBe('simulator')
+    expect(defaultProbeOrder).not.toContain('simulator')
   })
 
   it('reports availability per backend with a reason when unavailable', async () => {
@@ -203,9 +203,8 @@ describe('backend registry', () => {
     expect(backend.name).toBe('chrome-builtin')
   })
 
-  it('falls through unavailable backends to the simulator in a bare runtime', async () => {
-    const backend = await selectBackend({ env: {} })
-    expect(backend.name).toBe('simulator')
+  it('rejects when real backends are unavailable in a bare runtime', async () => {
+    await expect(selectBackend({ env: {} })).rejects.toThrow()
   })
 
   it('aggregates every probed reason when no backend is available', async () => {

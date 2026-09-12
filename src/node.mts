@@ -1,8 +1,5 @@
 /**
- * @file Node entry point. Exports the backend registry, a deterministic mock
- *   session, and all task helpers. Tests and CLI tools run without Chrome:
- *   the simulator backend closes the probe order, so `createOdaiModel()`
- *   always yields a working model here.
+ * @file Node entry point for local inference, tasks, and explicit simulators.
  */
 
 import { majorityResult } from './best-of-n.mts'
@@ -176,3 +173,22 @@ export {
 export type { LockstepInput, LockstepAnalysis } from './lockstep/schema.mts'
 
 export { fetchChangelog } from './changelog.mts'
+
+export { classifyIntent } from './tasks/classify-intent.mts'
+export type { ClassifyIntentOptions } from './tasks/classify-intent.mts'
+export type {
+  IntentCandidate,
+  IntentInput,
+  IntentResult,
+} from './prompts/classify-intent.mts'
+
+export { withOdaiModel } from './lifecycle.mts'
+export type {
+  OdaiOperationContext,
+  OdaiOperationOptions,
+} from './lifecycle.mts'
+export { probeBackendAvailability } from './availability.mts'
+export type {
+  BackendProbeOptions,
+  BackendProbeResult,
+} from './availability.mts'
