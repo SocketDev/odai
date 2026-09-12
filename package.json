@@ -1,6 +1,6 @@
 {
   "name": "@socketsecurity/odai",
-  "version": "0.2.1",
+  "version": "0.2.2-prerelease",
   "private": false,
   "description": "Local on-device AI library for browser and Node, with the bench evaluation harness",
   "homepage": "https://github.com/SocketDev/odai",
@@ -151,7 +151,8 @@
     "test:profile": "node scripts/fleet/test/profile.mts",
     "update:pnpm": "node scripts/fleet/update/pnpm.mts",
     "check:package": "node scripts/repo/check/package.mts",
-    "lockstep:assist": "node scripts/fleet/lockstep/assist/run.mts"
+    "lockstep:assist": "node scripts/fleet/lockstep/assist/run.mts",
+    "release:hint": "node scripts/fleet/release/hint.mts"
   },
   "dependencies": {
     "@sinclair/typebox": "catalog:",
