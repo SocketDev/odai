@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseArgs } from '../../src/bench/run.mts'
+import { benchmarkEvidence, parseArgs } from '../../src/bench/run.mts'
 
 describe('benchmark arguments', () => {
   it('defaults to deterministic evaluation', () => {
@@ -38,5 +38,17 @@ describe('benchmark arguments', () => {
     expect(parseArgs(['--routed']).routed).toBe(true)
     expect(parseArgs(['--mock']).mock).toBe(true)
     expect(parseArgs(['--help']).help).toBe(true)
+  })
+})
+
+describe('benchmark evidence', () => {
+  it.each([
+    { argv: [], expected: 'simulator' },
+    { argv: ['--mock'], expected: 'simulator' },
+    { argv: ['--backend=simulator'], expected: 'simulator' },
+    { argv: ['--routed'], expected: 'unverified' },
+    { argv: ['--backend=llama-server'], expected: 'real' },
+  ])('labels $argv as $expected', ({ argv, expected }) => {
+    expect(benchmarkEvidence(parseArgs(argv))).toBe(expected)
   })
 })

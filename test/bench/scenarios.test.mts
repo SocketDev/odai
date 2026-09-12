@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest'
 
 import {
   alertSummaryScenario,
-  askIntentScenario,
   codePatchScenario,
   codeRepairScenario,
   dedupeCandidateScenario,
@@ -77,14 +76,6 @@ describe('scenario behavioral assertions on wrong answers', () => {
     )
     expect(result.ok).toBe(false)
     expect(result.assertion).toContain('expected summary to mention critical')
-  })
-
-  it('fails ask-intent when it does not route to fix', async () => {
-    const result = await askIntentScenario.run(
-      fakeModel({ command: ['audit'], confidence: 0.5, intent: 'audit' }),
-    )
-    expect(result.ok).toBe(false)
-    expect(result.assertion).toContain('expected')
   })
 
   it('fails code-patch without a template literal', async () => {

@@ -47,8 +47,42 @@ console.log(raw)
 
 `createOdaiModel` picks a backend by precedence: the explicit `backend`
 option, then the `ODAI_BACKEND` env var, then the availability probe order -
-`chrome-builtin`, `llama-server`, `apple-fm`, `windows-phi-silica`,
-`simulator`.
+`chrome-builtin`, `llama-server`, `apple-fm`, `windows-phi-silica`.
+Select `simulator` explicitly for testing.
+
+### Command suggestions
+
+Node consumers can classify a request against their own action catalog:
+
+```js
+import { classifyIntent, withOdaiModel } from '@socketsecurity/odai/node'
+
+const result = await withOdaiModel(
+  model =>
+    classifyIntent(model, {
+      query: 'Inspect this project for dependency risks.',
+      candidates: [
+        { id: 'inspect-project', description: 'Inspect project dependencies.' },
+        {
+          id: 'repair-project',
+          description: 'Apply dependency security repairs.',
+        },
+      ],
+    }),
+  { timeoutMs: 5000 },
+)
+```
+
+A successful result contains an allowed `actionId` or `null` for abstention.
+The caller owns argument validation and execution.
+Invalid output returns a failed task result.
+Cancellation and backend errors reject the operation.
+
+`withOdaiModel` requires an already running, cancellable loopback `llama-server` backend.
+It performs no model installation or backend preparation.
+Its shared deadline covers discovery, prompts, and session cleanup.
+The callback's second argument supplies `abortSignal` for additional cancellable work.
+`probeBackendAvailability` checks the same eligible backend without creating a model session.
 
 ### CLI
 

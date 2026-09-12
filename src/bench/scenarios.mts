@@ -6,6 +6,7 @@
  *   rubric, the inline scenarios, and the aggregate `allScenarios`.
  */
 
+import { intentScenarios } from './intent/scenarios.mts'
 import { lockstepScenarios } from './lockstep/scenarios.mts'
 import { Type } from '@sinclair/typebox'
 import type { Static } from '@sinclair/typebox'
@@ -34,7 +35,6 @@ import {
 } from './decision-scenarios.mts'
 import {
   ALTERNATIVE_PACKAGE_PROMPT,
-  ASK_QUERIES,
   CODE_PATCH_INPUT,
   CODE_REPAIR_INPUT,
   CODE_REPAIR_LINT_ERRORS,
@@ -59,6 +59,15 @@ export {
 } from './decision-scenarios.mts'
 
 export interface ScenarioResult {
+  intent?:
+    | {
+        caseId: string
+        split: 'development' | 'held-out'
+        expectedActionId: string | null
+        actionId: string | null | undefined
+        validOutput: boolean
+      }
+    | undefined
   assertion?: string | undefined
   /**
    * Wall-clock milliseconds the scenario's prompt round-trip took. Filled in
@@ -118,23 +127,6 @@ const AlertSummarySchemaObject = Type.Object({
 
 const AlertSummarySchema = schemaLike(AlertSummarySchemaObject)
 
-// The command field is grounded to the real intent set so a constrained-decoding
-// backend cannot drift off the CLI's command vocabulary.
-const AskIntentSchemaObject = Type.Object({
-  command: Type.Array(
-    Type.Union([
-      Type.Literal('fix'),
-      Type.Literal('scan'),
-      Type.Literal('optimize'),
-      Type.Literal('info'),
-    ]),
-  ),
-  confidence: Type.Number(),
-  intent: Type.String(),
-})
-
-const AskIntentSchema = schemaLike(AskIntentSchemaObject)
-
 const CodeRepairSchema = schemaLike(
   Type.Object({
     explanation: Type.String(),
@@ -188,43 +180,6 @@ export const alertSummaryScenario: Scenario = {
         assertion: hasCritical
           ? 'summary mentions critical findings'
           : 'expected summary to mention critical findings',
-      }
-    })
-  },
-}
-
-export const askIntentScenario: Scenario = {
-  name: 'ask-intent-classification',
-  async run(model) {
-    const query = ASK_QUERIES[1]!
-    const prompt = [
-      'Classify the user intent for a supply-chain security CLI.',
-      'Respond with compact JSON: { "intent": string, "command": string[], "confidence": number }.',
-      `Query: "${query}"`,
-    ].join('\n')
-    const samples = []
-    for (let i = 0; i < DECISION_SAMPLES; i += 1) {
-      samples.push(
-        // Self-consistency samples are intentionally sequential.
-        // oxlint-disable-next-line no-await-in-loop -- sequential samples
-        await model.promptStructured(prompt, {
-          prefill: '{"intent":"',
-          responseConstraint: AskIntentSchemaObject,
-          schema: AskIntentSchema,
-          systemPrompt: 'You are a command-router. Output valid JSON only.',
-        }),
-      )
-    }
-    const result = majorityResult(samples, value => value.command[0] ?? '')
-    return scoreTaskResult(result, value => {
-      const command = value.command
-      const isFix = command[0] === 'fix'
-      return {
-        __proto__: null,
-        ok: isFix,
-        assertion: isFix
-          ? `routed "${query}" to fix command`
-          : `expected "${query}" to route to fix command, got ${JSON.stringify(command)}`,
       }
     })
   },
@@ -415,7 +370,7 @@ export const sbomAnomalyScenario: Scenario = {
 export const allScenarios: Scenario[] = [
   ...lockstepScenarios,
   alertSummaryScenario,
-  askIntentScenario,
+  ...intentScenarios,
   codePatchScenario,
   codeRepairScenario,
   dedupeCandidateScenario,

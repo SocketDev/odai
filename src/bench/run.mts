@@ -16,6 +16,19 @@ import type { OdaiModel } from '../model.mts'
 
 export const logger = getDefaultLogger()
 
+export function benchmarkEvidence(
+  args: Pick<RunArgs, 'mock' | 'backend' | 'routed'>,
+): 'real' | 'simulator' | 'unverified' {
+  if (
+    args.mock ||
+    args.backend === 'simulator' ||
+    (!args.backend && !args.routed)
+  ) {
+    return 'simulator'
+  }
+  return args.routed ? 'unverified' : 'real'
+}
+
 export interface RunArgs {
   __proto__?: null | undefined
   backend: BackendName | undefined
@@ -131,6 +144,7 @@ export async function main(
         )
     const report = await runEval({
       model,
+      evidence: benchmarkEvidence(args),
       identifyModel: true,
       scenarios: scenarios.map(scenario => ({
         __proto__: null,
