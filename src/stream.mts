@@ -81,7 +81,8 @@ export async function streamPrompt(
   const { abortSignal, onEarlyField, earlyFieldPatterns, requestId } = options
 
   if (typeof session.promptStreaming !== 'function') {
-    const raw = await session.prompt(messages)
+    abortSignal?.throwIfAborted()
+    const raw = await session.prompt(messages, { abortSignal })
     return { aborted: false, raw, requestId, stale: false }
   }
 
@@ -89,7 +90,7 @@ export async function streamPrompt(
     return { aborted: true, raw: '', requestId, stale: false }
   }
 
-  const iterable = session.promptStreaming(messages)
+  const iterable = session.promptStreaming(messages, { abortSignal })
   const chunks = await readChunks(iterable)
   const raw = mergeChunks(chunks)
 

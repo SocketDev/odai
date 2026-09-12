@@ -1,4 +1,7 @@
-import { getLanguageModel, probeAvailability } from '../availability.mts'
+import {
+  getLanguageModel,
+  probeBuiltinAvailability,
+} from '../builtin-availability.mts'
 import { wrapFactoryWithConstraintFallback } from './chrome-constraint.mts'
 import type {
   ChromeBuiltinBackend,
@@ -11,7 +14,7 @@ export function createChromeBuiltinBackend(
   void options
   return {
     async availability() {
-      const result = await probeAvailability()
+      const result = await probeBuiltinAvailability()
       return result.available
         ? { available: true }
         : {

@@ -27,7 +27,9 @@ export interface BackendAvailability {
 }
 
 export interface OdaiBackend {
-  availability(): Promise<BackendAvailability>
+  availability(
+    options?: { abortSignal?: AbortSignal | undefined } | undefined,
+  ): Promise<BackendAvailability>
   /**
    * The engine's session factory. `createOdaiModel` runs the session-option
    * fallback ladder against it, so a backend only supplies the factory and

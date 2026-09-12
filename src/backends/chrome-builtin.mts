@@ -13,7 +13,10 @@
  *   `chrome-profile.mts`, the page proxy in `chrome-page.mts`.
  */
 
-import { getLanguageModel, probeAvailability } from '../availability.mts'
+import {
+  getLanguageModel,
+  probeBuiltinAvailability,
+} from '../builtin-availability.mts'
 import {
   createPageBoundFactory,
   STREAM_BINDING_NAME,
@@ -143,7 +146,7 @@ export function createChromeBuiltinBackend(
   let bridgePromise: Promise<Bridge> | undefined
   return {
     async availability(): Promise<BackendAvailability> {
-      const probe = await probeAvailability()
+      const probe = await probeBuiltinAvailability()
       if (probe.available) {
         return { available: true }
       }

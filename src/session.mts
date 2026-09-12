@@ -5,7 +5,9 @@
  *   per request.
  */
 
-import { getLanguageModel } from './availability.mts'
+import { awaitCancellable } from './cancellation.mts'
+
+import { getLanguageModel } from './builtin-availability.mts'
 import { parseControlTokens } from './control-tokens.mts'
 import type {
   LanguageModelLike,
@@ -49,6 +51,17 @@ export async function createLanguageModel(
   }
 }
 
+export function createSessionAttempt(
+  model: LanguageModelLike,
+  options: object,
+  abortSignal: AbortSignal | undefined,
+): Promise<SessionLike> {
+  abortSignal?.throwIfAborted()
+  return awaitCancellable(model.create(options), abortSignal, session =>
+    session.destroy?.(),
+  )
+}
+
 export async function createWithFallback(
   model: LanguageModelLike,
   options: CreateSessionOptions,
@@ -56,7 +69,7 @@ export async function createWithFallback(
   const opts = { __proto__: null, ...options } as typeof options
   const full = buildCreateOptions(options)
   try {
-    return await model.create(full)
+    return await createSessionAttempt(model, full, opts.abortSignal)
   } catch (error) {
     if (!isUnsupportedError(error)) {
       throw error
@@ -67,7 +80,7 @@ export async function createWithFallback(
     initialPrompts: resolveInitialPrompts(options),
   }
   try {
-    return await model.create(reduced)
+    return await createSessionAttempt(model, reduced, opts.abortSignal)
   } catch (error) {
     if (!isUnsupportedError(error)) {
       throw error
@@ -77,10 +90,11 @@ export async function createWithFallback(
   const systemOnly: CreateSessionOptions = {
     systemPrompt: opts.systemPrompt,
   }
-  return await model.create(systemOnly)
+  return await createSessionAttempt(model, systemOnly, opts.abortSignal)
 }
 
 export interface CreateSessionOptions {
+  abortSignal?: AbortSignal | undefined
   /**
    * A Chrome control-token template (`$SYSTEM` / `$USER` / `$MODEL` / `$END`).
    * Parsed into `initialPrompts` when `initialPrompts` is not given explicitly.

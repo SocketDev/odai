@@ -35,6 +35,42 @@ assert.equal(bench.allScenarios.length > 0, true)
 assert.equal(typeof browser.createBuiltinModel, 'function')
 assert.equal(typeof node.runCli, 'function')
 
+const candidates = [
+  { id: 'inspect', description: 'Inspect the project dependencies.' },
+  { id: 'repair', description: 'Repair dependency issues.' },
+]
+for (const classify of [browser.classifyIntent, node.classifyIntent]) {
+  const classified = await classify(
+    node.createMockModel('{"actionId":"inspect"}'),
+    { query: 'Inspect this project.', candidates },
+    { retries: 0 },
+  )
+  assert.equal(classified.ok, true)
+  assert.equal(classified.data?.actionId, 'inspect')
+
+  const abstained = await classify(
+    node.createMockModel('{"actionId":null}'),
+    { query: 'Describe the weather.', candidates },
+    { retries: 0 },
+  )
+  assert.equal(abstained.ok, true)
+  assert.equal(abstained.data?.actionId, null)
+
+  for (const response of [
+    '{"actionId":"unknown"}',
+    '{"actionId":"inspect","command":"unexpected"}',
+    '{"actionId":42}',
+  ]) {
+    const invalid = await classify(
+      node.createMockModel(response),
+      { query: 'Inspect this project.', candidates },
+      { retries: 0 },
+    )
+    assert.equal(invalid.ok, false)
+    assert.equal(invalid.data, undefined)
+  }
+}
+
 const lockstep: node.LockstepInput = node.parseLockstepInput({
   version: 1,
   row: {

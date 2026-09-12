@@ -99,6 +99,13 @@ export function assertLoopbackUrl(url: string): string {
   }
   // RFC 6761: `localhost` and any `*.localhost` name always resolve to the
   // loopback interface, so a portless `<name>.localhost` URL is loopback-safe.
+  if (
+    !['http:', 'https:'].includes(parsed.protocol) ||
+    parsed.username !== '' ||
+    parsed.password !== ''
+  ) {
+    throw new Error('Local inference requires HTTP(S) without URL credentials.')
+  }
   const { hostname } = parsed
   if (!LOOPBACK_HOSTNAMES.has(hostname) && !hostname.endsWith('.localhost')) {
     throw new Error(
@@ -161,7 +168,13 @@ export function createLlamaServerBackend(
   }
   const healthTimeoutMs = opts.healthTimeoutMs ?? DEFAULT_HEALTH_TIMEOUT_MS
   return {
-    async availability(): Promise<BackendAvailability> {
+    async availability(
+      probeOptions?:
+        | {
+            abortSignal?: AbortSignal | undefined
+          }
+        | undefined,
+    ): Promise<BackendAvailability> {
       const endpoint = `${url}/health`
       const remedy =
         `Start llama-server, or point ${ODAI_LLAMA_URL_ENV_VAR} at an ` +
@@ -172,7 +185,13 @@ export function createLlamaServerBackend(
         // Node-only; fetch is the one isomorphic client here.
         // oxlint-disable-next-line socket/no-fetch-prefer-http-request -- isomorphic client
         response = await fetch(endpoint, {
-          signal: AbortSignal.timeout(healthTimeoutMs),
+          redirect: 'error',
+          signal: AbortSignal.any([
+            AbortSignal.timeout(healthTimeoutMs),
+            ...(probeOptions?.abortSignal === undefined
+              ? []
+              : [probeOptions.abortSignal]),
+          ]),
         })
       } catch (error) {
         return {
@@ -210,11 +229,26 @@ export function createLlamaSession(
   config: LlamaConfig,
   createOptions: CreateOptions,
 ): SessionLike {
+  const controller = new AbortController()
   return {
-    async prompt(messages: Message[]): Promise<string> {
+    destroy(): void {
+      controller.abort(new DOMException('Session closed', 'AbortError'))
+    },
+    async prompt(
+      messages: Message[],
+      promptOptions?: { abortSignal?: AbortSignal | undefined } | undefined,
+    ): Promise<string> {
       const response = await postChat(
         config,
         buildRequestBody(config, createOptions, messages, { stream: false }),
+        {
+          abortSignal: AbortSignal.any([
+            controller.signal,
+            ...(promptOptions?.abortSignal === undefined
+              ? []
+              : [promptOptions.abortSignal]),
+          ]),
+        },
       )
       const payload = (await response.json()) as ChatCompletionResponse
       const content = payload.choices?.[0]?.message?.content
@@ -227,8 +261,17 @@ export function createLlamaSession(
       }
       return content
     },
-    promptStreaming(messages: Message[]): AsyncIterable<string> {
-      return streamChat(config, createOptions, messages)
+    promptStreaming(
+      messages: Message[],
+      options?: { abortSignal?: AbortSignal | undefined } | undefined,
+    ): AsyncIterable<string> {
+      const opts = { __proto__: null, ...options } as typeof options
+      return streamChat(config, createOptions, messages, {
+        abortSignal: AbortSignal.any([
+          controller.signal,
+          ...(opts?.abortSignal === undefined ? [] : [opts.abortSignal]),
+        ]),
+      })
     },
   }
 }
@@ -277,6 +320,7 @@ export function parseSseLine(line: string): SseEvent | undefined {
 export async function postChat(
   config: LlamaConfig,
   body: string,
+  options: { abortSignal?: AbortSignal | undefined } = {},
 ): Promise<Response> {
   const endpoint = `${config.url}/v1/chat/completions`
   let response: Response
@@ -289,9 +333,14 @@ export async function postChat(
       body,
       headers: { 'content-type': 'application/json' },
       method: 'POST',
-      signal: AbortSignal.timeout(config.requestTimeoutMs),
+      redirect: 'error',
+      signal: AbortSignal.any([
+        AbortSignal.timeout(config.requestTimeoutMs),
+        ...(options.abortSignal === undefined ? [] : [options.abortSignal]),
+      ]),
     })
   } catch (error) {
+    options.abortSignal?.throwIfAborted()
     throw new Error(
       `llama-server request to ${endpoint} failed: ` +
         `${describeRequestError(error, config.requestTimeoutMs)}. ` +
@@ -327,10 +376,12 @@ export async function* streamChat(
   config: LlamaConfig,
   createOptions: CreateOptions,
   messages: Message[],
+  options: { abortSignal?: AbortSignal | undefined } = {},
 ): AsyncGenerator<string> {
   const response = await postChat(
     config,
     buildRequestBody(config, createOptions, messages, { stream: true }),
+    options,
   )
   const body = response.body
   if (body === null) {

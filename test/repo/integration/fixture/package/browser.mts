@@ -1,5 +1,6 @@
 import {
   analyzeLockstep,
+  classifyIntent,
   parseLockstepInput,
   validateLockstepAnalysis,
   createAppleFmBackend,
@@ -14,6 +15,10 @@ export async function runBrowserSmoke(): Promise<boolean> {
   installLanguageModelSimulator({
     fallback: '{"summary":"browser ready","keyPoints":[]}',
     rules: [
+      {
+        when: text => text.includes('PACKED_BROWSER_INTENT'),
+        response: '{"actionId":"inspect"}',
+      },
       {
         when: text => text.includes('use a template literal'),
         response: JSON.stringify({
@@ -33,6 +38,19 @@ export async function runBrowserSmoke(): Promise<boolean> {
     try {
       const result = await summarizeText(model, 'A browser consumer example.')
       if (!result.ok || result.data?.summary !== 'browser ready') {
+        return false
+      }
+      const intent = await classifyIntent(
+        model,
+        {
+          query: 'PACKED_BROWSER_INTENT inspect this project',
+          candidates: [
+            { id: 'inspect', description: 'Inspect the project dependencies.' },
+          ],
+        },
+        { retries: 0 },
+      )
+      if (!intent.ok || intent.data?.actionId !== 'inspect') {
         return false
       }
       const input = parseLockstepInput({

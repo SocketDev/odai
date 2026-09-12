@@ -23,10 +23,16 @@ export interface SessionLike {
   destroy?(): void
   prompt(
     messages: Message[],
-    options?: { responseConstraint?: object | undefined } | undefined,
+    options?:
+      | {
+          abortSignal?: AbortSignal | undefined
+          responseConstraint?: object | undefined
+        }
+      | undefined,
   ): Promise<string>
   promptStreaming(
     messages: Message[],
+    options?: { abortSignal?: AbortSignal | undefined } | undefined,
   ): AsyncIterable<string> | ReadableStream<string>
 }
 

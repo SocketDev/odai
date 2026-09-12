@@ -5,6 +5,8 @@
  *   backend throws with its reason instead of falling through.
  */
 
+import { awaitCancellable } from '../cancellation.mts'
+
 import { joinOr } from '@socketsecurity/lib/arrays/join'
 
 import { createAppleFmBackend } from './apple-fm.mts'
@@ -24,19 +26,16 @@ export const backendNames: readonly BackendName[] = [
   'windows-phi-silica',
 ]
 
-/**
- * Real engines probe first; the simulator closes the order so selection in a
- * bare Node runtime lands on a working, clearly-canned model.
- */
 export const defaultProbeOrder: readonly BackendName[] = [
   'chrome-builtin',
   'llama-server',
   'apple-fm',
   'windows-phi-silica',
-  'simulator',
 ]
 
 export interface SelectBackendOptions {
+  abortSignal?: AbortSignal | undefined
+  interactive?: boolean | undefined
   /**
    * Explicit backend: a registry name or a caller-built `OdaiBackend`
    * instance. Wins over the env var and the probe.
@@ -110,6 +109,10 @@ export async function selectBackend(
   options: SelectBackendOptions = {},
 ): Promise<OdaiBackend> {
   const opts = { __proto__: null, ...options } as typeof options
+  opts.abortSignal?.throwIfAborted()
+  if (opts.interactive) {
+    return await selectInteractiveBackend(opts)
+  }
   if (typeof opts.backend === 'object') {
     return await requireAvailable(opts.backend, 'explicit backend instance')
   }
@@ -140,4 +143,29 @@ export async function selectBackend(
     `No odai backend is available. Probed in order — ${reasons.join(' | ')}. ` +
       'Select the simulator backend explicitly or bring an engine up.',
   )
+}
+
+export async function selectInteractiveBackend(
+  options: SelectBackendOptions,
+): Promise<OdaiBackend> {
+  const opts = { __proto__: null, ...options } as typeof options
+  const env = opts.env ?? (typeof process === 'undefined' ? {} : process.env)
+  const chosen = opts.backend ?? readEnvBackend(env) ?? 'llama-server'
+  if (chosen !== 'llama-server') {
+    throw new Error(
+      'Interactive inference requires the cancellable local llama-server backend.',
+    )
+  }
+  const backend = createLlamaServerBackend({ env })
+  const availability = await awaitCancellable(
+    backend.availability({ abortSignal: opts.abortSignal }),
+    opts.abortSignal,
+  )
+  opts.abortSignal?.throwIfAborted()
+  if (!availability.available) {
+    throw new Error(
+      'Local llama-server is unavailable. Start the local server explicitly.',
+    )
+  }
+  return backend
 }

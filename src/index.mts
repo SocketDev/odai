@@ -4,7 +4,7 @@
  *   from a content script or extension service worker.
  */
 
-import { probeAvailability } from './availability.mts'
+import { probeBackendAvailability } from './availability.mts'
 import { majorityResult } from './best-of-n.mts'
 import {
   createAppleFmBackend,
@@ -89,7 +89,7 @@ export {
   ODAI_LLAMA_MODEL_ENV_VAR,
   ODAI_LLAMA_URL_ENV_VAR,
   planWeeklyUpdate,
-  probeAvailability,
+  probeBackendAvailability,
   reasonAboutLockfile,
   selectBackend,
   suggestCommitMessage,
@@ -97,7 +97,7 @@ export {
   triageAlerts,
 }
 
-export type { AvailabilityResult } from './availability.mts'
+export type { BackendProbeResult } from './availability.mts'
 export type {
   BatchEntry,
   BatchResultLine,
@@ -167,3 +167,17 @@ export {
   LockstepAnalysisSchema,
 } from './lockstep/schema.mts'
 export type { LockstepInput, LockstepAnalysis } from './lockstep/schema.mts'
+
+export { classifyIntent } from './tasks/classify-intent.mts'
+export type { ClassifyIntentOptions } from './tasks/classify-intent.mts'
+export type {
+  IntentCandidate,
+  IntentInput,
+  IntentResult,
+} from './prompts/classify-intent.mts'
+
+export { withOdaiModel } from './lifecycle.mts'
+export type {
+  OdaiOperationContext,
+  OdaiOperationOptions,
+} from './lifecycle.mts'

@@ -64,3 +64,29 @@ describe('fetchChangelog', () => {
     expect(result).toEqual({ source: 'none', text: '' })
   })
 })
+
+afterEach(() => {
+  httpRequestMock.mockReset()
+})
+
+it('propagates operation cancellation to the HTTP request', async () => {
+  const controller = new AbortController()
+  httpRequestMock.mockImplementation(
+    async (_url: string, options: { signal?: AbortSignal | undefined }) => {
+      expect(options.signal).toBe(controller.signal)
+      controller.abort()
+      throw controller.signal.reason
+    },
+  )
+  await expect(
+    fetchChangelog('example-package', { abortSignal: controller.signal }),
+  ).rejects.toMatchObject({ name: 'AbortError' })
+  httpRequestMock.mockReset()
+})
+
+it('does not request a changelog after cancellation', async () => {
+  await expect(
+    fetchChangelog('example-package', { abortSignal: AbortSignal.abort() }),
+  ).rejects.toMatchObject({ name: 'AbortError' })
+  expect(httpRequestMock).not.toHaveBeenCalled()
+})

@@ -24,6 +24,7 @@ export type ChangelogResult = {
 }
 
 export type FetchChangelogOptions = {
+  abortSignal?: AbortSignal | undefined
   /**
    * Project root holding node_modules, which enables the local source.
    */
@@ -47,6 +48,7 @@ export async function fetchChangelog(
   options?: FetchChangelogOptions | undefined,
 ): Promise<ChangelogResult> {
   const opts = { __proto__: null, ...options } as FetchChangelogOptions
+  opts.abortSignal?.throwIfAborted()
 
   if (typeof opts.root === 'string' && opts.root.length > 0) {
     const local = readLocalChangelog(opts.root, name)
@@ -59,8 +61,10 @@ export async function fetchChangelog(
     const url = `https://registry.npmjs.org/${encodeURIComponent(name).replace('%40', '@').replace('%2F', '/')}`
     const response = await httpRequest(url, {
       headers: { accept: 'application/json' },
+      signal: opts.abortSignal,
       timeout: 10_000,
     })
+    opts.abortSignal?.throwIfAborted()
     if (response.status !== 200) {
       return { source: 'none', text: '' }
     }
@@ -77,6 +81,7 @@ export async function fetchChangelog(
       ? { source: 'registry-readme', text }
       : { source: 'none', text: '' }
   } catch {
+    opts.abortSignal?.throwIfAborted()
     return { source: 'none', text: '' }
   }
 }
