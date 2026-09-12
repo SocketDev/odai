@@ -11,7 +11,7 @@ import { safeDelete } from '@socketsecurity/lib-stable/fs/safe'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import { spawn } from '@socketsecurity/lib-stable/process/spawn/child'
 
-import { isMainModule } from '../fleet/_shared/is-main-module.mts'
+import { isMainModule } from '../fleet/process/is-main-module.mts'
 
 const logger = getDefaultLogger()
 const rootPath = path.resolve(
