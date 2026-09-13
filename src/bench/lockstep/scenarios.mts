@@ -1,3 +1,4 @@
+import { verifyLockstepEvaluation } from './verify.mts'
 import { analyzeLockstep } from '../../tasks/lockstep.mts'
 import {
   createLockstepEvaluation,
@@ -30,7 +31,7 @@ export function createLockstepScenario(
       const ok =
         result.ok &&
         result.data?.verdict === 'port' &&
-        samePatches(result.data.patches, example.output.patches)
+        verifyLockstepEvaluation(example.input, result.data)
       return {
         __proto__: null,
         name: `lockstep-${materialization}-contract`,
@@ -39,29 +40,27 @@ export function createLockstepScenario(
         raw: result.raw,
         assertion: ok
           ? 'Citations, patch scope, and the expected fixture changes passed validation.'
-          : (result.error ??
-            result.data?.questions.join(', ') ??
-            'The generated changes differ from the expected fixture changes.'),
+          : lockstepFailureReason(result.error, result.data?.questions),
       }
     },
   } as Scenario
+}
+
+export function lockstepFailureReason(
+  error: string | undefined,
+  questions: string[] | undefined,
+): string {
+  return (
+    error?.trim() ||
+    questions
+      ?.map(question => question.trim())
+      .filter(Boolean)
+      .join(', ') ||
+    'The fixture requires valid code that exports 8 and an active regression test that asserts the imported value is 8.'
+  )
 }
 
 export const lockstepScenarios: Scenario[] = [
   createLockstepScenario('full'),
   createLockstepScenario('sparse'),
 ]
-
-export function samePatches(
-  actual: Array<{ path: string; patch: string }>,
-  expected: Array<{ path: string; patch: string }>,
-): boolean {
-  return (
-    actual.length === expected.length &&
-    actual.every(
-      (item, index) =>
-        item.path === expected[index]?.path &&
-        item.patch === expected[index]?.patch,
-    )
-  )
-}

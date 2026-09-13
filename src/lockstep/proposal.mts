@@ -10,19 +10,32 @@ import type {
 import { validateLockstepAnalysis, validFacts } from './validate.mts'
 
 export function buildChangedLines(before: string, after: string): string[] {
-  const beforeLines = before.split(/\r?\n/)
-  if (after.startsWith(`${before}\n`)) {
-    return [
-      ...beforeLines.map(line => ` ${line}`),
-      ...after
-        .slice(before.length + 1)
-        .split(/\r?\n/)
-        .map(line => `+${line}`),
-    ]
+  const oldLines = terminatedPatchLines(before)
+  const newLines = terminatedPatchLines(after)
+  let first = 0
+  while (first < oldLines.length && oldLines[first] === newLines[first]) {
+    first += 1
+  }
+  let trailing = 0
+  while (
+    trailing < oldLines.length - first &&
+    trailing < newLines.length - first &&
+    oldLines[oldLines.length - trailing - 1] ===
+      newLines[newLines.length - trailing - 1]
+  ) {
+    trailing += 1
   }
   return [
-    ...beforeLines.map(line => `-${line}`),
-    ...after.split(/\r?\n/).map(line => `+${line}`),
+    ...oldLines.slice(0, first).flatMap(line => prefixedPatchLine(line, ' ')),
+    ...oldLines
+      .slice(first, oldLines.length - trailing)
+      .flatMap(line => prefixedPatchLine(line, '-')),
+    ...newLines
+      .slice(first, newLines.length - trailing)
+      .flatMap(line => prefixedPatchLine(line, '+')),
+    ...oldLines
+      .slice(oldLines.length - trailing)
+      .flatMap(line => prefixedPatchLine(line, ' ')),
   ]
 }
 
@@ -36,19 +49,39 @@ export function changePatch(
       item.path === change.path &&
       item.side !== 'upstream',
   )
-  if (evidence === undefined || change.endLine < change.startLine) {
+  if (
+    evidence === undefined ||
+    change.endLine < change.startLine ||
+    evidence.text.includes('\r') ||
+    change.text.includes('\r')
+  ) {
     return undefined
   }
-  const lines = evidence.text.split(/\r?\n/)
+  const lines = proposalLines(evidence.text)
   const first = change.startLine - evidence.startLine
   const last = change.endLine - evidence.startLine
   if (first < 0 || last >= lines.length) {
     return undefined
   }
-  const before = lines.slice(first, last + 1).join('\n')
-  const after =
-    change.operation === 'append' ? `${before}\n${change.text}` : change.text
-  return evidencePatch(change.path, before, after, change.startLine)
+  const start = Math.max(0, first - 3)
+  const end = Math.min(lines.length, last + 4)
+  const ending = end < lines.length || evidence.text.endsWith('\n') ? '\n' : ''
+  const before = lines.slice(start, end).join('\n') + ending
+  const replacement = proposalLines(change.text)
+  const afterLines = [
+    ...lines.slice(start, change.operation === 'append' ? last + 1 : first),
+    ...replacement,
+    ...lines.slice(last + 1, end),
+  ]
+  const afterEnding =
+    ending ||
+    (last === lines.length - 1 && change.text.endsWith('\n') ? '\n' : '')
+  return evidencePatch(
+    change.path,
+    before,
+    afterLines.join('\n') + afterEnding,
+    evidence.startLine + start,
+  )
 }
 
 export function evidencePatch(
@@ -57,11 +90,16 @@ export function evidencePatch(
   after: string,
   start: number,
 ): string | undefined {
-  if (!before || before.includes('\r') || after.includes('\r')) {
+  if (
+    !before ||
+    before === after ||
+    before.includes('\r') ||
+    after.includes('\r')
+  ) {
     return undefined
   }
-  const oldCount = before.split(/\r?\n/).length
-  const newCount = after.split(/\r?\n/).length
+  const oldCount = proposalLines(before).length
+  const newCount = proposalLines(after).length
   const lines = buildChangedLines(before, after)
   return `--- a/${path}\n+++ b/${path}\n@@ -${rangeForPatch(start, oldCount)} +${rangeForPatch(start, newCount)} @@\n${lines.join('\n')}\n`
 }
@@ -93,6 +131,20 @@ export function parseLockstepProposal(
   return analysis
 }
 
+export function prefixedPatchLine(line: string, prefix: string): string[] {
+  return line.endsWith('\n')
+    ? [`${prefix}${line.slice(0, -1)}`]
+    : [`${prefix}${line}`, '\\ No newline at end of file']
+}
+
+export function proposalLines(text: string): string[] {
+  const lines = text.split(/\r?\n/)
+  if (text.endsWith('\n')) {
+    lines.pop()
+  }
+  return lines
+}
+
 export function proposalPatches(
   input: LockstepInput,
   proposal: LockstepProposal,
@@ -122,4 +174,11 @@ export function proposalPatches(
 
 export function rangeForPatch(start: number, count: number): string {
   return count === 1 ? String(start) : `${start},${count}`
+}
+
+export function terminatedPatchLines(text: string): string[] {
+  const lines = proposalLines(text)
+  return lines.map((line, index) =>
+    index < lines.length - 1 || text.endsWith('\n') ? `${line}\n` : line,
+  )
 }

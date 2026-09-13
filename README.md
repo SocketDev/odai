@@ -193,6 +193,9 @@ pnpm run bench --scenario=lockstep --backend=chrome-builtin --json
 The default simulator checks the evaluation harness. Use an explicit backend to measure a real model.
 The lockstep cases check response contracts. Upstream conformance requires the separate fleet verifier.
 
+See the [performance practices](docs/repo/perf/practices.md) for package measurements and retained-context experiments.
+The [performance journal](docs/repo/perf/journal.md) records measured results, rejected changes, and model limitations.
+
 ## Development
 
 <details>

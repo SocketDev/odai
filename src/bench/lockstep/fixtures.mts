@@ -1,3 +1,4 @@
+import { parseLockstepProposal } from '../../lockstep/proposal.mts'
 import { createLockstepExample } from '../../lockstep/examples.mts'
 import type { LockstepExample } from '../../lockstep/examples.mts'
 import type { LockstepProposal } from '../../lockstep/schema.mts'
@@ -27,13 +28,10 @@ export function createLockstepEvaluation(
     }
   }
   example.output.facts[0]!.description = 'The target returns a limit of 8.'
-  for (const patch of example.output.patches) {
-    patch.patch = patch.patch
-      .replaceAll('value = 1', 'value = 5')
-      .replaceAll('value = 2', 'value = 8')
-      .replaceAll('toBe(1)', 'toBe(5)')
-      .replaceAll('toBe(2)', 'toBe(8)')
-  }
+  example.output = parseLockstepProposal(
+    example.input,
+    createLockstepEvaluationProposal(example),
+  )
   return example
 }
 

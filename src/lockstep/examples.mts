@@ -1,3 +1,4 @@
+import { changePatch } from './proposal.mts'
 import type {
   LockstepAnalysis,
   LockstepInput,
@@ -49,7 +50,7 @@ export function createLockstepExample(
       : 'tools/server/protocol.cpp'
   const local = 'src/parser/value.mts'
   const test = 'test/parser/value.test.mts'
-  return {
+  const example: LockstepExample = {
     input: {
       version: 1,
       row: {
@@ -110,17 +111,16 @@ export function createLockstepExample(
           endLine: 1,
         },
       ],
-      patches: [
-        {
-          path: local,
-          patch: `--- a/${local}\n+++ b/${local}\n@@ -1 +1 @@\n-export const value = 1\n+export const value = 2\n`,
-        },
-        {
-          path: test,
-          patch: `--- a/${test}\n+++ b/${test}\n@@ -3 +3,2 @@\n test('returns the new value', () => {\n+  expect(value).toBe(2)\n`,
-        },
-      ],
+      patches: [],
       questions: [],
     },
   }
+  example.output.patches = buildLockstepProposalExample(example).changes.map(
+    change => ({
+      __proto__: null,
+      path: change.path,
+      patch: changePatch(example.input, change)!,
+    }),
+  )
+  return example
 }

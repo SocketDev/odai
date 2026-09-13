@@ -80,7 +80,9 @@ The model describes each edit with a local or test evidence identifier, an inclu
 This keeps diff headers and unchanged source text out of the model's output while preserving the public patch response used by the fleet verifier.
 This is prompt scaffolding. It does not train or modify model weights.
 The full and sparse evaluation cases use values that differ from the prompt examples.
-Their scores require valid citations and the exact expected source and regression-test patches.
+Their scores require valid citations, applicable changes, the expected value, and a regression assertion that uses the changed export.
+The evaluator parses the changed files. Equivalent formatting and import aliases can pass.
+Separate integration tests apply the generated patches with Git, including files without a final newline.
 They do not measure upstream conformance or prove that a model can implement an unfamiliar port.
 
 The default benchmark uses deterministic simulator responses to test the harness.
@@ -88,3 +90,5 @@ Use an explicit backend for a model quality measurement and report its actual id
 An unavailable model or a setup timeout provides no model quality score.
 Benchmark success requires every selected scenario to pass.
 The package check also exercises the published Node declarations and browser benchmark bundle.
+
+See [performance practices](../perf/practices.md) for repeated full and sparse measurements and the retained-context experiment.

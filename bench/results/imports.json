@@ -1,0 +1,232 @@
+{
+  "schemaVersion": 1,
+  "node": "v26.8.1",
+  "platform": "darwin",
+  "method": "Seven paired fresh processes per entry. Warm filesystem caches, measured require duration and memory deltas after GC. Runtime dependencies included. No model initialized.",
+  "samples": [
+    {
+      "pair": 0,
+      "entry": "index.js",
+      "mode": "before",
+      "elapsedMs": 95.177041,
+      "heapBytes": 3286272,
+      "rssBytes": 18989056
+    },
+    {
+      "pair": 0,
+      "entry": "index.js",
+      "mode": "after",
+      "elapsedMs": 48.589375000000004,
+      "heapBytes": 3304160,
+      "rssBytes": 19120128
+    },
+    {
+      "pair": 0,
+      "entry": "node.js",
+      "mode": "before",
+      "elapsedMs": 108.700625,
+      "heapBytes": 7391864,
+      "rssBytes": 32866304
+    },
+    {
+      "pair": 0,
+      "entry": "node.js",
+      "mode": "after",
+      "elapsedMs": 68.096333,
+      "heapBytes": 7483368,
+      "rssBytes": 30932992
+    },
+    {
+      "pair": 1,
+      "entry": "index.js",
+      "mode": "after",
+      "elapsedMs": 44.089084,
+      "heapBytes": 3304176,
+      "rssBytes": 19398656
+    },
+    {
+      "pair": 1,
+      "entry": "index.js",
+      "mode": "before",
+      "elapsedMs": 47.292500000000004,
+      "heapBytes": 3286304,
+      "rssBytes": 19103744
+    },
+    {
+      "pair": 1,
+      "entry": "node.js",
+      "mode": "after",
+      "elapsedMs": 65.35345799999999,
+      "heapBytes": 7481424,
+      "rssBytes": 31457280
+    },
+    {
+      "pair": 1,
+      "entry": "node.js",
+      "mode": "before",
+      "elapsedMs": 61.346667,
+      "heapBytes": 7394032,
+      "rssBytes": 31801344
+    },
+    {
+      "pair": 2,
+      "entry": "index.js",
+      "mode": "before",
+      "elapsedMs": 45.421041,
+      "heapBytes": 3286400,
+      "rssBytes": 18825216
+    },
+    {
+      "pair": 2,
+      "entry": "index.js",
+      "mode": "after",
+      "elapsedMs": 40.066,
+      "heapBytes": 3304144,
+      "rssBytes": 18956288
+    },
+    {
+      "pair": 2,
+      "entry": "node.js",
+      "mode": "before",
+      "elapsedMs": 59.95887499999999,
+      "heapBytes": 7394096,
+      "rssBytes": 31424512
+    },
+    {
+      "pair": 2,
+      "entry": "node.js",
+      "mode": "after",
+      "elapsedMs": 65.12075,
+      "heapBytes": 7484072,
+      "rssBytes": 32210944
+    },
+    {
+      "pair": 3,
+      "entry": "index.js",
+      "mode": "after",
+      "elapsedMs": 43.497917,
+      "heapBytes": 3304144,
+      "rssBytes": 19070976
+    },
+    {
+      "pair": 3,
+      "entry": "index.js",
+      "mode": "before",
+      "elapsedMs": 47.521666999999994,
+      "heapBytes": 3286352,
+      "rssBytes": 18644992
+    },
+    {
+      "pair": 3,
+      "entry": "node.js",
+      "mode": "after",
+      "elapsedMs": 67.456,
+      "heapBytes": 7487944,
+      "rssBytes": 31096832
+    },
+    {
+      "pair": 3,
+      "entry": "node.js",
+      "mode": "before",
+      "elapsedMs": 62.131458,
+      "heapBytes": 7398784,
+      "rssBytes": 31227904
+    },
+    {
+      "pair": 4,
+      "entry": "index.js",
+      "mode": "before",
+      "elapsedMs": 80.745375,
+      "heapBytes": 3276576,
+      "rssBytes": 18989056
+    },
+    {
+      "pair": 4,
+      "entry": "index.js",
+      "mode": "after",
+      "elapsedMs": 42.734792,
+      "heapBytes": 3301992,
+      "rssBytes": 19021824
+    },
+    {
+      "pair": 4,
+      "entry": "node.js",
+      "mode": "before",
+      "elapsedMs": 61.977625,
+      "heapBytes": 7394936,
+      "rssBytes": 31784960
+    },
+    {
+      "pair": 4,
+      "entry": "node.js",
+      "mode": "after",
+      "elapsedMs": 80.41850000000001,
+      "heapBytes": 7483368,
+      "rssBytes": 31473664
+    },
+    {
+      "pair": 5,
+      "entry": "index.js",
+      "mode": "after",
+      "elapsedMs": 496.343292,
+      "heapBytes": 3283600,
+      "rssBytes": 19316736
+    },
+    {
+      "pair": 5,
+      "entry": "index.js",
+      "mode": "before",
+      "elapsedMs": 290.344625,
+      "heapBytes": 3286448,
+      "rssBytes": 18202624
+    },
+    {
+      "pair": 5,
+      "entry": "node.js",
+      "mode": "after",
+      "elapsedMs": 162.601292,
+      "heapBytes": 7486480,
+      "rssBytes": 31506432
+    },
+    {
+      "pair": 5,
+      "entry": "node.js",
+      "mode": "before",
+      "elapsedMs": 97.66,
+      "heapBytes": 7394064,
+      "rssBytes": 31784960
+    },
+    {
+      "pair": 6,
+      "entry": "index.js",
+      "mode": "before",
+      "elapsedMs": 114.457125,
+      "heapBytes": 3298224,
+      "rssBytes": 20316160
+    },
+    {
+      "pair": 6,
+      "entry": "index.js",
+      "mode": "after",
+      "elapsedMs": 118.99054100000001,
+      "heapBytes": 3327528,
+      "rssBytes": 20922368
+    },
+    {
+      "pair": 6,
+      "entry": "node.js",
+      "mode": "before",
+      "elapsedMs": 120.48720800000001,
+      "heapBytes": 7389328,
+      "rssBytes": 33177600
+    },
+    {
+      "pair": 6,
+      "entry": "node.js",
+      "mode": "after",
+      "elapsedMs": 221.944291,
+      "heapBytes": 7489304,
+      "rssBytes": 32063488
+    }
+  ]
+}

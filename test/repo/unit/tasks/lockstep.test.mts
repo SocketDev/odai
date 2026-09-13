@@ -1,3 +1,9 @@
+import { applyOraclePatch } from '../../../../src/bench/patch.mts'
+import {
+  lockstepExportValue,
+  lockstepProgram,
+  lockstepRegression,
+} from '../../../../src/bench/lockstep/verify.mts'
 import { describe, expect, it, vi } from 'vitest'
 
 import {
@@ -17,14 +23,25 @@ describe('analyzeLockstep', () => {
       )
       const result = await analyzeLockstep(model, input)
       expect(result.ok).toBe(true)
-      expect(result.data).toEqual(output)
+      expect(result.data?.verdict).toBe('port')
+      for (const patch of result.data!.patches) {
+        const evidence = input.evidence.find(item => item.path === patch.path)!
+        const code = applyOraclePatch(evidence.text, patch.patch)
+        const body = code === undefined ? undefined : lockstepProgram(code)
+        expect(body).toBeDefined()
+        expect(
+          evidence.side === 'local'
+            ? lockstepExportValue(body!, 2)
+            : lockstepRegression(body!, 2),
+        ).toBe(true)
+      }
     },
   )
 
   it('preserves backend identity and raw evidence on success and failure', async () => {
     const { input, output } = createLockstepExample('full')
     const model = createMockModel(JSON.stringify(output))
-    vi.spyOn(model, 'promptStructured').mockResolvedValue({
+    const structured = vi.spyOn(model, 'promptStructured').mockResolvedValue({
       ok: true,
       data: output,
       raw: 'model response',
@@ -35,7 +52,7 @@ describe('analyzeLockstep', () => {
       model: 'example-backend',
       raw: 'model response',
     })
-    vi.mocked(model.promptStructured).mockResolvedValue({
+    structured.mockResolvedValue({
       ok: false,
       raw: 'bad reply',
       model: 'example-backend',
@@ -55,7 +72,7 @@ describe('analyzeLockstep', () => {
     const call = vi.spyOn(model, 'promptStructured')
     input.truncated = true
     expect((await analyzeLockstep(model, input)).data?.verdict).toBe('abstain')
-    input.version = 2 as 1
+    Reflect.set(input, 'version', 2)
     expect((await analyzeLockstep(model, input)).ok).toBe(false)
     expect(call).not.toHaveBeenCalled()
   })

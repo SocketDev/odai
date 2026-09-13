@@ -58,21 +58,14 @@ const browserConfig: RolldownOptions = {
 
 const nodeConfig: RolldownOptions = {
   ...baseConfig,
-  input: path.join(srcPath, 'node.mts'),
-  output: {
-    ...baseConfig.output,
-    entryFileNames: 'node.js',
+  input: {
+    cli: path.join(srcPath, 'cli.mts'),
+    node: path.join(srcPath, 'node.mts'),
   },
-  platform: 'node',
-}
-
-const cliConfig: RolldownOptions = {
-  ...baseConfig,
-  input: path.join(srcPath, 'cli.mts'),
   output: {
     ...baseConfig.output,
-    banner: '#!/usr/bin/env node',
-    entryFileNames: 'cli.js',
+    banner: chunk => (chunk.name === 'cli' ? '#!/usr/bin/env node' : ''),
+    entryFileNames: '[name].js',
   },
   platform: 'node',
 }
@@ -93,7 +86,6 @@ const benchConfig: RolldownOptions = {
 const configs: readonly RolldownOptions[] = [
   browserConfig,
   nodeConfig,
-  cliConfig,
   benchConfig,
 ]
 

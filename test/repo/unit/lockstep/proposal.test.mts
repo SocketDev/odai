@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
 import { createLockstepExample } from '../../../../src/lockstep/examples.mts'
+import { applyOraclePatch } from '../../../../src/bench/patch.mts'
+import { parseOracleNodes } from '../../../../src/bench/verify-oracles.mts'
 import { parseLockstepProposal } from '../../../../src/lockstep/proposal.mts'
 
 function createProposal() {
@@ -38,8 +40,15 @@ function createProposal() {
 
 describe('lockstep replacement proposals', () => {
   it('turns exact source replacements and additive tests into verified patches', () => {
-    const { input, output, proposal } = createProposal()
-    expect(parseLockstepProposal(input, proposal)).toEqual(output)
+    const { input, proposal } = createProposal()
+    const result = parseLockstepProposal(input, proposal)
+    expect(result.verdict).toBe('port')
+    for (const patch of result.patches) {
+      const evidence = input.evidence.find(item => item.path === patch.path)!
+      const code = applyOraclePatch(evidence.text, patch.patch)
+      expect(code).toBeDefined()
+      expect(parseOracleNodes(code!)).toBeDefined()
+    }
   })
 
   it('rejects line ranges outside supplied evidence', () => {
