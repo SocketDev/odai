@@ -7,7 +7,8 @@
  *   `uv run --with <pkg>==<exact>`: exact pins, nothing installed globally.
  */
 
-import { readFileSync } from 'node:fs'
+import { mkdirSync, readFileSync } from 'node:fs'
+import path from 'node:path'
 
 import { spawn } from '@socketsecurity/lib/process/spawn/child'
 
@@ -15,6 +16,7 @@ import { startShimServer } from '../../../src/shim/server.mts'
 import type { BackendName } from '../../../src/backends/types.mts'
 import type { StagedSuite } from './harness.mts'
 import type { TestCase } from './types.mts'
+import { isolatedHomeEnv as withIsolatedEnv } from '../../fleet/_shared/lib/env.mts'
 
 /**
  * The python packages the upstream suite imports, pinned exactly. `wget` and
@@ -157,10 +159,13 @@ export async function runSuite(options: RunOptions): Promise<RunResult> {
   )
   let pytestExitCode = 0
   try {
+    const isolatedHome = path.join(staged.scratchDir, '.home')
+    mkdirSync(isolatedHome, { recursive: true })
     const result = await spawn('uv', args, {
       cwd: staged.scratchDir,
       env: {
         ...loopbackDirectEnv(process.env),
+        ...withIsolatedEnv(isolatedHome),
         DEBUG_EXTERNAL: '1',
         LLAMA_CACHE: staged.scratchDir,
         PORT: String(handle.port),

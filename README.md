@@ -31,6 +31,27 @@ without scattering DOM-specific checks across consumers.
 
 ```sh
 pnpm install @socketsecurity/odai
+ODAI_CHROME_MODEL=gemma4 pnpm exec odai setup
+```
+
+`odai setup` discovers Google Chrome, prepares a dedicated persistent profile,
+downloads the selected on-device model when needed, verifies the responding
+model, closes Chrome, and prints a JSON receipt. Run it once after installation
+and again when the receipt check reports that the model is unavailable.
+
+Applications that manage their own setup can use the Node API. The cleanup
+callback receives the measured storage deficit and may remove only data the
+application owns. Odai measures free space again before it starts Chrome.
+
+```js
+import { setupChromeBuiltin } from '@socketsecurity/odai/node'
+
+await setupChromeBuiltin({
+  model: 'gemma4',
+  async reclaimStorage(pressure) {
+    await removeApplicationCaches(pressure.minimumBytes)
+  },
+})
 ```
 
 ## Usage
@@ -198,6 +219,7 @@ The lockstep cases check response contracts. Upstream conformance requires the s
 
 See the [performance practices](docs/repo/perf/practices.md) for package measurements and retained-context experiments.
 The [performance journal](docs/repo/perf/journal.md) records measured results, rejected changes, and model limitations.
+The [automation practices](docs/repo/automation/practices.md) define deterministic setup, validation, and model fallback boundaries.
 
 ## Development
 

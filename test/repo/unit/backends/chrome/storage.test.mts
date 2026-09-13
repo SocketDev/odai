@@ -46,6 +46,33 @@ it('requires provisioning capacity when a model download is necessary', async ()
   ).resolves.toBeUndefined()
 })
 
+it('lets the host reclaim storage and measures the same filesystem again', async () => {
+  disk.statfs
+    .mockResolvedValueOnce({
+      bavail: CHROME_CACHED_MIN_FREE_BYTES,
+      bsize: 1,
+    })
+    .mockResolvedValueOnce({
+      bavail: CHROME_DOWNLOAD_MIN_FREE_BYTES,
+      bsize: 1,
+    })
+  const reclaimStorage = vi.fn().mockResolvedValue(undefined)
+  await expect(
+    assertChromeStorage(
+      '/fixture/profile',
+      { kind: 'download' },
+      reclaimStorage,
+    ),
+  ).resolves.toBeUndefined()
+  expect(reclaimStorage).toHaveBeenCalledWith({
+    availableBytes: CHROME_CACHED_MIN_FREE_BYTES,
+    minimumBytes: CHROME_DOWNLOAD_MIN_FREE_BYTES,
+    profile: '/fixture/profile',
+    source: { kind: 'download' },
+  })
+  expect(disk.statfs).toHaveBeenCalledTimes(2)
+})
+
 it.each([0, Number.NaN, Number.POSITIVE_INFINITY])(
   'rejects unusable free-space measurements: %s',
   async bavail => {

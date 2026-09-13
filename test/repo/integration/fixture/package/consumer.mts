@@ -34,6 +34,7 @@ assert.equal(report.score, 1)
 assert.equal(bench.allScenarios.length > 0, true)
 assert.equal(typeof browser.createBuiltinModel, 'function')
 assert.equal(typeof node.runCli, 'function')
+assert.equal(typeof node.setupChromeBuiltin, 'function')
 
 for (const create of [browser.createConversation, node.createConversation]) {
   const factory = new node.LanguageModelSimulator({

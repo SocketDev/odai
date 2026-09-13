@@ -38,6 +38,8 @@ import {
 } from './runtime.mts'
 import type { LineWriter } from './runtime.mts'
 import { runServeCommand } from './serve.mts'
+import { setupChromeBuiltin } from '../backends/chrome/setup.mts'
+import type { ChromeSetupReceipt } from '../backends/chrome/setup.mts'
 export {
   CliTimeoutError,
   closeBackend,
@@ -108,6 +110,14 @@ export interface RunCliOptions {
    * process.
    */
   stopServing?: Promise<void> | undefined
+  /**
+   * Chrome setup override for tests and hosts that wrap provisioning.
+   */
+  setupChrome?:
+    | ((options: {
+        env: Record<string, string | undefined>
+      }) => Promise<ChromeSetupReceipt>)
+    | undefined
 }
 
 export function promptTimeoutMs(
@@ -261,6 +271,20 @@ export async function runCli(
   }
   if (command === 'backends') {
     return await runBackendsCommand(opts.probeBackends, stdout)
+  }
+  if (command === 'setup') {
+    if (args.backend !== undefined && args.backend !== 'chrome-builtin') {
+      stderr('odai setup: --backend must be chrome-builtin.')
+      return EXIT_USAGE
+    }
+    try {
+      const receipt = await (opts.setupChrome ?? setupChromeBuiltin)({ env })
+      stdout(JSON.stringify(receipt))
+      return EXIT_OK
+    } catch (error) {
+      stderr(`odai setup: ${errorMessage(error)}`)
+      return EXIT_TASK_FAILURE
+    }
   }
   const context: CliContext = {
     args,

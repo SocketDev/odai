@@ -9,7 +9,7 @@
  *   Run: `pnpm run setup:e2e` / `pnpm run setup:e2e --check`.
  */
 
-import { existsSync } from 'node:fs'
+import { existsSync, mkdirSync } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import process from 'node:process'
@@ -30,8 +30,19 @@ import { isMainModule } from '../../scripts/fleet/process/is-main-module.mts'
 import { runMain } from '../../scripts/fleet/process/run-main.mts'
 import { REPO_ROOT } from '../../scripts/fleet/paths.mts'
 import type { ScriptMeta } from '../../scripts/fleet/process/run-main.mts'
+import { isolatedHomeEnv } from '../fleet/_shared/lib/env.mts'
 
 const logger = getDefaultLogger()
+
+const ISOLATED_TOOL_HOME = path.join(
+  os.tmpdir(),
+  `odai-setup-e2e-${process.getuid?.() ?? 'user'}`,
+)
+
+function withIsolatedEnv(): NodeJS.ProcessEnv {
+  mkdirSync(ISOLATED_TOOL_HOME, { recursive: true })
+  return { ...process.env, ...isolatedHomeEnv(ISOLATED_TOOL_HOME) }
+}
 
 /**
  * The prompt that makes Chrome activate the model. One short turn is enough:
@@ -274,7 +285,8 @@ export async function conformanceLane(
 
 export async function hasUv(): Promise<boolean> {
   try {
-    await spawn('uv', ['--version'], { stdio: 'ignore' })
+    const env = withIsolatedEnv()
+    await spawn('uv', ['--version'], { env, stdio: 'ignore' })
     return true
   } catch {
     return false
@@ -287,12 +299,13 @@ export async function hasUv(): Promise<boolean> {
  */
 export async function warmPythonEnv(): Promise<void> {
   logger.info('warming the pinned python packages…')
+  const env = withIsolatedEnv()
   const args = ['run', '--python', PYTHON_VERSION]
   for (let i = 0, { length } = PYTHON_PINS; i < length; i += 1) {
     args.push('--with', PYTHON_PINS[i]!)
   }
   args.push('python', '-c', 'import pytest, requests, openai, wget, aiohttp')
-  await spawn('uv', args, { cwd: REPO_ROOT, stdio: 'inherit' })
+  await spawn('uv', args, { cwd: REPO_ROOT, env, stdio: 'inherit' })
 }
 
 export async function runLane(

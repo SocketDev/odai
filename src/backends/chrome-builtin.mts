@@ -24,6 +24,7 @@ import {
 } from './chrome-page.mts'
 import { modelUnsupportedReason } from './chrome-models.mts'
 import { assertChromeStorage } from './chrome/storage.mts'
+import type { ReclaimChromeStorage } from './chrome/storage.mts'
 import {
   chromeMissingReason,
   ensureBridgeProfile,
@@ -117,6 +118,12 @@ export interface ChromeBuiltinOptions {
    * Defaults to 2 minutes, or 30 minutes when downloads are allowed.
    */
   readyTimeoutMs?: number | undefined
+  /**
+   * Optional application-owned cleanup called when the selected profile's
+   * filesystem is below Chrome's model floor. Odai measures again after it
+   * returns and launches Chrome only when the floor is met.
+   */
+  reclaimStorage?: ReclaimChromeStorage | undefined
   /**
    * The system Chrome user-data dir to clone the downloaded model from.
    * Defaults to the per-OS Google Chrome location. Only ever read.
@@ -260,7 +267,7 @@ export async function startBridge(
     throw new Error(reason)
   }
   const bridgePagePath = await ensureBridgeProfile(config, source)
-  await assertChromeStorage(config.userDataDir, source)
+  await assertChromeStorage(config.userDataDir, source, opts.reclaimStorage)
   const context = await launcher.launchPersistentContext(config.userDataDir, {
     args: LAUNCH_ARGS,
     executablePath: config.chromePath,

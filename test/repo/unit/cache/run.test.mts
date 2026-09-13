@@ -8,6 +8,7 @@ import {
 
 const mocks = vi.hoisted(() => ({
   exportCache: vi.fn(),
+  ensureSpace: vi.fn(),
   initialize: vi.fn(),
   probe: vi.fn(),
   prepareImage: vi.fn(),
@@ -15,6 +16,9 @@ const mocks = vi.hoisted(() => ({
   verify: vi.fn(),
 }))
 
+vi.mock(import('../../../../scripts/repo/cache/space.mts'), () => ({
+  ensureGemmaProvisionSpace: mocks.ensureSpace,
+}))
 vi.mock(
   import('../../../../scripts/repo/cache/image.mts'),
   async importOriginal => ({
@@ -25,7 +29,10 @@ vi.mock(
 
 vi.mock(
   import('@socketsecurity/lib-stable/process/spawn/child'),
-  async importOriginal => ({ ...(await importOriginal()), spawn: mocks.spawn }),
+  async importOriginal => ({
+    ...(await importOriginal()),
+    spawn: mocks.spawn,
+  }),
 )
 vi.mock(
   import('../../../../scripts/repo/cache/util.mts'),
@@ -47,6 +54,11 @@ vi.mock(
 beforeEach(() => {
   vi.resetAllMocks()
   mocks.initialize.mockResolvedValue(undefined)
+  mocks.ensureSpace.mockResolvedValue({
+    availableAfterBytes: 30 * 1024 ** 3,
+    availableBeforeBytes: 30 * 1024 ** 3,
+    swept: false,
+  })
   mocks.verify.mockResolvedValue({ files: [] })
   mocks.exportCache.mockResolvedValue({ files: [] })
   mocks.probe.mockResolvedValue({ model: 'gemma4' })
@@ -196,6 +208,7 @@ test('provisions an owned profile and exports through the minimal cache copier',
     ]),
   ).toMatchObject({ exitCode: 0, data: { model: 'gemma4' } })
   expect(mocks.initialize).toHaveBeenCalledWith('/example/source')
+  expect(mocks.ensureSpace).toHaveBeenCalledWith('/example/source')
   expect(mocks.probe).toHaveBeenCalledWith(
     expect.objectContaining({ offline: false, profile: '/example/source' }),
   )

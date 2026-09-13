@@ -13,11 +13,12 @@ import type { BackendName } from '../backends/types.mts'
 export const CLI_COMMANDS = [
   'backends',
   'batch',
+  'setup',
   ...TASK_NAMES,
   'serve',
 ].toSorted()
 
-export type CliCommand = TaskCommand | 'backends' | 'batch' | 'serve'
+export type CliCommand = TaskCommand | 'backends' | 'batch' | 'serve' | 'setup'
 
 export interface CliArgs {
   backend: BackendName | undefined
@@ -172,6 +173,7 @@ export function usageText(): string {
     'Commands:',
     '  backends              probe every declared backend, print availability JSON',
     '  batch                 run many tasks from a JSONL manifest over one backend launch',
+    '  setup                 prepare and verify the persistent Chrome model profile',
     ...TASK_NAMES.map(
       name => `  ${name.padEnd(22)}${TASK_COMMANDS[name].description}`,
     ),

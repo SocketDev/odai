@@ -34,8 +34,14 @@ export async function preparePackageConsumer(
   temporaryRoot: string,
 ): Promise<string> {
   await spawn(
-    'pnpm',
-    ['pack', '--ignore-scripts', '--pack-destination', temporaryRoot],
+    'npm',
+    [
+      'pack',
+      '--force',
+      '--ignore-scripts',
+      '--pack-destination',
+      temporaryRoot,
+    ],
     { cwd: REPO_ROOT },
   )
   const archives = (await readdir(temporaryRoot)).filter(name =>

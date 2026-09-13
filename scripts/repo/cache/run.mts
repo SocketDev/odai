@@ -13,6 +13,7 @@ import type { ScriptMeta } from '../../fleet/process/run-main.mts'
 import { auditGemmaArchive } from './archive.mts'
 import { assertGemmaIdentity, probeGemmaBrowser } from './browser.mts'
 import { prepareGemmaImage } from './image.mts'
+import { ensureGemmaProvisionSpace } from './space.mts'
 import { uploadGemmaArchive } from './upload.mts'
 import {
   cachePaths,
@@ -290,6 +291,7 @@ export async function main(argv: string[]) {
   )
   if (command === 'provision') {
     await initializeCacheProfile(profile)
+    await ensureGemmaProvisionSpace(profile)
     if (values.image) {
       return await runDockerProbe({
         browser,

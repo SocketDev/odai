@@ -33,6 +33,7 @@ import {
 } from './cli/run.mts'
 import { createSimulatorBackend } from './backends/simulator.mts'
 import { createWindowsPhiSilicaBackend } from './backends/windows-phi-silica.mts'
+import { setupChromeBuiltin } from './backends/chrome/setup.mts'
 import {
   CONTROL_TOKENS,
   formatControlTokens,
@@ -108,12 +109,25 @@ export {
   runBatchEntries,
   runCli,
   selectBackend,
+  setupChromeBuiltin,
   suggestCommitMessage,
   summarizeText,
   triageAlerts,
 }
 
 export type { AppleFmBackendOptions } from './backends/apple-fm.mts'
+export type {
+  ChromeBuiltinBackend,
+  ChromeBuiltinOptions,
+} from './backends/chrome-builtin.mts'
+export type {
+  ChromeSetupOptions,
+  ChromeSetupReceipt,
+} from './backends/chrome/setup.mts'
+export type {
+  ChromeStoragePressure,
+  ReclaimChromeStorage,
+} from './backends/chrome/storage.mts'
 export type { CliArgs, CliCommand } from './cli/args.mts'
 export type {
   BatchEntry,
