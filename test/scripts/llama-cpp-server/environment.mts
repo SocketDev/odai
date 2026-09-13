@@ -7,7 +7,6 @@ export const PYTHON_CACHE_ROOT = path.join(
   REPO_ROOT,
   '.cache',
   'repo',
-  'conformance',
   'python',
 )
 
