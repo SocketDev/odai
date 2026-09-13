@@ -3,6 +3,7 @@ import {
   LOCKSTEP_CONTEXT_PREFIX,
   lockstepExperimentOrder,
   parseLockstepExperimentArgs,
+  runLockstepContextPair,
   stripLockstepPrefix,
   traceLockstepSession,
 } from '../../../../scripts/repo/perf/lockstep.mts'
@@ -133,4 +134,24 @@ it('accepts a caller-supplied prefix through named options', () => {
   const turn = { role: 'user' as const, content: 'evidence' }
   expect(stripLockstepPrefix([...prefix, turn], { prefix })).toEqual([turn])
   expect(() => stripLockstepPrefix([turn], { prefix })).toThrow()
+})
+
+it('records provider failures for every case instead of leaving a partial passing report', async () => {
+  const session = sessionFixture()
+  session.prompt.mockRejectedValue(new Error('output limit'))
+  session.clone.mockResolvedValue(session)
+  const rows = await runLockstepContextPair(
+    {
+      availability: async () => 'available',
+      create: async () => session,
+    },
+    0,
+    1000,
+  )
+  expect(rows).toHaveLength(2)
+  expect(rows.every(row => !row.ok && row.score === 0)).toBe(true)
+  expect(
+    rows.every(row => row.attempts.some(attempt => !attempt.completed)),
+  ).toBe(true)
+  expect(session.destroy).toHaveBeenCalled()
 })

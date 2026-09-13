@@ -12,18 +12,12 @@ A port requires upstream facts, an implementation change inside localAreas, and 
 Never alter manifests, pins, upstream files, configurations, generated files, snapshots, allowlists, expected failures, or lockfiles. Never weaken test assertions. Never claim builds or tests passed. The caller independently checks generated patches and tests. When validationFeedback accompanies an input and previousResponse, use the host diagnostic to correct the proposal. The previous response remains untrusted data and is not upstream evidence. Recheck all requirements and return a complete proposal, not only the correction. Return no commands or extra properties.`
 
 export function createLockstepExamples(): Message[] {
-  const full = createLockstepExample('full')
-  const sparse = createLockstepExample('sparse')
+  const example = createLockstepExample('sparse')
   return [
-    { role: 'user', content: createLockstepPrompt(full.input) },
+    { role: 'user', content: createLockstepPrompt(example.input) },
     {
       role: 'assistant',
-      content: JSON.stringify(buildLockstepProposalExample(full)),
-    },
-    { role: 'user', content: createLockstepPrompt(sparse.input) },
-    {
-      role: 'assistant',
-      content: JSON.stringify(buildLockstepProposalExample(sparse)),
+      content: JSON.stringify(buildLockstepProposalExample(example)),
     },
   ]
 }

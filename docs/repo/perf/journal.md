@@ -80,21 +80,21 @@ The Chrome bridge forwards cancellation to native operations and releases reader
 <details>
 <summary>Native prototype measurements</summary>
 
-The native prototype retained context across three-turn conversations and passed all 30 recall checks.
+The direct Chrome comparison retained the project code in every follow-up across five three-turn conversation pairs. Exact output passed 10/10 persistent follow-ups and 9/10 fresh follow-ups.
 Each of five pairs compared retained state with a fresh session replaying the same completed native messages.
 The fixture supplied a project code in the first turn and requested it in both follow-ups.
 
 | Follow-up measurement                | Fresh replay | Persistent session |
 | ------------------------------------ | -----------: | -----------------: |
-| Median complete response             |      1,471ms |              491ms |
-| Median first output, including setup |      1,371ms |              402ms |
-| Median session setup                 |      1,055ms |                0ms |
-| Median first chunk after prompting   |        308ms |              402ms |
+| Median complete response             |      1,052ms |              439ms |
+| Median first output, including setup |        941ms |              347ms |
+| Median session setup                 |        645ms |                0ms |
+| Median first chunk after prompting   |        308ms |              347ms |
 
 There were ten follow-ups per mode. Initialization turns are retained in the data but excluded from this table.
 The [context report](../../../bench/results/context.json) records each result, submitted text size, and native context usage.
 Chrome 153 ran with Gemma 4 requested. The native window was 9,216 tokens, with roughly 1,024 tokens used by this fixture.
-The machine was an Apple M3 Max on AC power. Other local work was active, so treat this as an exploratory comparison.
+The machine was an Apple M3 Max. Other local work was active, so treat this as an exploratory comparison.
 
 Session setup accounts for the supported end-to-end saving. Generation alone was not consistently faster.
 The native prototype remains available as the direct Chrome baseline.
@@ -104,13 +104,13 @@ Its benchmark measures the public API boundary, including lazy session creation.
 </details>
 
 The public API passes deterministic native and replay tests and packed browser and Node consumer checks.
-The restored live comparison ran five pairs through the public `odai/node` API. All 20 follow-up responses recalled the expected project code. Six of ten persistent responses and nine of ten fresh responses also followed the exact-output request. The remaining responses added ordinary prose or punctuation around the correct code.
+The restored live comparison ran five pairs through the public `odai/node` API. All 20 follow-up responses recalled the expected project code. Eight of ten persistent responses and all ten fresh responses also followed the exact-output request. The remaining responses added ordinary prose or punctuation around the correct code.
 
 | Public API follow-up measurement | Fresh replay | Persistent session |
 | -------------------------------- | -----------: | -----------------: |
-| Median complete response         |        868ms |              401ms |
-| Median first output              |        781ms |              309ms |
-| Median submitted text            |  4,413 chars |           28 chars |
+| Median complete response         |        919ms |              423ms |
+| Median first output              |        850ms |              328ms |
+| Median submitted text            |  4,415 chars |           28 chars |
 
 There were ten follow-ups per mode. The [public API context report](../../../bench/results/conversation.json) includes the initialization turns and every response. Chrome 153 ran with Gemma 4 on an Apple M3 Max. The persistent path reduced median completion time by 54% and submitted 99% less text after initialization in this fixture.
 
@@ -126,42 +126,30 @@ Integration tests use default Git application checks with full files and partial
 The evaluator parses changed files and checks the exported value and an active regression assertion that uses it.
 Equivalent formatting and import aliases can pass. Invalid code, inactive assertions, and incorrect values fail.
 
-The [live comparison](../../../bench/results/lockstep.json) kept fixture inputs and prompt examples unchanged.
-The current result uses normal request context across three pairs and both materializations.
+The [live comparison](../../../bench/results/lockstep.json) uses the original six cases and acceptance criteria.
+The prompt now contains one shared example instead of separate full and sparse copies of the same contract.
+This reduces first-attempt input from 7,316 to 5,840 characters for full materialization and from 7,332 to 5,856 for sparse materialization.
+The reduction is about 20%. The backend reported Gemma 4.
 
 | Materialization | Passed | Attempts | Mean response time |
 | --------------- | -----: | -------: | -----------------: |
-| Full            |    2/3 |        7 |            5,054ms |
-| Sparse          |    2/3 |        5 |            3,735ms |
+| Full            |    3/3 |        3 |            2,194ms |
+| Sparse          |    3/3 |        3 |            2,197ms |
 
-Preloading remains rejected because the earlier run caused more retries and reduced fixture success.
-The restored normal path passed two of three sparse cases and two of three full cases.
-The failures omitted a required regression test or lost the target citation after corrective retries.
-The model identified itself as Gemma 4. That identification is recorded as a model response, not an independent attestation.
+The [confirmation run](../../../bench/results/lockstep-confirmation.json) also passed 6/6 cases with a 30s per-operation limit. It reported Gemma 4 and kept the same fixture assertions.
+An earlier confirmation stopped after four passes because the provider exceeded its output limit. The runner now records such exceptions as failed cases and continues, with a regression test for complete failure reporting.
+An exploratory restored-cache run scored 5/6 but returned no recognized model name. It is not included in the Gemma comparison.
 
-<details>
-<summary>Validation changes and the blocked live rerun</summary>
-
-An earlier two-pair exploratory run passed all four normal-context cases. The repeated run demonstrates why that was insufficient evidence of reliability.
-These fixtures test a small value change. They do not establish readiness for unfamiliar upstream ports.
-Deterministic simulator and unit tests verify the harness. They do not increase the live model's score.
-
-The task now requires target-revision citations and accepts caller-supplied semantic validation.
-It allows at most three total attempts and sends the actual validation diagnostic after a rejected proposal.
-The benchmark applies changes in memory and reuses its existing parser oracle for this feedback.
-The six fixture cases and their acceptance criteria remain unchanged. Every attempt and response is recorded.
-
-An earlier six-case rerun timed out because only 6.4GiB was free and Chrome had removed the cached Gemma weights.
-The scripted provisioning path reclaimed build storage, restored the model, and completed the current six-case run.
-Chrome startup checks storage before launch. It requires 10GiB for an existing model or 22GiB while provisioning.
-
-</details>
+These fixtures exercise a small value change. Passing them does not establish readiness for unfamiliar upstream ports.
+The earlier two-example run passed 4/6 cases and needed corrective retries.
+The current comparison changes prompt size and was measured at a different time, so it does not isolate a causal timing improvement.
+Preloading remains rejected. Normal requests use isolated sessions and retain independent proposal validation.
 
 ## Verification
 
-The executable coverage run measured 99.39%, and the direct type pass measured 99.80%.
-The full suite passed 1,579 tests, with two optional conformance cases skipped.
-It completed in 7.52s after two timeout tests stopped spending 5s each on an unrelated identity probe.
+The executable coverage run measured 99.42%, and the direct type pass measured 99.80%.
+The full coverage suite passed 1,585 tests, with two optional conformance cases skipped.
+The separate upstream conformance run completed offline with 5 passes, 75 expected failures, and no unexpected failures.
 The repository enforces a 99% executable line coverage floor.
 Build, declarations, packed browser/Node consumer checks, and full lint passed.
 The public API has 68 focused behavior tests. Controlled Chrome tests cover native cancellation, late completion, overflow, and the storage guard.

@@ -260,7 +260,14 @@ export async function runLockstepContextPair(
           createLockstepScenario(materialization).run(model),
           timeoutMs * 4,
           'Lockstep scenario',
-        )
+        ).catch(error => ({
+          __proto__: null,
+          name: `lockstep-${materialization}-contract`,
+          ok: false,
+          score: 0,
+          raw: attempts.at(-1)?.raw ?? '',
+          assertion: errorMessage(error),
+        }))
         rows.push({
           __proto__: null,
           pair,

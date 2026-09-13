@@ -6,15 +6,15 @@
   "evidence": "real",
   "requestedModel": "gemma4",
   "node": "v24.10.0",
-  "bridgeSetupMs": 3870.989833,
+  "bridgeSetupMs": 5311.270708,
   "pairs": 5,
   "contextLines": 64,
   "timeoutMs": 120000,
   "samples": [
     {
-      "firstChunkMs": 959.7983749999999,
+      "firstChunkMs": 1151.3194169999997,
       "output": "READY",
-      "totalMs": 961.0105829999998,
+      "totalMs": 1152.8509590000003,
       "contextCharacters": 4362,
       "inputCharacters": 4362,
       "mode": "fresh",
@@ -24,9 +24,9 @@
       "turn": 0
     },
     {
-      "firstChunkMs": 296.8298330000007,
+      "firstChunkMs": 301.49212500000067,
       "output": "READY",
-      "totalMs": 298.0505000000003,
+      "totalMs": 302.9556250000005,
       "contextCharacters": 4362,
       "contextUsage": 1000,
       "contextWindow": 9216,
@@ -38,9 +38,9 @@
       "turn": 0
     },
     {
-      "firstChunkMs": 61.03279199999997,
+      "firstChunkMs": 61.537874999999985,
       "output": "ORCHID-7919",
-      "totalMs": 132.64816700000029,
+      "totalMs": 132.4741670000003,
       "contextCharacters": 4392,
       "contextUsage": 1023,
       "contextWindow": 9216,
@@ -52,9 +52,9 @@
       "turn": 1
     },
     {
-      "firstChunkMs": 765.2461659999999,
+      "firstChunkMs": 802.2912500000002,
       "output": "ORCHID-7919",
-      "totalMs": 836.3209579999993,
+      "totalMs": 874.8964160000005,
       "contextCharacters": 4392,
       "inputCharacters": 4392,
       "mode": "fresh",
@@ -64,9 +64,9 @@
       "turn": 1
     },
     {
-      "firstChunkMs": 801.243375,
+      "firstChunkMs": 870.5447919999997,
       "output": "ORCHID-7919",
-      "totalMs": 871.5505830000002,
+      "totalMs": 940.2042090000004,
       "contextCharacters": 4433,
       "inputCharacters": 4433,
       "mode": "fresh",
@@ -76,9 +76,9 @@
       "turn": 2
     },
     {
-      "firstChunkMs": 556.8775420000002,
+      "firstChunkMs": 591.1522499999992,
       "output": "ORCHID-7919",
-      "totalMs": 627.8954169999997,
+      "totalMs": 661.9646669999984,
       "contextCharacters": 4433,
       "contextUsage": 1046,
       "contextWindow": 9216,
@@ -90,9 +90,9 @@
       "turn": 2
     },
     {
-      "firstChunkMs": 296.75508400000035,
+      "firstChunkMs": 306.63470899999993,
       "output": "READY",
-      "totalMs": 297.93516700000055,
+      "totalMs": 308.04049999999916,
       "contextCharacters": 4362,
       "contextUsage": 1000,
       "contextWindow": 9216,
@@ -104,9 +104,9 @@
       "turn": 0
     },
     {
-      "firstChunkMs": 754.6005829999995,
+      "firstChunkMs": 798.8810830000002,
       "output": "READY",
-      "totalMs": 755.3333330000005,
+      "totalMs": 799.886375,
       "contextCharacters": 4362,
       "inputCharacters": 4362,
       "mode": "fresh",
@@ -116,9 +116,9 @@
       "turn": 0
     },
     {
-      "firstChunkMs": 755.3505830000013,
+      "firstChunkMs": 795.7168330000004,
       "output": "ORCHID-8020",
-      "totalMs": 822.7339580000007,
+      "totalMs": 882.1451670000006,
       "contextCharacters": 4392,
       "inputCharacters": 4392,
       "mode": "fresh",
@@ -128,39 +128,39 @@
       "turn": 1
     },
     {
-      "firstChunkMs": 561.3576249999987,
-      "output": "The project code is ORCHID-8020.",
-      "totalMs": 683.7064159999991,
+      "firstChunkMs": 642.5402919999997,
+      "output": "ORCHID-8020",
+      "totalMs": 723.5095000000001,
       "contextCharacters": 4392,
-      "contextUsage": 1028,
+      "contextUsage": 1023,
       "contextWindow": 9216,
       "inputCharacters": 25,
       "mode": "persistent",
-      "ok": false,
+      "ok": true,
       "pair": 1,
       "setupMs": 0,
       "turn": 1
     },
     {
-      "firstChunkMs": 62.03041699999994,
-      "output": "ORCHID-8020.",
-      "totalMs": 141.9449999999997,
-      "contextCharacters": 4454,
-      "contextUsage": 1052,
+      "firstChunkMs": 63.727333000000726,
+      "output": "ORCHID-8020",
+      "totalMs": 134.54904200000055,
+      "contextCharacters": 4433,
+      "contextUsage": 1046,
       "contextWindow": 9216,
       "inputCharacters": 30,
       "mode": "persistent",
-      "ok": false,
+      "ok": true,
       "pair": 1,
       "setupMs": 0,
       "turn": 2
     },
     {
-      "firstChunkMs": 800.9599159999998,
+      "firstChunkMs": 844.6502920000003,
       "output": "ORCHID-8020",
-      "totalMs": 873.0013330000002,
-      "contextCharacters": 4454,
-      "inputCharacters": 4454,
+      "totalMs": 913.9364999999998,
+      "contextCharacters": 4433,
+      "inputCharacters": 4433,
       "mode": "fresh",
       "ok": true,
       "pair": 1,
@@ -168,9 +168,9 @@
       "turn": 2
     },
     {
-      "firstChunkMs": 260.3981249999997,
+      "firstChunkMs": 264.4724590000005,
       "output": "READY",
-      "totalMs": 261.0787909999999,
+      "totalMs": 265.2662500000006,
       "contextCharacters": 4362,
       "inputCharacters": 4362,
       "mode": "fresh",
@@ -180,9 +180,9 @@
       "turn": 0
     },
     {
-      "firstChunkMs": 294.9869170000002,
+      "firstChunkMs": 299.80616700000064,
       "output": "READY",
-      "totalMs": 296.4220000000005,
+      "totalMs": 301.53470899999957,
       "contextCharacters": 4362,
       "contextUsage": 1000,
       "contextWindow": 9216,
@@ -194,9 +194,9 @@
       "turn": 0
     },
     {
-      "firstChunkMs": 61.299166999999215,
+      "firstChunkMs": 61.422583000001396,
       "output": "The project code is ORCHID-8121.",
-      "totalMs": 179.8306249999987,
+      "totalMs": 183.1200000000008,
       "contextCharacters": 4392,
       "contextUsage": 1028,
       "contextWindow": 9216,
@@ -208,9 +208,9 @@
       "turn": 1
     },
     {
-      "firstChunkMs": 757.9413750000003,
+      "firstChunkMs": 787.0151659999992,
       "output": "ORCHID-8121",
-      "totalMs": 828.5557079999999,
+      "totalMs": 856.1525000000001,
       "contextCharacters": 4392,
       "inputCharacters": 4392,
       "mode": "fresh",
@@ -220,9 +220,9 @@
       "turn": 1
     },
     {
-      "firstChunkMs": 799.387917,
+      "firstChunkMs": 839.6327500000007,
       "output": "ORCHID-8121",
-      "totalMs": 868.3557089999995,
+      "totalMs": 909.9562499999993,
       "contextCharacters": 4454,
       "inputCharacters": 4454,
       "mode": "fresh",
@@ -232,9 +232,9 @@
       "turn": 2
     },
     {
-      "firstChunkMs": 558.5839169999999,
+      "firstChunkMs": 596.8124590000007,
       "output": "ORCHID-8121.",
-      "totalMs": 637.4174589999984,
+      "totalMs": 678.8739170000026,
       "contextCharacters": 4454,
       "contextUsage": 1052,
       "contextWindow": 9216,
@@ -246,9 +246,9 @@
       "turn": 2
     },
     {
-      "firstChunkMs": 295.3775000000005,
+      "firstChunkMs": 304.2193329999973,
       "output": "READY",
-      "totalMs": 296.6397080000006,
+      "totalMs": 305.9118329999983,
       "contextCharacters": 4362,
       "contextUsage": 1000,
       "contextWindow": 9216,
@@ -260,9 +260,9 @@
       "turn": 0
     },
     {
-      "firstChunkMs": 754.7652500000004,
+      "firstChunkMs": 865.200166999999,
       "output": "READY",
-      "totalMs": 755.526249999999,
+      "totalMs": 866.6817080000001,
       "contextCharacters": 4362,
       "inputCharacters": 4362,
       "mode": "fresh",
@@ -272,21 +272,21 @@
       "turn": 0
     },
     {
-      "firstChunkMs": 755.074208,
-      "output": "The project code is ORCHID-8222.",
-      "totalMs": 872.3065420000003,
+      "firstChunkMs": 1098.5373330000002,
+      "output": "ORCHID-8222",
+      "totalMs": 1260.9262500000004,
       "contextCharacters": 4392,
       "inputCharacters": 4392,
       "mode": "fresh",
-      "ok": false,
+      "ok": true,
       "pair": 3,
       "setupMs": 0,
       "turn": 1
     },
     {
-      "firstChunkMs": 556.5929579999993,
+      "firstChunkMs": 1092.1038340000014,
       "output": "ORCHID-8222",
-      "totalMs": 625.8571250000005,
+      "totalMs": 1171.010209,
       "contextCharacters": 4392,
       "contextUsage": 1023,
       "contextWindow": 9216,
@@ -298,9 +298,9 @@
       "turn": 1
     },
     {
-      "firstChunkMs": 61.054583000001,
+      "firstChunkMs": 62.8370419999992,
       "output": "ORCHID-8222",
-      "totalMs": 132.72220800000287,
+      "totalMs": 133.7260000000024,
       "contextCharacters": 4433,
       "contextUsage": 1046,
       "contextWindow": 9216,
@@ -312,9 +312,9 @@
       "turn": 2
     },
     {
-      "firstChunkMs": 796.6652079999985,
+      "firstChunkMs": 875.8532500000001,
       "output": "ORCHID-8222",
-      "totalMs": 868.3074579999993,
+      "totalMs": 949.6007080000018,
       "contextCharacters": 4433,
       "inputCharacters": 4433,
       "mode": "fresh",
@@ -324,9 +324,9 @@
       "turn": 2
     },
     {
-      "firstChunkMs": 261.53170899999895,
+      "firstChunkMs": 283.2459579999995,
       "output": "READY",
-      "totalMs": 262.2616249999992,
+      "totalMs": 284.51983299999847,
       "contextCharacters": 4362,
       "inputCharacters": 4362,
       "mode": "fresh",
@@ -336,9 +336,9 @@
       "turn": 0
     },
     {
-      "firstChunkMs": 295.7869580000006,
+      "firstChunkMs": 319.8344590000015,
       "output": "READY",
-      "totalMs": 296.87762499999735,
+      "totalMs": 322.8960420000003,
       "contextCharacters": 4362,
       "contextUsage": 1000,
       "contextWindow": 9216,
@@ -350,9 +350,9 @@
       "turn": 0
     },
     {
-      "firstChunkMs": 60.478415999998106,
+      "firstChunkMs": 64.50966699999844,
       "output": "ORCHID-8323",
-      "totalMs": 130.41312499999913,
+      "totalMs": 137.67370799999844,
       "contextCharacters": 4392,
       "contextUsage": 1023,
       "contextWindow": 9216,
@@ -364,9 +364,9 @@
       "turn": 1
     },
     {
-      "firstChunkMs": 755.3745420000014,
+      "firstChunkMs": 1067.8320419999982,
       "output": "ORCHID-8323",
-      "totalMs": 824.8971249999995,
+      "totalMs": 1139.091207999998,
       "contextCharacters": 4392,
       "inputCharacters": 4392,
       "mode": "fresh",
@@ -376,9 +376,9 @@
       "turn": 1
     },
     {
-      "firstChunkMs": 798.7845830000006,
+      "firstChunkMs": 855.5499159999999,
       "output": "ORCHID-8323",
-      "totalMs": 867.6423749999994,
+      "totalMs": 924.7474580000016,
       "contextCharacters": 4433,
       "inputCharacters": 4433,
       "mode": "fresh",
@@ -388,9 +388,9 @@
       "turn": 2
     },
     {
-      "firstChunkMs": 555.2145419999979,
+      "firstChunkMs": 648.4530830000003,
       "output": "ORCHID-8323",
-      "totalMs": 622.7175419999985,
+      "totalMs": 719.086457999998,
       "contextCharacters": 4433,
       "contextUsage": 1046,
       "contextWindow": 9216,

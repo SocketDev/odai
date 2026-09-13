@@ -106,3 +106,13 @@ These are different timing boundaries and must remain labeled in reports.
 Packed-package checks cover browser and Node imports, transcript restore, streaming, and reset with deterministic providers.
 Unit tests cover cancellation, ordering, validation, bounds, and disposal without a model download.
 Live recall checks measure the installed model on a small fixture. They do not establish general reasoning reliability.
+
+## Require exact output explicitly
+
+Conversation history preserves messages. It does not guarantee that the model follows a requested output format.
+The live comparisons recalled every project code, but both direct Chrome and the public API sometimes added prose or punctuation.
+The direction of the exact-output difference changed between comparisons, so these samples do not show a consistent retained-context defect.
+
+Use `promptStructured()` with a schema when downstream code requires a specific format. Validate the value before using it.
+Do not silently strip arbitrary prose from a response or treat semantic recall as an exact-format pass.
+The benchmark keeps these distinctions and returns failure when an exact-output assertion fails.

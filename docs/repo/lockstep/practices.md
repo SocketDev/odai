@@ -86,7 +86,7 @@ pnpm run bench --scenario=lockstep --routed --json
 <details>
 <summary>How model proposals are checked and scored</summary>
 
-The prompt supplies examples, evidence boundaries, and an abstention rule.
+The prompt supplies one shared example, evidence boundaries, and an abstention rule. Full and sparse materialization use the same response contract, so a second copy of the example is unnecessary.
 The model describes each edit with a local or test evidence identifier, an inclusive line range, an operation, and new text.
 `odai` reads the old lines from trusted evidence and generates the unified diff.
 This keeps diff headers and unchanged source text out of the model's output while preserving the public patch response used by the fleet verifier.

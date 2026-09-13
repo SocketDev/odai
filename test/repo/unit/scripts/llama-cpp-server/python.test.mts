@@ -5,7 +5,7 @@ import path from 'node:path'
 import { expect, it, vi } from 'vitest'
 import { safeDelete } from '@socketsecurity/lib-stable/fs/safe'
 
-import { withIsolatedEnv } from '../../../../scripts/llama-cpp-server/environment.mts'
+import { withIsolatedEnv } from '../../../../scripts/llama-cpp-server/python.mts'
 
 it('reuses setup downloads across private conformance homes', async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'odai-python-cache-'))
