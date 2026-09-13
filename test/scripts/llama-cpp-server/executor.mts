@@ -16,7 +16,7 @@ import { startShimServer } from '../../../src/shim/server.mts'
 import type { BackendName } from '../../../src/backends/types.mts'
 import type { StagedSuite } from './harness.mts'
 import type { TestCase } from './types.mts'
-import { isolatedHomeEnv as withIsolatedEnv } from '../../fleet/_shared/lib/env.mts'
+import { withIsolatedEnv } from './environment.mts'
 
 /**
  * The python packages the upstream suite imports, pinned exactly. `wget` and

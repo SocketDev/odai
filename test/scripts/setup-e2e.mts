@@ -30,7 +30,7 @@ import { isMainModule } from '../../scripts/fleet/process/is-main-module.mts'
 import { runMain } from '../../scripts/fleet/process/run-main.mts'
 import { REPO_ROOT } from '../../scripts/fleet/paths.mts'
 import type { ScriptMeta } from '../../scripts/fleet/process/run-main.mts'
-import { isolatedHomeEnv } from '../fleet/_shared/lib/env.mts'
+import { withIsolatedEnv as pythonEnvironment } from './llama-cpp-server/environment.mts'
 
 const logger = getDefaultLogger()
 
@@ -41,7 +41,7 @@ const ISOLATED_TOOL_HOME = path.join(
 
 function withIsolatedEnv(): NodeJS.ProcessEnv {
   mkdirSync(ISOLATED_TOOL_HOME, { recursive: true })
-  return { ...process.env, ...isolatedHomeEnv(ISOLATED_TOOL_HOME) }
+  return { ...process.env, ...pythonEnvironment(ISOLATED_TOOL_HOME) }
 }
 
 /**
