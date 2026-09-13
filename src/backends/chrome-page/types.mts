@@ -1,4 +1,4 @@
-import type { NativeChromeSession } from '../chrome-native.mts'
+import type { NativeChromeSession } from '../chrome/native.mts'
 import type { SessionContextStatus } from '../../types.mts'
 import type { StreamQueue } from './queue.mts'
 

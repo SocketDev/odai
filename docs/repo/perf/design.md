@@ -44,6 +44,9 @@ The measured prototype keeps one Chrome session and sends only new turns.
 Its comparison path recreates a session and replays the exact completed native history.
 Chrome can retain native context in memory. Restoring after a process restart requires replaying stored messages.
 
+<details>
+<summary>Conversation guarantees and provider behavior</summary>
+
 The conversation API provides the following behavior:
 
 | Requirement        | Behavior                                                                                                                    |
@@ -70,3 +73,5 @@ The conversation disposes uncertain native state and restores committed messages
 
 Chrome documents retained sessions, cloning, and transcript restoration in its [session management guide](https://developer.chrome.com/docs/ai/session-management).
 Its [Prompt API guide](https://developer.chrome.com/docs/ai/prompt-api) describes initial prompts, context usage, and response prefixes.
+
+</details>

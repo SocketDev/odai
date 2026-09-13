@@ -4,7 +4,7 @@ import {
   assertChromeStorage,
   CHROME_CACHED_MIN_FREE_BYTES,
   CHROME_DOWNLOAD_MIN_FREE_BYTES,
-} from '../../../../src/backends/chrome-storage.mts'
+} from '../../../../../src/backends/chrome/storage.mts'
 
 const disk = vi.hoisted(() => ({ statfs: vi.fn() }))
 vi.mock(import('node:fs/promises'), async importOriginal => ({

@@ -55,13 +55,19 @@ export interface LockstepArguments {
   timeoutMs: number
 }
 
+export interface LockstepExperimentOptions {
+  mode?: LockstepContextMode | 'both' | undefined
+}
+
 export function lockstepExperimentOrder(
   pair: number,
-  selection: LockstepContextMode | 'both' = 'per-request',
+  options: LockstepExperimentOptions = {},
 ): Array<{
   mode: LockstepContextMode
   materializations: Array<'full' | 'sparse'>
 }> {
+  const opts = { __proto__: null, ...options }
+  const selection = opts.mode ?? 'per-request'
   const modes: LockstepContextMode[] =
     pair % 2 === 0 ? ['per-request', 'preloaded'] : ['preloaded', 'per-request']
   return modes
@@ -120,10 +126,16 @@ export function parseLockstepExperimentArgs(
   }
 }
 
+export interface LockstepPrefixOptions {
+  prefix?: Message[] | undefined
+}
+
 export function stripLockstepPrefix(
   messages: Message[],
-  prefix: Message[] = LOCKSTEP_CONTEXT_PREFIX,
+  options: LockstepPrefixOptions = {},
 ): Message[] {
+  const opts = { __proto__: null, ...options }
+  const prefix = opts.prefix ?? LOCKSTEP_CONTEXT_PREFIX
   if (
     !prefix.every(
       (message, index) =>
@@ -214,12 +226,13 @@ export async function runLockstepContextPair(
   factory: LanguageModelLike,
   pair: number,
   timeoutMs: number,
-  selection: LockstepContextMode | 'both' = 'per-request',
+  options: LockstepExperimentOptions = {},
 ) {
+  const opts = { __proto__: null, ...options }
   const rows = []
   for (const { mode, materializations } of lockstepExperimentOrder(
     pair,
-    selection,
+    opts,
   )) {
     const contextStartedAt = performance.now()
     const native = await awaitCancellable(
@@ -267,10 +280,13 @@ export async function runLockstepContextPair(
   return rows
 }
 
-export async function main(
-  argv: string[] = process.argv.slice(2),
-): Promise<void> {
-  const config = parseLockstepExperimentArgs(argv)
+export interface LockstepMainOptions {
+  argv?: string[] | undefined
+}
+
+export async function main(options: LockstepMainOptions = {}): Promise<void> {
+  const opts = { __proto__: null, ...options }
+  const config = parseLockstepExperimentArgs(opts.argv ?? process.argv.slice(2))
   if (config.help) {
     process.stdout.write(`${SCRIPT_META.help}\n`)
     return
@@ -332,12 +348,9 @@ export async function main(
         `Lockstep evaluation: pair ${pair + 1}/${config.pairs}.\n`,
       )
       report.rows.push(
-        ...(await runLockstepContextPair(
-          factory,
-          pair,
-          config.timeoutMs,
-          config.mode,
-        )),
+        ...(await runLockstepContextPair(factory, pair, config.timeoutMs, {
+          mode: config.mode,
+        })),
       )
       if (config.output !== undefined) {
         await writeJson(config.output, report)

@@ -14,10 +14,10 @@
   "package": {
     "files": [
       "dist/bench/index.js",
-      "dist/chunk/apple-fm-shim-cVdoZEsd.js",
-      "dist/chunk/date-DzddYvVR.js",
+      "dist/chunk/apple-fm-shim-DoJ7sdbK.js",
+      "dist/chunk/date-Dnxi2Whu.js",
       "dist/chunk/fs-Bz4u9IaR.js",
-      "dist/chunk/run-Bru8onO7.js",
+      "dist/chunk/run-BuxEuMh7.js",
       "dist/chunk/string-D5jLtXtt.js",
       "dist/chunk/write-json-C44MPNVd.js",
       "dist/cli.js",
@@ -26,8 +26,8 @@
     ],
     "bytes": {
       "raw": 9006748,
-      "gzip": 1866787,
-      "brotli": 1068038
+      "gzip": 1866795,
+      "brotli": 1067862
     },
     "topModules": [
       {
@@ -327,14 +327,14 @@
       "file": "dist/cli.js",
       "static": {
         "files": [
-          "dist/chunk/run-Bru8onO7.js",
+          "dist/chunk/run-BuxEuMh7.js",
           "dist/chunk/string-D5jLtXtt.js",
           "dist/cli.js"
         ],
         "bytes": {
           "raw": 645832,
-          "gzip": 143549,
-          "brotli": 119303
+          "gzip": 143554,
+          "brotli": 119192
         },
         "topModules": [
           {
@@ -421,15 +421,15 @@
       },
       "dynamic": {
         "files": [
-          "dist/chunk/apple-fm-shim-cVdoZEsd.js",
-          "dist/chunk/date-DzddYvVR.js",
+          "dist/chunk/apple-fm-shim-DoJ7sdbK.js",
+          "dist/chunk/date-Dnxi2Whu.js",
           "dist/chunk/fs-Bz4u9IaR.js",
           "dist/chunk/write-json-C44MPNVd.js"
         ],
         "bytes": {
           "raw": 847037,
           "gzip": 160627,
-          "brotli": 131984
+          "brotli": 131939
         },
         "topModules": [
           {
@@ -516,18 +516,18 @@
       },
       "reachable": {
         "files": [
-          "dist/chunk/apple-fm-shim-cVdoZEsd.js",
-          "dist/chunk/date-DzddYvVR.js",
+          "dist/chunk/apple-fm-shim-DoJ7sdbK.js",
+          "dist/chunk/date-Dnxi2Whu.js",
           "dist/chunk/fs-Bz4u9IaR.js",
-          "dist/chunk/run-Bru8onO7.js",
+          "dist/chunk/run-BuxEuMh7.js",
           "dist/chunk/string-D5jLtXtt.js",
           "dist/chunk/write-json-C44MPNVd.js",
           "dist/cli.js"
         ],
         "bytes": {
           "raw": 1492869,
-          "gzip": 304176,
-          "brotli": 251287
+          "gzip": 304181,
+          "brotli": 251131
         },
         "topModules": [
           {
@@ -632,8 +632,8 @@
         "files": ["dist/index.js"],
         "bytes": {
           "raw": 342078,
-          "gzip": 69112,
-          "brotli": 58308
+          "gzip": 69113,
+          "brotli": 58269
         },
         "topModules": [
           {
@@ -731,8 +731,8 @@
         "files": ["dist/index.js"],
         "bytes": {
           "raw": 342078,
-          "gzip": 69112,
-          "brotli": 58308
+          "gzip": 69113,
+          "brotli": 58269
         },
         "topModules": [
           {
@@ -826,16 +826,16 @@
       "file": "dist/node.js",
       "static": {
         "files": [
-          "dist/chunk/date-DzddYvVR.js",
+          "dist/chunk/date-Dnxi2Whu.js",
           "dist/chunk/fs-Bz4u9IaR.js",
-          "dist/chunk/run-Bru8onO7.js",
+          "dist/chunk/run-BuxEuMh7.js",
           "dist/chunk/string-D5jLtXtt.js",
           "dist/node.js"
         ],
         "bytes": {
           "raw": 1479977,
-          "gzip": 333004,
-          "brotli": 277294
+          "gzip": 333011,
+          "brotli": 277213
         },
         "topModules": [
           {
@@ -922,13 +922,13 @@
       },
       "dynamic": {
         "files": [
-          "dist/chunk/apple-fm-shim-cVdoZEsd.js",
+          "dist/chunk/apple-fm-shim-DoJ7sdbK.js",
           "dist/chunk/write-json-C44MPNVd.js"
         ],
         "bytes": {
           "raw": 512046,
           "gzip": 87579,
-          "brotli": 71003
+          "brotli": 70977
         },
         "topModules": [
           {
@@ -1015,18 +1015,18 @@
       },
       "reachable": {
         "files": [
-          "dist/chunk/apple-fm-shim-cVdoZEsd.js",
-          "dist/chunk/date-DzddYvVR.js",
+          "dist/chunk/apple-fm-shim-DoJ7sdbK.js",
+          "dist/chunk/date-Dnxi2Whu.js",
           "dist/chunk/fs-Bz4u9IaR.js",
-          "dist/chunk/run-Bru8onO7.js",
+          "dist/chunk/run-BuxEuMh7.js",
           "dist/chunk/string-D5jLtXtt.js",
           "dist/chunk/write-json-C44MPNVd.js",
           "dist/node.js"
         ],
         "bytes": {
           "raw": 1992023,
-          "gzip": 420583,
-          "brotli": 348297
+          "gzip": 420590,
+          "brotli": 348190
         },
         "topModules": [
           {
@@ -1222,17 +1222,17 @@
       ]
     },
     {
-      "file": "dist/chunk/apple-fm-shim-cVdoZEsd.js",
+      "file": "dist/chunk/apple-fm-shim-DoJ7sdbK.js",
       "entry": false,
       "bytes": {
         "raw": 507037,
         "gzip": 85958,
-        "brotli": 69603
+        "brotli": 69577
       },
       "imports": [
-        "dist/chunk/date-DzddYvVR.js",
+        "dist/chunk/date-Dnxi2Whu.js",
         "dist/chunk/fs-Bz4u9IaR.js",
-        "dist/chunk/run-Bru8onO7.js",
+        "dist/chunk/run-BuxEuMh7.js",
         "dist/chunk/string-D5jLtXtt.js"
       ],
       "dynamicImports": [],
@@ -1331,15 +1331,15 @@
       ]
     },
     {
-      "file": "dist/chunk/date-DzddYvVR.js",
+      "file": "dist/chunk/date-Dnxi2Whu.js",
       "entry": false,
       "bytes": {
         "raw": 332752,
         "gzip": 72234,
-        "brotli": 60284
+        "brotli": 60265
       },
       "imports": [
-        "dist/chunk/run-Bru8onO7.js",
+        "dist/chunk/run-BuxEuMh7.js",
         "dist/chunk/string-D5jLtXtt.js"
       ],
       "dynamicImports": [],
@@ -1432,16 +1432,16 @@
       ]
     },
     {
-      "file": "dist/chunk/run-Bru8onO7.js",
+      "file": "dist/chunk/run-BuxEuMh7.js",
       "entry": false,
       "bytes": {
         "raw": 619061,
-        "gzip": 135912,
-        "brotli": 112600
+        "gzip": 135917,
+        "brotli": 112519
       },
       "imports": ["dist/chunk/string-D5jLtXtt.js"],
       "dynamicImports": [
-        "dist/chunk/apple-fm-shim-cVdoZEsd.js",
+        "dist/chunk/apple-fm-shim-DoJ7sdbK.js",
         "dist/chunk/write-json-C44MPNVd.js"
       ],
       "externalImports": ["@sinclair/typebox", "node:http"],
@@ -1604,9 +1604,9 @@
       "bytes": {
         "raw": 2061,
         "gzip": 1048,
-        "brotli": 924
+        "brotli": 894
       },
-      "imports": ["dist/chunk/run-Bru8onO7.js"],
+      "imports": ["dist/chunk/run-BuxEuMh7.js"],
       "dynamicImports": [],
       "externalImports": ["node:fs", "node:url"],
       "externalDynamicImports": [],
@@ -1626,8 +1626,8 @@
       "entry": true,
       "bytes": {
         "raw": 342078,
-        "gzip": 69112,
-        "brotli": 58308
+        "gzip": 69113,
+        "brotli": 58269
       },
       "imports": [],
       "dynamicImports": [],
@@ -1721,13 +1721,13 @@
       "entry": true,
       "bytes": {
         "raw": 501215,
-        "gzip": 117455,
-        "brotli": 97934
+        "gzip": 117457,
+        "brotli": 97953
       },
       "imports": [
-        "dist/chunk/date-DzddYvVR.js",
+        "dist/chunk/date-Dnxi2Whu.js",
         "dist/chunk/fs-Bz4u9IaR.js",
-        "dist/chunk/run-Bru8onO7.js",
+        "dist/chunk/run-BuxEuMh7.js",
         "dist/chunk/string-D5jLtXtt.js"
       ],
       "dynamicImports": [],

@@ -9,7 +9,7 @@ import {
   pageContextStatus,
   pageCreateSession,
 } from '../../../../../src/backends/chrome-page/sessions.mts'
-import type { NativeChromeSession } from '../../../../../src/backends/chrome-native.mts'
+import type { NativeChromeSession } from '../../../../../src/backends/chrome/native.mts'
 import type { PageGlobalState } from '../../../../../src/backends/chrome-page/types.mts'
 
 beforeEach(() => {

@@ -3,8 +3,8 @@ import { afterEach, expect, it, vi } from 'vitest'
 import {
   wrapNativeChromeFactory,
   wrapNativeChromeSession,
-} from '../../../../src/backends/chrome-native.mts'
-import type { NativeChromeSession } from '../../../../src/backends/chrome-native.mts'
+} from '../../../../../src/backends/chrome/native.mts'
+import type { NativeChromeSession } from '../../../../../src/backends/chrome/native.mts'
 
 afterEach(() => {
   vi.restoreAllMocks()

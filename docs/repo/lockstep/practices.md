@@ -83,6 +83,9 @@ ODAI_CHROME_MODEL=gemma4 pnpm run bench --scenario=lockstep --backend=chrome-bui
 pnpm run bench --scenario=lockstep --routed --json
 ```
 
+<details>
+<summary>How model proposals are checked and scored</summary>
+
 The prompt supplies examples, evidence boundaries, and an abstention rule.
 The model describes each edit with a local or test evidence identifier, an inclusive line range, an operation, and new text.
 `odai` reads the old lines from trusted evidence and generates the unified diff.
@@ -99,5 +102,7 @@ Use an explicit backend for a model quality measurement and report its actual id
 An unavailable model or a setup timeout provides no model quality score.
 Benchmark success requires every selected scenario to pass.
 The package check also exercises the published Node declarations and browser benchmark bundle.
+
+</details>
 
 See [performance practices](../perf/practices.md) for repeated full and sparse measurements and the retained-context experiment.

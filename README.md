@@ -1,7 +1,7 @@
 # @socketsecurity/odai
 
 <a href="https://badge.socket.dev/npm/package/@socketsecurity/odai"><img src="https://badge.socket.dev/npm/package/@socketsecurity/odai" alt="Socket Badge" height="20"></a>
-<picture><img src="https://raw.githubusercontent.com/SocketDev/odai/HEAD/assets/repo/coverage.svg?v=b0ccfc2f60c4" height="20" alt="Coverage" /></picture>
+<picture><img src="https://raw.githubusercontent.com/SocketDev/odai/HEAD/assets/repo/coverage.svg?v=66258ab9f3b4" height="20" alt="Coverage" /></picture>
 
 [![Follow @SocketSecurity](https://raw.githubusercontent.com/SocketDev/odai/HEAD/assets/fleet/badge-follow-x.svg)](https://twitter.com/SocketSecurity)
 [![Follow @socket.dev on Bluesky](https://raw.githubusercontent.com/SocketDev/odai/HEAD/assets/fleet/badge-follow-bluesky.svg)](https://bsky.app/profile/socket.dev)

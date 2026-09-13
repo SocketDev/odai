@@ -1,7 +1,7 @@
 import type {
   NativeChromeFactory,
   NativeChromeSession,
-} from '../chrome-native.mts'
+} from '../chrome/native.mts'
 import type { SessionContextStatus } from '../../types.mts'
 import type { PageGlobalState, PageResult } from './types.mts'
 

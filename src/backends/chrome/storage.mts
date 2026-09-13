@@ -1,6 +1,6 @@
-import { loadNodeDeps } from './chrome-profile.mts'
+import { loadNodeDeps } from '../chrome-profile.mts'
 
-import type { ModelSource } from './chrome-profile.mts'
+import type { ModelSource } from '../chrome-profile.mts'
 
 export const CHROME_CACHED_MIN_FREE_BYTES = 10 * 1024 ** 3
 export const CHROME_DOWNLOAD_MIN_FREE_BYTES = 22 * 1024 ** 3

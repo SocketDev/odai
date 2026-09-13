@@ -3,7 +3,7 @@ import type {
   Message,
   SessionContextStatus,
   SessionLike,
-} from '../types.mts'
+} from '../../types.mts'
 
 export interface NativeChromeSession {
   addEventListener?(name: string, listener: () => void): void

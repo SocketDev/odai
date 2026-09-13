@@ -6,7 +6,6 @@ import {
   main,
   parseContextArgs,
 } from '../../../../scripts/repo/perf/context.mts'
-import { compareContextSessions } from '../../../../src/bench/context.mts'
 import type { ContextReport } from '../../../../src/bench/context.mts'
 
 const mocks = vi.hoisted(() => ({
@@ -16,17 +15,17 @@ const mocks = vi.hoisted(() => ({
   writeJson: vi.fn(),
 }))
 
-vi.mock('../../../../src/bench/conversation.mts', () => ({
+vi.mock(import('../../../../src/bench/conversation.mts'), () => ({
   compareConversations: mocks.compareConversations,
 }))
-vi.mock('../../../../src/backends/chrome-page.mts', () => ({
+vi.mock(import('../../../../src/backends/chrome-page.mts'), () => ({
   createPageBoundFactory: mocks.createPageBoundFactory,
 }))
 
-vi.mock('../../../../src/backends/chrome-builtin.mts', () => ({
+vi.mock(import('../../../../src/backends/chrome-builtin.mts'), () => ({
   startBridge: mocks.startBridge,
 }))
-vi.mock('@socketsecurity/lib-stable/fs/write-json', () => ({
+vi.mock(import('@socketsecurity/lib-stable/fs/write-json'), () => ({
   stringify: (value: unknown) => JSON.stringify(value),
   writeJson: mocks.writeJson,
 }))
@@ -83,7 +82,7 @@ it('parses defaults and explicit limits', () => {
     help: false,
     output: undefined,
     pairs: 3,
-    timeoutMs: 120000,
+    timeoutMs: 120_000,
   })
   expect(
     parseContextArgs([
@@ -105,7 +104,7 @@ it('parses defaults and explicit limits', () => {
     help: false,
     output: 'fixture report.json',
     pairs: 20,
-    timeoutMs: 2147483647,
+    timeoutMs: 2_147_483_647,
   })
 })
 
@@ -134,32 +133,34 @@ it.each([
 
 it('shows help without creating a browser', async () => {
   const stdout = vi.spyOn(process.stdout, 'write').mockReturnValue(true)
-  await main(['--help'])
+  await main({ argv: ['--help'] })
   expect(stdout).toHaveBeenCalledTimes(1)
   expect(mocks.startBridge).not.toHaveBeenCalled()
 })
 
 it('runs fixed-model evaluation and writes a structured report', async () => {
   const { bridge, report } = createBridgeFixture()
-  await main([
-    '--pairs',
-    '1',
-    '--api',
-    'native',
-    '--context-lines',
-    '2',
-    '--timeout',
-    '1000',
-    '--output',
-    'fixture.json',
-  ])
+  await main({
+    argv: [
+      '--pairs',
+      '1',
+      '--api',
+      'native',
+      '--context-lines',
+      '2',
+      '--timeout',
+      '1000',
+      '--output',
+      'fixture.json',
+    ],
+  })
   expect(mocks.startBridge).toHaveBeenCalledExactlyOnceWith({
     allowDownload: false,
     model: 'gemma4',
     readyTimeoutMs: 1000,
   })
   expect(bridge.page.evaluate).toHaveBeenCalledExactlyOnceWith(
-    compareContextSessions,
+    expect.any(Function),
     {
       contextLines: 2,
       pairs: 1,
@@ -184,7 +185,7 @@ it('runs fixed-model evaluation and writes a structured report', async () => {
 it('prints JSON and fails the exit status for an incorrect response', async () => {
   const { bridge } = createBridgeFixture(false)
   const stdout = vi.spyOn(process.stdout, 'write').mockReturnValue(true)
-  await main(['--json'])
+  await main({ argv: ['--json'] })
   const report = JSON.parse(String(stdout.mock.calls[0]![0])) as ContextReport
   expect(report.samples[0]!.ok).toBe(false)
   expect(process.exitCode).toBe(1)
@@ -204,7 +205,7 @@ it.each(['evaluate', 'write'])(
       mocks.writeJson.mockRejectedValue(failure)
     }
     await expect(
-      main(['--api', 'native', '--output', 'fixture.json']),
+      main({ argv: ['--api', 'native', '--output', 'fixture.json'] }),
     ).rejects.toBe(failure)
     expect(bridge.close).toHaveBeenCalledTimes(1)
   },

@@ -125,6 +125,9 @@ The normal path passed all three sparse cases and one of three full cases.
 Failures included comparing local code with the base revision, omitting a regression test, and generating invalid JavaScript.
 The model identified itself as Gemma 4. That identification is recorded as a model response, not an independent attestation.
 
+<details>
+<summary>Validation changes and the blocked live rerun</summary>
+
 An earlier two-pair exploratory run passed all four normal-context cases. The repeated run demonstrates why that was insufficient evidence of reliability.
 These fixtures test a small value change. They do not establish readiness for unfamiliar upstream ports.
 Deterministic simulator and unit tests verify the harness. They do not increase the live model's score.
@@ -139,10 +142,12 @@ Only 6.4GiB was free during that launch. The prior 4/6 result remains the last m
 Chrome startup now checks storage before launching to prevent another model-cache eviction.
 It requires 10GiB for an existing model or 22GiB when provisioning a model.
 
+</details>
+
 ## Verification
 
-The coverage run passed with 99.41% executable coverage and 99.80% type coverage.
-It covered 3,879 of 3,902 executable lines, with 1,567 passing tests and two optional conformance cases skipped.
+The coverage run passed with 99.44% executable coverage and 99.80% type coverage.
+It covered 3,880 of 3,902 executable lines, with 1,571 passing tests and two optional conformance cases skipped.
 The repository enforces a 99% executable line coverage floor.
 Build, declarations, packed browser/Node consumer checks, and full lint passed.
 The public API has 68 focused behavior tests. Controlled Chrome tests cover native cancellation, late completion, overflow, and the storage guard.

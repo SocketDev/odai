@@ -94,11 +94,14 @@ export function parseContextInteger(
   return number
 }
 
-export async function main(
-  argv: string[] = process.argv.slice(2),
-): Promise<void> {
-  const options = parseContextArgs(argv)
-  if (options.help) {
+export interface ContextMainOptions {
+  argv?: string[] | undefined
+}
+
+export async function main(options: ContextMainOptions = {}): Promise<void> {
+  const opts = { __proto__: null, ...options }
+  const config = parseContextArgs(opts.argv ?? process.argv.slice(2))
+  if (config.help) {
     process.stdout.write(CONTEXT_HELP)
     return
   }
@@ -108,13 +111,13 @@ export async function main(
   const bridge = await startBridge({
     model: 'gemma4',
     allowDownload: false,
-    readyTimeoutMs: options.timeoutMs,
+    readyTimeoutMs: config.timeoutMs,
   })
   const bridgeSetupMs = performance.now() - startedAt
   try {
-    const { pairs, contextLines, timeoutMs } = options
+    const { pairs, contextLines, timeoutMs } = config
     const result =
-      options.api === 'native'
+      config.api === 'native'
         ? await bridge.page.evaluate<ContextReport>(compareContextSessions, {
             pairs,
             contextLines,
@@ -127,8 +130,8 @@ export async function main(
           })
     const report = {
       schemaVersion: 1,
-      api: options.api,
-      ...(options.api === 'odai'
+      api: config.api,
+      ...(config.api === 'odai'
         ? {
             userAgent: await bridge.page.evaluate<string>(
               () => navigator.userAgent,
@@ -136,7 +139,7 @@ export async function main(
           }
         : {}),
       timingBoundary:
-        options.api === 'odai'
+        config.api === 'odai'
           ? 'public-api-call-including-lazy-session-creation'
           : 'native-session-prompt',
       evidence: 'real',
@@ -148,10 +151,10 @@ export async function main(
       timeoutMs,
       ...result,
     }
-    if (options.output === undefined) {
+    if (config.output === undefined) {
       process.stdout.write(stringify(report))
     } else {
-      await writeJson(options.output, report)
+      await writeJson(config.output, report)
     }
     if (result.samples.some(sample => !sample.ok)) {
       process.exitCode = 1
@@ -161,10 +164,12 @@ export async function main(
   }
 }
 
+export const SCRIPT_META = {
+  describe: 'compares retained and replayed Chrome conversation context',
+  help: CONTEXT_HELP,
+  json: 'native',
+} as const
+
 if (isMainModule(import.meta.url)) {
-  runMain(main, {
-    describe: 'compares retained and replayed Chrome conversation context',
-    help: CONTEXT_HELP,
-    json: 'native',
-  })
+  runMain(main, SCRIPT_META)
 }

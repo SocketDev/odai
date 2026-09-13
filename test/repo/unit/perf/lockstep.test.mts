@@ -61,11 +61,11 @@ describe('lockstep context experiment', () => {
   })
 
   it('balances both mode and materialization order across pairs', () => {
-    expect(lockstepExperimentOrder(0, 'both')).toEqual([
+    expect(lockstepExperimentOrder(0, { mode: 'both' })).toEqual([
       { mode: 'per-request', materializations: ['full', 'sparse'] },
       { mode: 'preloaded', materializations: ['full', 'sparse'] },
     ])
-    expect(lockstepExperimentOrder(1, 'both')).toEqual([
+    expect(lockstepExperimentOrder(1, { mode: 'both' })).toEqual([
       { mode: 'preloaded', materializations: ['sparse', 'full'] },
       { mode: 'per-request', materializations: ['sparse', 'full'] },
     ])
@@ -76,7 +76,7 @@ describe('lockstep context experiment', () => {
     expect(lockstepExperimentOrder(0)).toEqual([
       { mode: 'per-request', materializations: ['full', 'sparse'] },
     ])
-    expect(lockstepExperimentOrder(1, 'preloaded')).toEqual([
+    expect(lockstepExperimentOrder(1, { mode: 'preloaded' })).toEqual([
       { mode: 'preloaded', materializations: ['sparse', 'full'] },
     ])
     expect(parseLockstepExperimentArgs(['--mode', 'both']).mode).toBe('both')
@@ -126,4 +126,11 @@ describe('lockstep context experiment', () => {
     expect(session.destroy).toHaveBeenCalledOnce()
     expect(attempts[0]?.completed).toBe(false)
   })
+})
+
+it('accepts a caller-supplied prefix through named options', () => {
+  const prefix = [{ role: 'system' as const, content: 'custom instructions' }]
+  const turn = { role: 'user' as const, content: 'evidence' }
+  expect(stripLockstepPrefix([...prefix, turn], { prefix })).toEqual([turn])
+  expect(() => stripLockstepPrefix([turn], { prefix })).toThrow()
 })

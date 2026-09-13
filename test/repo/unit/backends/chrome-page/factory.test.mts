@@ -10,7 +10,7 @@ import {
 import type {
   NativeChromeFactory,
   NativeChromeSession,
-} from '../../../../../src/backends/chrome-native.mts'
+} from '../../../../../src/backends/chrome/native.mts'
 import type {
   Bridge,
   PageGlobalState,

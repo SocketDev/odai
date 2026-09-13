@@ -23,7 +23,7 @@ import {
   waitForModelReady,
 } from './chrome-page.mts'
 import { modelUnsupportedReason } from './chrome-models.mts'
-import { assertChromeStorage } from './chrome-storage.mts'
+import { assertChromeStorage } from './chrome/storage.mts'
 import {
   chromeMissingReason,
   ensureBridgeProfile,
@@ -301,4 +301,4 @@ export async function startBridge(
 export {
   wrapNativeChromeFactory,
   wrapNativeChromeSession,
-} from './chrome-native.mts'
+} from './chrome/native.mts'

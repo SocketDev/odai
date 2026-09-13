@@ -5,9 +5,9 @@
 
 import { getLanguageModel as getBuiltinLanguageModel } from '@socketsecurity/lib/ai/builtin'
 
-import { wrapNativeChromeFactory } from './backends/chrome-native.mts'
+import { wrapNativeChromeFactory } from './backends/chrome/native.mts'
 
-import type { NativeChromeFactory } from './backends/chrome-native.mts'
+import type { NativeChromeFactory } from './backends/chrome/native.mts'
 
 import type { LanguageModelLike, SessionLike } from './types.mts'
 import type { LanguageModelFactory } from './provider.mts'
