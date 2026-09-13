@@ -11,6 +11,7 @@ export declare function migrateWorkspaceSettings(dest: string, yaml: string): st
  * `main()` actually parses.
  */
 interface ScriptMeta {
+  readonly heavyJob?: 'test' | 'coverage' | 'build' | 'type' | undefined;
   readonly json?: 'native' | 'result' | undefined;
   readonly describe: string;
   readonly help: string;
@@ -172,6 +173,7 @@ type ConfigFlag = 'bundlesVendoredDeps' | 'hasCodeql' | 'hasCratesRegistry' | 'h
 //#endregion
 //#region scripts/repo/gen/bootstrap/src/conditional-files.d.mts
 interface ConditionalManifestGroup {
+  readonly dependency?: string | undefined;
   readonly removeWhenInactive?: boolean | undefined;
   readonly marker?: string | undefined;
   readonly capability?: string | undefined;
