@@ -11,3 +11,16 @@ The installed package owns Chrome setup through `odai setup` and `setupChromeBui
 Repository provisioning may use the fleet Rust target sweep because the repository knows that stale Rust build outputs are disposable. Published library code does not assume that a consumer has Rust projects or Wheelhouse scripts.
 
 Tests use temporary homes for spawned tools. Python setup and conformance share downloaded packages and Python installations under `.cache/repo/python/`. The shared environment helper sets these paths after clearing personal cache overrides. Conformance still writes test files, reports, and home configuration inside its temporary staging directory. Clearing the shared cache requires running `pnpm run setup:e2e --conformance` again to warm it. Package validation creates a temporary consumer and uses `npm pack`, which avoids a dependency on Corepack's pnpm shim. The fleet entrypoint and isolation checks enforce these contracts.
+
+## Verify prepared Python caches
+
+Run setup once, then require the conformance runner to resolve Python dependencies offline:
+
+```sh
+pnpm run setup:e2e --conformance
+UV_OFFLINE=1 pnpm run test:conformance
+```
+
+The offline setting applies to `uv`. The conformance tests still contact the local shim server. A missing cached dependency must fail instead of downloading during this check.
+
+The verified run reported 5 passing cases, 75 expected failures, and no unexpected failures. Expected failures describe unsupported upstream behavior. They are separate from dependency preparation and do not count as passing cases.
