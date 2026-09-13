@@ -87,7 +87,7 @@ jobs:
           # bootstrap fetch (fired by `prepare` during install) can download the
           # fleet release bundle from the private wheelhouse. Both secrets are
           # empty on a non-thin member, so the mint is skipped.
-          payload-token-client-id: ${{ secrets.SOCKET_PR_CLIENT_ID }}
+          payload-token-client-id: ${{ vars.SOCKET_PR_CLIENT_ID }}
           payload-token-private-key: ${{ secrets.SOCKET_PR_APP_PRIVATE_KEY }}
       - name: Check
         uses: ./.github/actions/fleet/run-script
@@ -138,7 +138,7 @@ jobs:
           # bootstrap fetch (fired by `prepare` during install) can download the
           # fleet release bundle from the private wheelhouse. Both secrets are
           # empty on a non-thin member, so the mint is skipped.
-          payload-token-client-id: ${{ secrets.SOCKET_PR_CLIENT_ID }}
+          payload-token-client-id: ${{ vars.SOCKET_PR_CLIENT_ID }}
           payload-token-private-key: ${{ secrets.SOCKET_PR_APP_PRIVATE_KEY }}
       - name: Test
         uses: ./.github/actions/fleet/run-script
