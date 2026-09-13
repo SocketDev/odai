@@ -42,8 +42,14 @@ describe('repository lockstep evidence', () => {
         },
       ],
     }
+    const response = {
+      verdict: output.verdict,
+      facts: output.facts,
+      changes: [],
+      questions: output.questions,
+    }
     const result = await analyzeLockstep(
-      createMockModel(JSON.stringify(output)),
+      createMockModel(JSON.stringify(response)),
       input,
     )
     expect(result.data).toEqual(output)
@@ -85,14 +91,19 @@ describe('repository lockstep evidence', () => {
     const response = {
       verdict: 'abstain',
       facts: [],
-      patches: [],
+      changes: [],
       questions: [
         'The new mode and error behavior need implementation evidence.',
       ],
     }
     const model = createMockModel(JSON.stringify(response))
     const call = vi.spyOn(model, 'promptStructured')
-    expect((await analyzeLockstep(model, input)).data).toEqual(response)
+    expect((await analyzeLockstep(model, input)).data).toEqual({
+      verdict: response.verdict,
+      facts: response.facts,
+      patches: [],
+      questions: response.questions,
+    })
     expect(JSON.parse(call.mock.calls[0]![0])).toEqual(input)
   })
 
@@ -105,14 +116,16 @@ describe('repository lockstep evidence', () => {
       JSON.stringify({
         verdict: 'no-change',
         facts: [],
-        patches: [],
+        changes: [],
         questions: [],
         verified: true,
       }),
     )
     const result = await analyzeLockstep(model, input)
-    expect(result.data?.verdict).toBe('abstain')
-    expect(result.data?.patches).toEqual([])
+    expect(result).toMatchObject({
+      ok: false,
+      error: 'lockstep:invalid-analysis',
+    })
   })
 })
 // oxlint-disable socket/

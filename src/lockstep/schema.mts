@@ -98,5 +98,36 @@ export const LockstepAnalysisSchema = Type.Object(
   { additionalProperties: false },
 )
 
+export const LockstepProposalSchema = Type.Object(
+  {
+    verdict: Type.Union([
+      Type.Literal('port'),
+      Type.Literal('no-change'),
+      Type.Literal('abstain'),
+    ]),
+    facts: LockstepAnalysisSchema.properties.facts,
+    changes: Type.Array(
+      Type.Object(
+        {
+          path: pathSchema,
+          evidenceId: Type.String({ minLength: 1, maxLength: 128 }),
+          startLine: lineSchema,
+          endLine: lineSchema,
+          operation: Type.Union([
+            Type.Literal('replace'),
+            Type.Literal('append'),
+          ]),
+          text: Type.String({ minLength: 1, maxLength: 32_768 }),
+        },
+        { additionalProperties: false },
+      ),
+      { maxItems: 16 },
+    ),
+    questions: LockstepAnalysisSchema.properties.questions,
+  },
+  { additionalProperties: false },
+)
+
 export type LockstepInput = Static<typeof LockstepInputSchema>
 export type LockstepAnalysis = Static<typeof LockstepAnalysisSchema>
+export type LockstepProposal = Static<typeof LockstepProposalSchema>

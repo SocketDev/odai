@@ -5,7 +5,10 @@ import { createSimulatorBackend } from '../../../../src/backends/simulator.mts'
 import { parseCliArgs } from '../../../../src/cli/args.mts'
 import { parseBatchManifest } from '../../../../src/cli/batch.mts'
 import { runCli } from '../../../../src/cli/run.mts'
-import { createLockstepExample } from '../../../../src/lockstep/examples.mts'
+import {
+  buildLockstepProposalExample,
+  createLockstepExample,
+} from '../../../../src/lockstep/examples.mts'
 
 afterEach(() => {
   vi.restoreAllMocks()
@@ -19,7 +22,7 @@ describe('lockstep command integration', () => {
       const lines: string[] = []
       const code = await runCli(['lockstep'], {
         backend: createSimulatorBackend({
-          fallback: JSON.stringify(example.output),
+          fallback: JSON.stringify(buildLockstepProposalExample(example)),
         }),
         env: {},
         readStdin: async () => JSON.stringify(example.input),
@@ -33,11 +36,11 @@ describe('lockstep command integration', () => {
 
   it('selects the heavy backend when no override is supplied', async () => {
     const example = createLockstepExample('sparse')
-    const select = vi
-      .spyOn(registry, 'selectBackend')
-      .mockResolvedValue(
-        createSimulatorBackend({ fallback: JSON.stringify(example.output) }),
-      )
+    const select = vi.spyOn(registry, 'selectBackend').mockResolvedValue(
+      createSimulatorBackend({
+        fallback: JSON.stringify(buildLockstepProposalExample(example)),
+      }),
+    )
     expect(
       await runCli(['lockstep'], {
         env: {},
@@ -51,11 +54,11 @@ describe('lockstep command integration', () => {
 
   it('honors explicit Gemma evaluation and environment choices', async () => {
     const example = createLockstepExample('full')
-    const select = vi
-      .spyOn(registry, 'selectBackend')
-      .mockResolvedValue(
-        createSimulatorBackend({ fallback: JSON.stringify(example.output) }),
-      )
+    const select = vi.spyOn(registry, 'selectBackend').mockResolvedValue(
+      createSimulatorBackend({
+        fallback: JSON.stringify(buildLockstepProposalExample(example)),
+      }),
+    )
     const options = {
       readStdin: async () => JSON.stringify(example.input),
       stderr: () => {},
@@ -100,7 +103,7 @@ describe('lockstep command integration', () => {
     expect(
       await runCli(['batch'], {
         backend: createSimulatorBackend({
-          fallback: JSON.stringify(example.output),
+          fallback: JSON.stringify(buildLockstepProposalExample(example)),
         }),
         env: {},
         readStdin: async () =>

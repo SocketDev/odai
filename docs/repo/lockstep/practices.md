@@ -75,9 +75,12 @@ pnpm run bench --scenario=lockstep --routed --json
 ```
 
 The prompt supplies examples, evidence boundaries, and an abstention rule.
+The model describes each edit with a local or test evidence identifier, an inclusive line range, an operation, and new text.
+`odai` reads the old lines from trusted evidence and generates the unified diff.
+This keeps diff headers and unchanged source text out of the model's output while preserving the public patch response used by the fleet verifier.
 This is prompt scaffolding. It does not train or modify model weights.
 The full and sparse evaluation cases use values that differ from the prompt examples.
-Their scores measure response structure, citations, and patch boundaries.
+Their scores require valid citations and the exact expected source and regression-test patches.
 They do not measure upstream conformance or prove that a model can implement an unfamiliar port.
 
 The default benchmark uses deterministic simulator responses to test the harness.

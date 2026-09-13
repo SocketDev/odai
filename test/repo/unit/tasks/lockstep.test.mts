@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import { createLockstepExample } from '../../../../src/lockstep/examples.mts'
+import {
+  buildLockstepProposalExample,
+  createLockstepExample,
+} from '../../../../src/lockstep/examples.mts'
 import { createMockModel } from '../../../../src/mock.mts'
 import { analyzeLockstep } from '../../../../src/tasks/lockstep.mts'
 
@@ -9,7 +12,9 @@ describe('analyzeLockstep', () => {
     'runs structured %s analysis through a model',
     async materialization => {
       const { input, output } = createLockstepExample(materialization)
-      const model = createMockModel(JSON.stringify(output))
+      const model = createMockModel(
+        JSON.stringify(buildLockstepProposalExample({ input, output })),
+      )
       const result = await analyzeLockstep(model, input)
       expect(result.ok).toBe(true)
       expect(result.data).toEqual(output)
@@ -53,6 +58,20 @@ describe('analyzeLockstep', () => {
     input.version = 2 as 1
     expect((await analyzeLockstep(model, input)).ok).toBe(false)
     expect(call).not.toHaveBeenCalled()
+  })
+
+  it('retries a structurally valid response that violates the lockstep contract', async () => {
+    const { input, output } = createLockstepExample('full')
+    const proposal = buildLockstepProposalExample({ input, output })
+    proposal.changes.pop()
+    const result = await analyzeLockstep(
+      createMockModel(JSON.stringify(proposal)),
+      input,
+    )
+    expect(result).toMatchObject({
+      ok: false,
+      error: 'lockstep:missing-regression-test',
+    })
   })
 
   it('rejects a hostile response even when a custom model bypasses the schema', async () => {

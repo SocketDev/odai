@@ -1,4 +1,5 @@
-import { LockstepAnalysisSchema } from '../lockstep/schema.mts'
+import { parseLockstepProposal } from '../lockstep/proposal.mts'
+import { LockstepProposalSchema } from '../lockstep/schema.mts'
 import {
   abstainLockstep,
   parseLockstepInput,
@@ -47,8 +48,8 @@ export async function analyzeLockstep(
         { role: 'system', content: LOCKSTEP_SYSTEM_PROMPT },
         ...LOCKSTEP_FEW_SHOT,
       ],
-      responseConstraint: LockstepAnalysisSchema,
-      schema: { parse: value => validateLockstepAnalysis(parsed, value) },
+      responseConstraint: LockstepProposalSchema,
+      schema: { parse: value => parseLockstepProposal(parsed, value) },
     },
   )
   if (!result.ok || result.data === undefined) {
