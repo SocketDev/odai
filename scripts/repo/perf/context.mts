@@ -6,6 +6,10 @@ import { stringify, writeJson } from '@socketsecurity/lib-stable/fs/write-json'
 // This benchmark measures source and payload types from this working tree.
 // oxlint-disable-next-line socket/prefer-stable-self-import -- source bench
 import { compareContextSessions } from '../../../src/bench/context.mts'
+// oxlint-disable-next-line socket/prefer-stable-self-import -- source bench
+import { compareConversations } from '../../../src/bench/conversation.mts'
+// oxlint-disable-next-line socket/prefer-stable-self-import -- source bridge
+import { createPageBoundFactory } from '../../../src/backends/chrome-page.mts'
 // oxlint-disable-next-line socket/prefer-stable-self-import -- source types
 import type {
   ContextInput,
@@ -20,6 +24,7 @@ Compare retained Chrome context with fresh sessions replaying identical history.
 Use the existing Gemma 4 model. This command does not download model weights.
 
   --pairs <count>           Conversation pairs, 1–20. Default: 3.
+  --api <odai|native>       Public API or direct Chrome baseline. Default: odai.
   --context-lines <count>   Reference lines, 0–256. Default: 64.
   --timeout <milliseconds>  Per-operation limit, 1–2147483647ms. Default: 120000.
   --output <file.json>      Write JSON to this path. Default: standard output.
@@ -28,6 +33,7 @@ Use the existing Gemma 4 model. This command does not download model weights.
 `
 
 export interface ContextArguments extends ContextInput {
+  api: 'native' | 'odai'
   help: boolean
   output?: string | undefined
 }
@@ -37,6 +43,7 @@ export function parseContextArgs(argv: string[]): ContextArguments {
     args: argv,
     options: {
       pairs: { type: 'string', default: '3' },
+      api: { type: 'string', default: 'odai' },
       'context-lines': { type: 'string', default: '64' },
       timeout: { type: 'string', default: '120000' },
       output: { type: 'string' },
@@ -49,7 +56,11 @@ export function parseContextArgs(argv: string[]): ContextArguments {
   if (values.output !== undefined && values.output.trim() === '') {
     throw new RangeError('--output requires a nonempty file path.')
   }
+  if (values.api !== 'native' && values.api !== 'odai') {
+    throw new RangeError('--api requires odai or native.')
+  }
   return {
+    api: values.api,
     contextLines: parseContextInteger(
       'context-lines',
       values['context-lines'],
@@ -102,12 +113,32 @@ export async function main(
   const bridgeSetupMs = performance.now() - startedAt
   try {
     const { pairs, contextLines, timeoutMs } = options
-    const result = await bridge.page.evaluate<ContextReport>(
-      compareContextSessions,
-      { pairs, contextLines, timeoutMs },
-    )
+    const result =
+      options.api === 'native'
+        ? await bridge.page.evaluate<ContextReport>(compareContextSessions, {
+            pairs,
+            contextLines,
+            timeoutMs,
+          })
+        : await compareConversations(createPageBoundFactory(bridge), {
+            pairs,
+            contextLines,
+            timeoutMs,
+          })
     const report = {
       schemaVersion: 1,
+      api: options.api,
+      ...(options.api === 'odai'
+        ? {
+            userAgent: await bridge.page.evaluate<string>(
+              () => navigator.userAgent,
+            ),
+          }
+        : {}),
+      timingBoundary:
+        options.api === 'odai'
+          ? 'public-api-call-including-lazy-session-creation'
+          : 'native-session-prompt',
       evidence: 'real',
       requestedModel: 'gemma4',
       node: process.version,

@@ -73,7 +73,7 @@ It also releases reader locks and returns promptly after cancellation.
 Controlled tests hold a stream open and verify that the callback fires before completion.
 They also cover cancellation between a promise settling and its result being consumed.
 This establishes earlier delivery at the library boundary. It does not change model generation speed.
-The Chrome bridge still needs native cancellation forwarding to stop generation after local waiting ends.
+The Chrome bridge forwards cancellation to native operations and releases readers and operation controllers.
 
 ## Persistent conversation context
 
@@ -94,8 +94,16 @@ Chrome 153 ran with Gemma 4 requested. The native window was 9,216 tokens, with 
 The machine was an Apple M3 Max on AC power. Other local work was active, so treat this as an exploratory comparison.
 
 Session setup accounts for the supported end-to-end saving. Generation alone was not consistently faster.
-The prototype does not add a public persistent conversation API.
-The [design](design.md#persistent-conversations) lists the required provider capabilities, history limits, recovery, and disposal rules.
+The native prototype remains available as the direct Chrome baseline.
+The [public conversation API](../conversation/practices.md) implements retained context, transcript replay, history bounds, recovery, and disposal.
+Its benchmark measures the public API boundary, including lazy session creation. The native prototype timings above do not measure that API.
+
+The public API passes deterministic native and replay tests and packed browser and Node consumer checks.
+The live API comparison could not run because local disk space fell below Chrome's model retention threshold and its Gemma weights were removed.
+No public API latency result is claimed from that failed setup.
+
+The [API footprint report](../../../bench/results/footprint-conversation.json) measures the added conversation implementation and lockstep corrections.
+It retains shared package chunks and the existing runtime dependency set.
 
 ## Full and sparse lockstep evaluation
 
@@ -121,8 +129,22 @@ An earlier two-pair exploratory run passed all four normal-context cases. The re
 These fixtures test a small value change. They do not establish readiness for unfamiliar upstream ports.
 Deterministic simulator and unit tests verify the harness. They do not increase the live model's score.
 
+The task now requires target-revision citations and accepts caller-supplied semantic validation.
+It allows at most three total attempts and sends the actual validation diagnostic after a rejected proposal.
+The benchmark applies changes in memory and reuses its existing parser oracle for this feedback.
+The six fixture cases and their acceptance criteria remain unchanged. Every attempt and response is recorded.
+
+The six-case live rerun timed out before any case completed. A subsequent launch confirmed that the cached Gemma weights were missing.
+Only 6.4GiB was free during that launch. The prior 4/6 result remains the last measured production-context score.
+Chrome startup now checks storage before launching to prevent another model-cache eviction.
+It requires 10GiB for an existing model or 22GiB when provisioning a model.
+
 ## Verification
 
-The full suite passed 1,408 tests, with two existing external-conformance tests skipped.
-Build, declarations, packed browser/Node consumer checks, and focused lint passed.
-The full suite took 12.89s while other local work was active. This is a validation result, not evidence of a faster test suite.
+The coverage run passed with 99.41% executable coverage and 99.80% type coverage.
+It covered 3,879 of 3,902 executable lines, with 1,567 passing tests and two optional conformance cases skipped.
+The repository enforces a 99% executable line coverage floor.
+Build, declarations, packed browser/Node consumer checks, and full lint passed.
+The public API has 68 focused behavior tests. Controlled Chrome tests cover native cancellation, late completion, overflow, and the storage guard.
+Mocked providers cover recovery and cleanup failures. This coverage pass added no exclusions.
+These checks establish library behavior. A live model score remains separate from deterministic verification.

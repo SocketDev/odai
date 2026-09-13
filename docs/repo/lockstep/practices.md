@@ -29,12 +29,21 @@ The public `parseLockstepInput` and `validateLockstepAnalysis` functions validat
 A response has a `port`, `no-change`, or `abstain` verdict.
 A `port` response needs an upstream citation, a code patch, and an additive test patch.
 A `no-change` response still needs a citation. An abstention needs an explanation.
+A `port` response must cite the target revision. A `no-change` response must cite every supplied target excerpt.
+The previous upstream revision provides historical context. Matching it does not establish that the local implementation matches the target.
 
 Validation checks citation identifiers and line ranges against the supplied evidence.
 It does not establish whether the cited text supports the model's conclusion.
 Paths must remain inside the declared local and test areas.
 The patch parser rejects malformed hunks, path traversal, renames, and file mode changes.
 Protected files, including pins and generated outputs, require a separate manual change.
+
+The task allows at most three model attempts. A rejected proposal receives its actual validation diagnostic on the next attempt.
+Each attempt uses a fresh request session. Retries inside the structured-output helper are disabled for this task.
+The public `validate` option accepts a diagnostic callback for additional checks.
+Return a string to reject the analysis, or `undefined` to accept it. The callback can be asynchronous.
+For example, a caller can apply proposed changes in memory and parse the result before accepting the response.
+The callback does not establish that a full repository test suite passed.
 
 ## Verify the proposed change
 

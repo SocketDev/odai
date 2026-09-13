@@ -29,7 +29,7 @@ it('reports unavailable browser factories without launching a bridge', async () 
   await expect(backend.close()).resolves.toBeUndefined()
 })
 
-it('wraps native sessions and their clones with constraint fallback', async () => {
+it('preserves adapted sessions and propagates constraint failures without retry', async () => {
   const destroy = vi.fn()
   const prompt = vi
     .fn()
@@ -52,11 +52,12 @@ it('wraps native sessions and their clones with constraint fallback', async () =
   const session = await factory.create()
   const copy = await session.clone!()
   const messages = [{ role: 'user' as const, content: 'hello' }]
-  expect(
-    await copy.prompt(messages, { responseConstraint: { type: 'string' } }),
-  ).toBe('ready')
-  expect(prompt).toHaveBeenCalledTimes(2)
-  expect(prompt).toHaveBeenLastCalledWith(messages)
+  await expect(
+    copy.prompt(messages, { responseConstraint: { type: 'string' } }),
+  ).rejects.toThrow('unsupported constraint')
+  expect(prompt).toHaveBeenCalledExactlyOnceWith(messages, {
+    responseConstraint: { type: 'string' },
+  })
   copy.destroy!()
   expect(destroy).toHaveBeenCalledTimes(1)
 })

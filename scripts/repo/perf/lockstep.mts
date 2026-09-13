@@ -1,6 +1,7 @@
 import process from 'node:process'
 import { parseArgs } from 'node:util'
 import { stringify, writeJson } from '@socketsecurity/lib-stable/fs/write-json'
+import { errorMessage } from '@socketsecurity/lib-stable/errors/message'
 
 // oxlint-disable-next-line socket/prefer-stable-self-import -- benchmark
 import { startBridge } from '../../../src/backends/chrome-builtin.mts'
@@ -35,6 +36,8 @@ export interface LockstepAttempt {
   inputCharacters: number
   outputCharacters: number
   completed: boolean
+  raw?: string | undefined
+  error?: string | undefined
 }
 
 export const LOCKSTEP_CONTEXT_PREFIX: Message[] = [
@@ -44,24 +47,41 @@ export const LOCKSTEP_CONTEXT_PREFIX: Message[] = [
 
 export type LockstepContextMode = 'per-request' | 'preloaded'
 
-export function lockstepExperimentOrder(pair: number): Array<{
+export interface LockstepArguments {
+  help: boolean
+  mode: LockstepContextMode | 'both'
+  output?: string | undefined
+  pairs: number
+  timeoutMs: number
+}
+
+export function lockstepExperimentOrder(
+  pair: number,
+  selection: LockstepContextMode | 'both' = 'per-request',
+): Array<{
   mode: LockstepContextMode
   materializations: Array<'full' | 'sparse'>
 }> {
   const modes: LockstepContextMode[] =
     pair % 2 === 0 ? ['per-request', 'preloaded'] : ['preloaded', 'per-request']
-  return modes.map(mode => ({
-    __proto__: null,
-    mode,
-    materializations: pair % 2 === 0 ? ['full', 'sparse'] : ['sparse', 'full'],
-  }))
+  return modes
+    .filter(mode => selection === 'both' || selection === mode)
+    .map(mode => ({
+      __proto__: null,
+      mode,
+      materializations:
+        pair % 2 === 0 ? ['full', 'sparse'] : ['sparse', 'full'],
+    }))
 }
 
-export function parseLockstepExperimentArgs(argv: string[]) {
+export function parseLockstepExperimentArgs(
+  argv: string[],
+): LockstepArguments & { __proto__: null } {
   const { values } = parseArgs({
     args: argv,
     options: {
       pairs: { type: 'string', default: '3' },
+      mode: { type: 'string', default: 'per-request' },
       timeout: { type: 'string', default: '120000' },
       output: { type: 'string' },
       json: { type: 'boolean' },
@@ -72,6 +92,12 @@ export function parseLockstepExperimentArgs(argv: string[]) {
   })
   const pairs = Number(values.pairs)
   const timeoutMs = Number(values.timeout)
+  const mode = values.mode
+  if (mode !== 'both' && mode !== 'per-request' && mode !== 'preloaded') {
+    throw new Error(
+      'Invalid lockstep mode. Where: --mode. Wanted per-request, preloaded, or both. Fix: use --mode per-request for production evaluation.',
+    )
+  }
   if (
     !Number.isSafeInteger(pairs) ||
     pairs < 1 ||
@@ -87,6 +113,7 @@ export function parseLockstepExperimentArgs(argv: string[]) {
   return {
     __proto__: null,
     pairs,
+    mode,
     timeoutMs,
     output: values.output,
     help: values.help ?? false,
@@ -145,7 +172,7 @@ export function traceLockstepSession(
           ? timeout
           : AbortSignal.any([timeout, opts.abortSignal])
       const startedAt = performance.now()
-      const attempt = {
+      const attempt: LockstepAttempt = {
         durationMs: 0,
         inputCharacters: input.reduce(
           (sum, message) => sum + message.content.length,
@@ -161,7 +188,11 @@ export function traceLockstepSession(
         )
         attempt.outputCharacters = result.length
         attempt.completed = true
+        attempt.raw = result
         return result
+      } catch (error) {
+        attempt.error = errorMessage(error)
+        throw error
       } finally {
         attempt.durationMs = performance.now() - startedAt
         attempts.push(attempt)
@@ -183,9 +214,13 @@ export async function runLockstepContextPair(
   factory: LanguageModelLike,
   pair: number,
   timeoutMs: number,
+  selection: LockstepContextMode | 'both' = 'per-request',
 ) {
   const rows = []
-  for (const { mode, materializations } of lockstepExperimentOrder(pair)) {
+  for (const { mode, materializations } of lockstepExperimentOrder(
+    pair,
+    selection,
+  )) {
     const contextStartedAt = performance.now()
     const native = await awaitCancellable(
       factory.create(
@@ -241,6 +276,7 @@ export async function main(
     return
   }
   const startedAt = performance.now()
+  process.stderr.write('Lockstep evaluation: starting Chrome.\n')
   const bridge = await awaitCancellable(
     startBridge({
       model: 'gemma4',
@@ -254,6 +290,9 @@ export async function main(
   )
   try {
     const bridgeSetupMs = performance.now() - startedAt
+    process.stderr.write(
+      'Lockstep evaluation: Chrome is ready. Creating the identity session.\n',
+    )
     const factory = createPageBoundFactory(bridge)
     const identitySession = await awaitCancellable(
       factory.create(),
@@ -261,6 +300,7 @@ export async function main(
       destroySession,
     )
     const identityStartedAt = performance.now()
+    process.stderr.write('Lockstep evaluation: reading model identity.\n')
     let identity
     try {
       identity = await withTimeout(
@@ -282,17 +322,30 @@ export async function main(
       bridgeSetupMs,
       node: process.version,
       pairs: config.pairs,
+      mode: config.mode,
       timeoutMs: config.timeoutMs,
       attemptBoundary: 'SessionLike.prompt',
       rows: [] as Awaited<ReturnType<typeof runLockstepContextPair>>,
     }
     for (let pair = 0; pair < config.pairs; pair += 1) {
+      process.stderr.write(
+        `Lockstep evaluation: pair ${pair + 1}/${config.pairs}.\n`,
+      )
       report.rows.push(
-        ...(await runLockstepContextPair(factory, pair, config.timeoutMs)),
+        ...(await runLockstepContextPair(
+          factory,
+          pair,
+          config.timeoutMs,
+          config.mode,
+        )),
       )
       if (config.output !== undefined) {
         await writeJson(config.output, report)
       }
+      const completed = report.rows.filter(row => row.ok).length
+      process.stderr.write(
+        `Lockstep evaluation: ${completed}/${report.rows.length} cases passed.\n`,
+      )
     }
     if (config.output === undefined) {
       process.stdout.write(stringify(report))
@@ -308,7 +361,7 @@ export async function main(
 export const SCRIPT_META = {
   describe:
     'Measure full and sparse lockstep with per-request or preloaded native Chrome context.',
-  help: 'Usage: pnpm run perf:lockstep [--pairs 3] [--timeout 120000] [--output file.json]\nUses installed Gemma 4 without downloading weights. Timeout is milliseconds per operation. Preloading is an experiment, not a production default. Attempts count SessionLike.prompt calls. Model identity is self-reported.',
+  help: 'Usage: pnpm run perf:lockstep [--pairs 3] [--mode per-request|preloaded|both] [--timeout 120000] [--output file.json]\nEvaluates per-request production context by default. Uses installed Gemma 4 without downloading weights. Timeout is milliseconds per operation. Preloading is an optional experiment. Attempts record every SessionLike.prompt call and response. Model identity is self-reported.',
   json: 'native',
 } as const
 

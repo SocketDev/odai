@@ -16,6 +16,11 @@
     "from": "npm-registry",
     "type": "js"
   },
+  "cover": {
+    "thresholds": {
+      "lines": 99
+    }
+  },
   "docs": {
     "llmsTxt": true
   },

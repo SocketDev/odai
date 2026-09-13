@@ -1,3 +1,6 @@
+import { applyOraclePatch } from '../patch.mts'
+import { isValidJavaScript } from '../verify-oracles.mts'
+import type { LockstepAnalysis, LockstepInput } from '../../lockstep/schema.mts'
 import { verifyLockstepEvaluation } from './verify.mts'
 import { analyzeLockstep } from '../../tasks/lockstep.mts'
 import {
@@ -27,7 +30,9 @@ export function createLockstepScenario(
     task: 'lockstep',
     name: `lockstep-${materialization}-contract`,
     async run(model) {
-      const result = await analyzeLockstep(model, example.input)
+      const result = await analyzeLockstep(model, example.input, {
+        validate: validateLockstepScenario,
+      })
       const ok =
         result.ok &&
         result.data?.verdict === 'port' &&
@@ -64,3 +69,27 @@ export const lockstepScenarios: Scenario[] = [
   createLockstepScenario('full'),
   createLockstepScenario('sparse'),
 ]
+
+export function validateLockstepScenario(
+  input: LockstepInput,
+  analysis: LockstepAnalysis,
+): string | undefined {
+  for (const patch of analysis.patches) {
+    const evidence = input.evidence.find(
+      item => item.path === patch.path && item.side !== 'upstream',
+    )
+    const code =
+      evidence === undefined
+        ? undefined
+        : applyOraclePatch(evidence.text, patch.patch)
+    if (code === undefined) {
+      return `The patch for ${patch.path} did not apply to the supplied evidence. Use exact line ranges and retain surrounding lines.`
+    }
+    if (!isValidJavaScript(code)) {
+      return `The applied file ${patch.path} is not valid JavaScript. Preserve its declarations, identifiers, delimiters, and complete statements when replacing lines.`
+    }
+  }
+  return verifyLockstepEvaluation(input, analysis)
+    ? undefined
+    : 'The applied implementation or regression test does not match the target evidence. Compare local behavior with targetSha, not baseSha. Ensure an active test asserts target behavior using the imported local implementation.'
+}

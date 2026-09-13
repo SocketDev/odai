@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import {
   createLockstepEvaluation,
@@ -7,6 +7,7 @@ import {
 import {
   createLockstepScenario,
   lockstepFailureReason,
+  validateLockstepScenario,
 } from '../../../../../src/bench/lockstep/scenarios.mts'
 import { createMockModel } from '../../../../../src/mock.mts'
 import { analyzeLockstep } from '../../../../../src/tasks/lockstep.mts'
@@ -58,4 +59,45 @@ describe('lockstep failure diagnostics', () => {
     expect(lockstepFailureReason(undefined, [' ', '\n']).trim()).toBeTruthy()
     expect(lockstepFailureReason('', []).trim()).toBeTruthy()
   })
+})
+
+it('repairs a syntax failure using the applied-code diagnostic and original evidence', async () => {
+  const example = createLockstepEvaluation('full')
+  const invalid = createLockstepEvaluationProposal(example)
+  invalid.changes[0]!.text = 'export const value ='
+  const valid = createLockstepEvaluationProposal(example)
+  const model = createMockModel('')
+  const prompt = vi
+    .spyOn(model.rawSession(), 'prompt')
+    .mockResolvedValueOnce(JSON.stringify(invalid))
+    .mockResolvedValueOnce(JSON.stringify(valid))
+  const result = await createLockstepScenario('full').run(model)
+  expect(result.ok).toBe(true)
+  expect(prompt).toHaveBeenCalledTimes(2)
+  const messages = prompt.mock.calls[1]![0]
+  const correction = JSON.parse(
+    messages.findLast(item => item.role === 'user')!.content,
+  )
+  expect(correction.input).toEqual(example.input)
+  expect(correction.validationFeedback).toBeTruthy()
+  expect(JSON.parse(correction.previousResponse)).toEqual(invalid)
+})
+
+it('reports a patch that cannot apply to the supplied local evidence', () => {
+  const example = createLockstepEvaluation('full')
+  const local = example.input.evidence.find(item => item.side === 'local')!
+  local.text = 'export const unrelated = 0\n'
+  expect(
+    validateLockstepScenario(example.input, example.output)?.trim(),
+  ).toBeTruthy()
+})
+
+it('reports a patch without corresponding local evidence', () => {
+  const example = createLockstepEvaluation('full')
+  example.input.evidence = example.input.evidence.filter(
+    item => item.side !== 'local',
+  )
+  expect(
+    validateLockstepScenario(example.input, example.output)?.trim(),
+  ).toBeTruthy()
 })

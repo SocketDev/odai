@@ -35,6 +35,40 @@ assert.equal(bench.allScenarios.length > 0, true)
 assert.equal(typeof browser.createBuiltinModel, 'function')
 assert.equal(typeof node.runCli, 'function')
 
+for (const create of [browser.createConversation, node.createConversation]) {
+  const factory = new node.LanguageModelSimulator({
+    fallback: 'READY',
+    rules: [
+      {
+        when: text =>
+          text.includes('PACKED_CONTEXT') &&
+          text.includes('Recall the saved code'),
+        response: 'PACKED_CONTEXT',
+      },
+    ],
+  })
+  const conversation: browser.Conversation = await create(factory)
+  await conversation.prompt('Remember PACKED_CONTEXT')
+  assert.equal(
+    await conversation.prompt('Recall the saved code'),
+    'PACKED_CONTEXT',
+  )
+  const transcript: browser.Message[] = conversation.messages()
+  transcript[0]!.content = 'changed copy'
+  assert.equal(conversation.messages()[0]!.content, 'Remember PACKED_CONTEXT')
+  const restored = await create(factory, {
+    initialPrompts: conversation.messages(),
+  })
+  conversation.destroy()
+  assert.equal(
+    (await restored.promptStreaming('Recall the saved code')).raw,
+    'PACKED_CONTEXT',
+  )
+  restored.reset([])
+  assert.equal(await restored.prompt('Recall the saved code'), 'READY')
+  restored.destroy()
+}
+
 const candidates = [
   { id: 'inspect', description: 'Inspect the project dependencies.' },
   { id: 'repair', description: 'Repair dependency issues.' },

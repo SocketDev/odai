@@ -23,6 +23,7 @@ import {
   waitForModelReady,
 } from './chrome-page.mts'
 import { modelUnsupportedReason } from './chrome-models.mts'
+import { assertChromeStorage } from './chrome-storage.mts'
 import {
   chromeMissingReason,
   ensureBridgeProfile,
@@ -33,7 +34,6 @@ import {
   resolveBridgeConfig,
 } from './chrome-profile.mts'
 import type { LanguageModelLike } from '../types.mts'
-import { wrapFactoryWithConstraintFallback } from './chrome-constraint.mts'
 import type {
   Bridge,
   ChromiumLauncherLike,
@@ -194,10 +194,7 @@ export function createChromeBuiltinBackend(
     async languageModel(): Promise<LanguageModelLike> {
       const model = getLanguageModel()
       if (model !== undefined) {
-        // In-browser native path: sessions come straight from the runtime
-        // global, so wrap them to feature-detect responseConstraint. The Node
-        // bridge below feature-detects inside Chrome (see pagePrompt).
-        return wrapFactoryWithConstraintFallback(model)
+        return model
       }
       if (!isNodeRuntime()) {
         throw new Error(CHROME_BUILTIN_UNAVAILABLE_REASON)
@@ -263,6 +260,7 @@ export async function startBridge(
     throw new Error(reason)
   }
   const bridgePagePath = await ensureBridgeProfile(config, source)
+  await assertChromeStorage(config.userDataDir, source)
   const context = await launcher.launchPersistentContext(config.userDataDir, {
     args: LAUNCH_ARGS,
     executablePath: config.chromePath,
@@ -284,7 +282,13 @@ export async function startBridge(
       userDataDir: config.userDataDir,
     })
     return {
-      close: () => context.close(),
+      async close(): Promise<void> {
+        for (const [streamId, queue] of streams) {
+          queue.close({ error: 'Chrome bridge closed', streamId })
+        }
+        streams.clear()
+        await context.close()
+      },
       page,
       streams,
     }
@@ -295,6 +299,6 @@ export async function startBridge(
 }
 
 export {
-  wrapFactoryWithConstraintFallback,
-  wrapSessionWithConstraintFallback,
-} from './chrome-constraint.mts'
+  wrapNativeChromeFactory,
+  wrapNativeChromeSession,
+} from './chrome-native.mts'

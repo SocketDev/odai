@@ -16,11 +16,15 @@ import { createOdaiModel } from '../../src/model.mts'
 import { LanguageModelSimulator } from '../../src/simulator.mts'
 import type { LanguageModelFactory } from '@socketsecurity/lib/ai/builtin'
 
-import type {
-  BrowserContextLike,
-  ChromiumLauncherLike,
-  PageLike,
-} from '../../src/backends/chrome-builtin.mts'
+import { createFakeBrowser } from './fixture/chrome-browser.mts'
+
+const capacity = vi.hoisted(() => ({
+  statfs: vi.fn().mockResolvedValue({ bavail: 24 * 1024 ** 3, bsize: 1 }),
+}))
+vi.mock(import('node:fs/promises'), async importOriginal => ({
+  ...(await importOriginal()),
+  statfs: capacity.statfs,
+}))
 
 // odai delegates built-in model resolution to socket-lib's `ai/builtin`, whose
 // real resolver probes the runtime once and caches. Mock it to re-read the
@@ -31,80 +35,6 @@ vi.mock(import('@socketsecurity/lib/ai/builtin'), () => ({
       | LanguageModelFactory
       | undefined) ?? undefined,
 }))
-
-interface FakeBrowser {
-  closed: boolean
-  exposed: Map<string, (arg: never) => unknown>
-  gotoUrls: string[]
-  launcher: ChromiumLauncherLike
-  launches: Array<{ options: Record<string, unknown>; userDataDir: string }>
-}
-
-/**
- * Fake at the playwright boundary. `evaluate(fn, arg)` runs the serialized
- * page function in-process with a `LanguageModel` global installed, so the
- * page side of the bridge executes for real against the simulator.
- */
-function createFakeBrowser(languageModel: unknown): FakeBrowser {
-  const fake: FakeBrowser = {
-    closed: false,
-    exposed: new Map(),
-    gotoUrls: [],
-    launcher: {
-      async launchPersistentContext(
-        userDataDir: string,
-        options: object,
-      ): Promise<BrowserContextLike> {
-        fake.launches.push({
-          options: options as Record<string, unknown>,
-          userDataDir,
-        })
-        const page: PageLike = {
-          async evaluate<T>(
-            fn: unknown,
-            arg?: unknown | undefined,
-          ): Promise<T> {
-            const holder = globalThis as Record<string, unknown>
-            const previousModel = holder['LanguageModel']
-            const previousBindings = new Map<string, unknown>()
-            holder['LanguageModel'] = languageModel
-            for (const [name, callback] of fake.exposed) {
-              previousBindings.set(name, holder[name])
-              holder[name] = async (bindingArg: never) => callback(bindingArg)
-            }
-            try {
-              return (await (fn as (value: unknown) => unknown)(arg)) as T
-            } finally {
-              holder['LanguageModel'] = previousModel
-              for (const [name, previous] of previousBindings) {
-                holder[name] = previous
-              }
-            }
-          },
-          async exposeFunction(
-            name: string,
-            callback: (arg: never) => unknown,
-          ): Promise<void> {
-            fake.exposed.set(name, callback)
-          },
-          async goto(url: string): Promise<void> {
-            fake.gotoUrls.push(url)
-          },
-        }
-        return {
-          async close(): Promise<void> {
-            fake.closed = true
-          },
-          async newPage(): Promise<PageLike> {
-            return page
-          },
-        }
-      },
-    },
-    launches: [],
-  }
-  return fake
-}
 
 interface Fixture {
   chromePath: string

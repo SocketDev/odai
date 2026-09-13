@@ -24,6 +24,9 @@ describe.each(['full', 'sparse'] as const)('%s fixture behavior', mode => {
   it.each([
     ['export const value = 5', 'expect(value).toBe(8)'],
     ['export const value =', 'expect(value).toBe(8)'],
+    ['const value = 8', 'expect(value).toBe(8)'],
+    ['export let value = 8', 'expect(value).toBe(8)'],
+    ['export const value = 8', 'expect(value).toEqual(8)'],
     ['export const value = 8', 'expect(8).toBe(8)'],
     ['export const value = 8', 'expect(value).toBe(5)'],
     ['export const value = 8', 'if (false) { expect(value).toBe(8) }'],
@@ -53,6 +56,8 @@ describe.each(['full', 'sparse'] as const)('%s fixture behavior', mode => {
     "import { expect, test } from 'vitest'; import { value } from '../../src/parser/other.mts'; test('limit', () => { expect(value).toBe(8) })",
     "import { expect, test } from 'example-test'; import { value } from '../../src/parser/value.mts'; test('limit', () => { expect(value).toBe(8) })",
     "import { expect, test } from 'vitest'; import { value } from '../../src/parser/value.mts'; test = () => {}; test('limit', () => { expect(value).toBe(8) })",
+    "import { expect, test } from 'vitest'; import { value } from '../../src/parser/value.mts'; test('limit', value => { expect(value).toBe(8) })",
+    "import { expect, test } from 'vitest'; import { value } from '../../src/parser/value.mts'; test('limit', function* () { expect(value).toBe(8) })",
     "import { expect, test } from 'vitest'; import { value } from '../../src/parser/value.mts'; test.skip('limit', () => { expect(value).toBe(8) })",
     "import { expect, test } from 'vitest'; import { value } from '../../src/parser/value.mts'; function hidden() { test('limit', () => { expect(value).toBe(8) }) }",
   ])(
@@ -85,4 +90,11 @@ describe.each(['full', 'sparse'] as const)('%s fixture behavior', mode => {
       expect(verifyLockstepEvaluation(example.input, analysis)).toBe(false)
     }
   })
+})
+
+it('rejects partial implementation evidence instead of assuming a complete fixture', () => {
+  const example = createLockstepEvaluation('full')
+  const local = example.input.evidence.find(item => item.side === 'local')!
+  local.startLine = 2
+  expect(verifyLockstepEvaluation(example.input, example.output)).toBe(false)
 })

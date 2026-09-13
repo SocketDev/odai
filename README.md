@@ -132,6 +132,9 @@ It validates cited evidence and proposed patches before returning a result.
 The fleet runner verifies changes in a temporary copy with trusted commands.
 See [lockstep assistance](docs/repo/lockstep/practices.md) for preparation, verification, and model evaluation.
 
+Use the [conversation API](docs/repo/conversation/practices.md) when requests need shared context.
+It supports transcript restore, streaming, cancellation, and bounded history across native and replay providers.
+
 ### Serve
 
 `odai serve` turns any backend into a loopback HTTP server speaking both wire

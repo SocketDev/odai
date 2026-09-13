@@ -64,3 +64,27 @@ describe('lockstep replacement proposals', () => {
     )
   })
 })
+
+it('rejects a claim whose cited upstream lines were not supplied', () => {
+  const { input, proposal } = createProposal()
+  proposal.facts[0]!.endLine = 20
+  expect(() => parseLockstepProposal(input, proposal)).toThrow()
+})
+
+it.each(['duplicate', 'protected', 'outside', 'nul'] as const)(
+  'rejects the %s proposal before it can create a patch',
+  mutation => {
+    const { input, proposal } = createProposal()
+    const change = proposal.changes[0]!
+    if (mutation === 'duplicate') {
+      proposal.changes.push({ ...change })
+    } else if (mutation === 'protected') {
+      change.path = 'package.json'
+    } else if (mutation === 'outside') {
+      change.path = 'src/other/value.mts'
+    } else {
+      change.text += '\0'
+    }
+    expect(() => parseLockstepProposal(input, proposal)).toThrow()
+  },
+)

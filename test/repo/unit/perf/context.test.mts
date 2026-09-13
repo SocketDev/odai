@@ -10,8 +10,17 @@ import { compareContextSessions } from '../../../../src/bench/context.mts'
 import type { ContextReport } from '../../../../src/bench/context.mts'
 
 const mocks = vi.hoisted(() => ({
+  compareConversations: vi.fn(),
+  createPageBoundFactory: vi.fn(),
   startBridge: vi.fn(),
   writeJson: vi.fn(),
+}))
+
+vi.mock('../../../../src/bench/conversation.mts', () => ({
+  compareConversations: mocks.compareConversations,
+}))
+vi.mock('../../../../src/backends/chrome-page.mts', () => ({
+  createPageBoundFactory: mocks.createPageBoundFactory,
 }))
 
 vi.mock('../../../../src/backends/chrome-builtin.mts', () => ({
@@ -29,6 +38,8 @@ beforeEach(() => {
   process.exitCode = undefined
   mocks.startBridge.mockReset()
   mocks.writeJson.mockReset()
+  mocks.compareConversations.mockReset()
+  mocks.createPageBoundFactory.mockReset()
 })
 
 afterEach(() => {
@@ -61,11 +72,13 @@ function createBridgeFixture(ok = true) {
     page: { evaluate: vi.fn().mockResolvedValue(report) },
   }
   mocks.startBridge.mockResolvedValue(bridge)
+  mocks.compareConversations.mockResolvedValue(report)
   return { bridge, report }
 }
 
 it('parses defaults and explicit limits', () => {
   expect(parseContextArgs([])).toEqual({
+    api: 'odai',
     contextLines: 64,
     help: false,
     output: undefined,
@@ -76,6 +89,8 @@ it('parses defaults and explicit limits', () => {
     parseContextArgs([
       '--pairs',
       '20',
+      '--api',
+      'native',
       '--context-lines',
       '0',
       '--timeout',
@@ -85,6 +100,7 @@ it('parses defaults and explicit limits', () => {
       '--json',
     ]),
   ).toEqual({
+    api: 'native',
     contextLines: 0,
     help: false,
     output: 'fixture report.json',
@@ -111,6 +127,7 @@ it.each([
   ['--unknown'],
   ['unexpected-position'],
   ['--pairs'],
+  ['--api', 'unknown'],
 ])('rejects invalid arguments %j', (...argv) => {
   expect(() => parseContextArgs(argv)).toThrow()
 })
@@ -127,6 +144,8 @@ it('runs fixed-model evaluation and writes a structured report', async () => {
   await main([
     '--pairs',
     '1',
+    '--api',
+    'native',
     '--context-lines',
     '2',
     '--timeout',
@@ -170,6 +189,8 @@ it('prints JSON and fails the exit status for an incorrect response', async () =
   expect(report.samples[0]!.ok).toBe(false)
   expect(process.exitCode).toBe(1)
   expect(bridge.close).toHaveBeenCalledTimes(1)
+  expect(mocks.createPageBoundFactory).toHaveBeenCalledWith(bridge)
+  expect(mocks.compareConversations).toHaveBeenCalledTimes(1)
 })
 
 it.each(['evaluate', 'write'])(
@@ -182,7 +203,9 @@ it.each(['evaluate', 'write'])(
     } else {
       mocks.writeJson.mockRejectedValue(failure)
     }
-    await expect(main(['--output', 'fixture.json'])).rejects.toBe(failure)
+    await expect(
+      main(['--api', 'native', '--output', 'fixture.json']),
+    ).rejects.toBe(failure)
     expect(bridge.close).toHaveBeenCalledTimes(1)
   },
 )

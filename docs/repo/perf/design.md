@@ -31,20 +31,20 @@ Unsupported filesystems need the existing plain-file fallback.
 The callback can run while generation continues. Its output is provisional and does not replace final task validation.
 
 Cancellation stops local waiting and requests stream cleanup. Reader locks are released on completion and failure.
-The Chrome bridge still needs native signal forwarding to guarantee that cancellation stops model generation.
+The Chrome adapters forward cancellation to native generation and release operation state after completion.
 The streaming helper does not destroy a session owned by its caller.
 
 ## Persistent conversations
 
 Current task requests clone or recreate a session and dispose of that request session afterward.
 This isolates tasks and prevents one task's result from becoming another task's input.
-A persistent conversation needs a separate, explicit API.
+The [conversation API](../conversation/practices.md) provides an explicit session with retained messages.
 
 The measured prototype keeps one Chrome session and sends only new turns.
 Its comparison path recreates a session and replays the exact completed native history.
 Chrome can retain native context in memory. Restoring after a process restart requires replaying stored messages.
 
-A future conversation API must establish the following behavior:
+The conversation API provides the following behavior:
 
 | Requirement        | Behavior                                                                                                                    |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------- |
@@ -60,12 +60,13 @@ Provider capabilities must be explicit. Chrome clones retain context. The curren
 The current llama adapter sends the supplied request messages without retaining them between calls.
 The existence of a `clone()` method therefore does not establish persistent context support.
 
-The current simulator also lacks history semantics. A stateful test factory can verify ordering, replay, isolation, and cleanup.
+The current simulator does not retain native history. The conversation API supplies its committed transcript through the replay path.
+Stateful test factories verify ordering, replay, isolation, and cleanup.
 Such tests do not establish live model quality or inference speed.
 
-The Chrome adapters need two further changes before they can safely back the public conversation API.
-They must forward cancellation to native sessions. They must also avoid resending a turn after an unrelated constrained-prompt error.
-These requirements follow from retaining state across requests. They are outside the measured prototype.
+Chrome adapters forward cancellation to native sessions and preserve native overflow status.
+A failed constrained prompt propagates its error. The adapter does not resend a potentially committed turn.
+The conversation disposes uncertain native state and restores committed messages before another attempt.
 
 Chrome documents retained sessions, cloning, and transcript restoration in its [session management guide](https://developer.chrome.com/docs/ai/session-management).
 Its [Prompt API guide](https://developer.chrome.com/docs/ai/prompt-api) describes initial prompts, context usage, and response prefixes.

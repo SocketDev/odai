@@ -22,6 +22,50 @@ export function hasLockstepImplementationAndTest(
   )
 }
 
+export function hasLockstepTargetCitations(
+  input: LockstepInput,
+  analysis: LockstepAnalysis,
+): boolean {
+  if (analysis.verdict === 'abstain') {
+    return true
+  }
+  const targets = input.evidence.filter(
+    item => item.side === 'upstream' && item.sha === input.row.targetSha,
+  )
+  const cited = new Set(analysis.facts.map(fact => fact.evidenceId))
+  return (
+    targets.length > 0 &&
+    (analysis.verdict === 'no-change'
+      ? targets.every(item => cited.has(item.id))
+      : targets.some(item => cited.has(item.id)))
+  )
+}
+
+export function lockstepVerdictError(
+  input: LockstepInput,
+  value: LockstepAnalysis,
+): string | undefined {
+  if (value.verdict !== 'port' && value.patches.length > 0) {
+    return 'lockstep:unexpected-patch'
+  }
+  if (value.verdict !== 'abstain' && value.facts.length === 0) {
+    return 'lockstep:missing-facts'
+  }
+  if (
+    value.verdict === 'port' &&
+    !hasLockstepImplementationAndTest(input, value)
+  ) {
+    return 'lockstep:missing-regression-test'
+  }
+  if (!hasLockstepTargetCitations(input, value)) {
+    return 'lockstep:missing-target-citation'
+  }
+  if (value.verdict === 'abstain' && value.questions.length === 0) {
+    return 'lockstep:missing-reason'
+  }
+  return undefined
+}
+
 export function parseLockstepInput(value: unknown): LockstepInput {
   // Check preserves the caller's exact authority. Parse would coerce or remove properties.
   if (!Value.Check(LockstepInputSchema, value)) {
@@ -105,20 +149,9 @@ export function validateLockstepAnalysis(
   if (!validPatches(input, value)) {
     return abstainLockstep('lockstep:invalid-patch')
   }
-  if (value.verdict !== 'port' && value.patches.length > 0) {
-    return abstainLockstep('lockstep:unexpected-patch')
-  }
-  if (value.verdict !== 'abstain' && value.facts.length === 0) {
-    return abstainLockstep('lockstep:missing-facts')
-  }
-  if (
-    value.verdict === 'port' &&
-    !hasLockstepImplementationAndTest(input, value)
-  ) {
-    return abstainLockstep('lockstep:missing-regression-test')
-  }
-  if (value.verdict === 'abstain' && value.questions.length === 0) {
-    return abstainLockstep('lockstep:missing-reason')
+  const verdictError = lockstepVerdictError(input, value)
+  if (verdictError !== undefined) {
+    return abstainLockstep(verdictError)
   }
   return Value.Clone(value)
 }

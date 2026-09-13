@@ -40,6 +40,7 @@ describe('lockstep context experiment', () => {
       ['--timeout', '0'],
       ['--timeout', 'Infinity'],
       ['--unknown'],
+      ['--mode', 'unknown'],
     ].map(args => ({ args })),
   )('rejects invalid options', ({ args }) => {
     expect(() => parseLockstepExperimentArgs(args)).toThrow()
@@ -60,14 +61,25 @@ describe('lockstep context experiment', () => {
   })
 
   it('balances both mode and materialization order across pairs', () => {
-    expect(lockstepExperimentOrder(0)).toEqual([
+    expect(lockstepExperimentOrder(0, 'both')).toEqual([
       { mode: 'per-request', materializations: ['full', 'sparse'] },
       { mode: 'preloaded', materializations: ['full', 'sparse'] },
     ])
-    expect(lockstepExperimentOrder(1)).toEqual([
+    expect(lockstepExperimentOrder(1, 'both')).toEqual([
       { mode: 'preloaded', materializations: ['sparse', 'full'] },
       { mode: 'per-request', materializations: ['sparse', 'full'] },
     ])
+  })
+
+  it('evaluates production context by default and keeps experiments explicit', () => {
+    expect(parseLockstepExperimentArgs([]).mode).toBe('per-request')
+    expect(lockstepExperimentOrder(0)).toEqual([
+      { mode: 'per-request', materializations: ['full', 'sparse'] },
+    ])
+    expect(lockstepExperimentOrder(1, 'preloaded')).toEqual([
+      { mode: 'preloaded', materializations: ['sparse', 'full'] },
+    ])
+    expect(parseLockstepExperimentArgs(['--mode', 'both']).mode).toBe('both')
   })
 
   it('records every structured attempt and strips the preloaded prefix once', async () => {
@@ -84,6 +96,7 @@ describe('lockstep context experiment', () => {
         attempt =>
           attempt.inputCharacters === 8 &&
           attempt.outputCharacters === 6 &&
+          attempt.raw === 'answer' &&
           attempt.completed,
       ),
     ).toBe(true)

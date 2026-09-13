@@ -138,7 +138,8 @@ export type { ModelIdentity } from './model-identity.mts'
 export type { HoistAssessOptions } from './tasks/hoist.mts'
 export type { SecurityFixAssessOptions } from './tasks/security-fix.mts'
 export type { WeeklyUpdatePlanOptions } from './tasks/weekly-update.mts'
-export type { Message } from './types.mts'
+export type { Message, SchemaLike, SessionLike, TaskResult } from './types.mts'
+export type { StreamOptions, StreamResult } from './stream.mts'
 export type { DepClassification } from './prompts/classify-deps.mts'
 export type { CommitMessage } from './prompts/commit.mts'
 export type {
@@ -181,6 +182,23 @@ export type {
   IntentInput,
   IntentResult,
 } from './prompts/classify-intent.mts'
+
+export { createConversation } from './conversation/create.mts'
+export { createBuiltinConversation } from './conversation/builtin.mts'
+export { createOdaiConversation } from './conversation/odai.mts'
+export { ConversationError } from './conversation/transcript.mts'
+export type {
+  Conversation,
+  ConversationChunk,
+  ConversationOptions,
+  ConversationPromptOptions,
+  ConversationStatus,
+  ConversationStreamOptions,
+  ConversationStructuredOptions,
+  OdaiConversationOptions,
+} from './conversation/types.mts'
+export type { LanguageModelLike, SessionContextStatus } from './types.mts'
+export type { LockstepOptions } from './tasks/lockstep.mts'
 
 export { withOdaiModel } from './lifecycle.mts'
 export type {

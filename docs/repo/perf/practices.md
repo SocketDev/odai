@@ -24,7 +24,8 @@ Its bytes do not belong to the normal browser entry.
 ## Measure retained conversation context
 
 ```sh
-pnpm run perf:context --pairs 5 --context-lines 64 --output bench/results/context.json
+pnpm run perf:context --api odai --pairs 5 --context-lines 64 --output bench/results/conversation.json
+pnpm run perf:context --api native --pairs 5 --context-lines 64 --output bench/results/context.json
 ```
 
 This experiment uses existing Gemma weights through the Chrome backend. It does not authorize a model download.
@@ -32,23 +33,27 @@ Each pair compares one retained native conversation with fresh sessions that rep
 The order alternates. Follow-up prompts ask for a code supplied only in the first turn.
 Both paths must return the expected code.
 
-The report separates bridge setup, session setup, first chunk, total response time, and context usage.
+The report records bridge setup, first chunk, total response time, and context usage.
+The public API timing includes lazy session creation. The native baseline reports session creation separately.
 Compare follow-up turns separately from the first turn, which includes initialization.
 Text character counts are not token counts. Chrome reports the native context window and usage where available.
 Keep failed samples in the report. A faster incorrect response does not qualify as an improvement.
 
-The harness tests native conversation reuse. It does not add a public conversation API to `@socketsecurity/odai`.
-The [design notes](design.md) describe the provider and lifecycle work needed for that API.
+The default command exercises the [public conversation API](../conversation/practices.md).
+Use `--api native` to measure the direct Chrome baseline.
 
 ## Measure full and sparse lockstep
 
 ```sh
-pnpm run perf:lockstep --pairs 3 --output bench/results/lockstep.json
+pnpm run perf:lockstep --mode per-request --pairs 3 --output bench/results/lockstep-corrected.json
 ```
 
-The script compares normal request context with a prepared template that is cloned before each request.
-Prepared context is an experiment. Normal task behavior remains isolated between requests.
-The report records setup, response time, attempts, raw replies, and fixture results for both materializations.
+The default script evaluates normal request context. Each pair covers full and sparse materialization.
+Use `--mode both` to compare it with the rejected preloaded-template experiment.
+Normal task behavior remains isolated between requests.
+The report records setup, response time, every attempt and raw reply, and fixture results for both materializations.
+The task allows at most three attempts and supplies validation feedback after a rejected proposal.
+Separate first-attempt success from success after correction.
 These small fixtures test patch generation. They do not measure a complete upstream port or conformance suite.
 
 Use the same fixture inputs before and after a change. Keep full and sparse results separate.
