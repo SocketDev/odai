@@ -58,7 +58,7 @@ export async function fetchChangelog(
   }
 
   try {
-    const url = `https://registry.npmjs.org/${encodeURIComponent(name).replace('%40', '@').replace('%2F', '/')}`
+    const url = `https://registry.npmjs.org/${encodeURIComponent(name)}`
     const response = await httpRequest(url, {
       headers: { accept: 'application/json' },
       signal: opts.abortSignal,

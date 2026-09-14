@@ -6,7 +6,11 @@
  *   the Anthropic and OpenAI modules stay siblings — neither imports the other.
  */
 
-import { normalizeJsonPunctuation, repairJson } from '../json.mts'
+import {
+  extractJsonFence,
+  normalizeJsonPunctuation,
+  repairJson,
+} from '../json.mts'
 
 /**
  * Rough chars-per-token divisor for usage estimates. The shim never sees the
@@ -120,12 +124,9 @@ export function extractToolCall(
   toolNames: ReadonlySet<string>,
 ): ToolCall | undefined {
   let trimmed = raw.trim()
-  // Match a markdown code fence: opening ``` optionally followed by `json`,
-  // then optional whitespace (\s*), then a lazy capture of any content
-  // including newlines ([\s\S]*?), then the closing ```.
-  const fenceMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/)
-  if (fenceMatch && fenceMatch[1] !== undefined) {
-    trimmed = fenceMatch[1].trim()
+  const fenced = extractJsonFence(trimmed)
+  if (fenced !== undefined) {
+    trimmed = fenced
   }
   if (!trimmed.startsWith('{')) {
     return undefined

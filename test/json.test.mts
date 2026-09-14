@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   buildPrefixedMessages,
+  extractJsonFence,
   isParseableJson,
   mergePrefill,
   normalizeKeys,
@@ -94,6 +95,21 @@ describe('json', () => {
   it('parses fenced json', () => {
     const data = parseJsonWithFallback(
       '```json\n{"a":1}\n```',
+      identitySchema,
+      undefined,
+    )
+    expect(data).toEqual({ a: 1 })
+  })
+
+  it('extracts only a complete fence on line boundaries', () => {
+    expect(extractJsonFence('```json\n{"a":1}\n```')).toBe('{"a":1}')
+    expect(extractJsonFence('prefix ```json\n{"a":1}\n```')).toBeUndefined()
+    expect(extractJsonFence('```json\n{"a":1}\n```suffix')).toBeUndefined()
+  })
+
+  it('completes for a long-whitespace fence with no closer', () => {
+    const data = parseJsonWithFallback(
+      `\`\`\`json${' '.repeat(200_000)}{"a":1}`,
       identitySchema,
       undefined,
     )

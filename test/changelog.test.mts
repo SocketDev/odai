@@ -52,6 +52,17 @@ describe('fetchChangelog', () => {
     expect(result.text).toContain('2.0 release notes')
   })
 
+  it('keeps adversarial package names in one registry path segment', async () => {
+    httpRequestMock.mockResolvedValue(jsonResponse(404, {}))
+    await fetchChangelog('@example/../package?query=#fragment')
+
+    const requested = new URL(httpRequestMock.mock.calls[0]![0] as string)
+    expect(requested.origin).toBe('https://registry.npmjs.org')
+    expect(requested.pathname).toBe(
+      '/%40example%2F..%2Fpackage%3Fquery%3D%23fragment',
+    )
+  })
+
   it('reports none when neither source exists', async () => {
     httpRequestMock.mockResolvedValue(jsonResponse(404, {}))
     const result = await fetchChangelog('missing-lib', { root: dir })
