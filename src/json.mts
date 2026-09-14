@@ -27,6 +27,32 @@ export function buildPrefixedMessages(
   return messages
 }
 
+export function extractJsonFence(raw: string): string | undefined {
+  const trimmed = raw.trim()
+  const openingEnd = trimmed.indexOf('\n')
+  if (openingEnd === -1) {
+    return undefined
+  }
+  const opening = trimmed.slice(0, openingEnd).trimEnd()
+  if (opening !== '```' && opening !== '```json') {
+    return undefined
+  }
+  const contentStart = openingEnd + 1
+  let lineStart = contentStart
+  while (lineStart < trimmed.length) {
+    const newline = trimmed.indexOf('\n', lineStart)
+    const lineEnd = newline === -1 ? trimmed.length : newline
+    if (trimmed.slice(lineStart, lineEnd).trim() === '```') {
+      return trimmed.slice(contentStart, lineStart).trim()
+    }
+    if (newline === -1) {
+      break
+    }
+    lineStart = newline + 1
+  }
+  return undefined
+}
+
 export function findCanonicalKey(
   key: string,
   // oxlint-disable-next-line socket/prefer-refined-record -- open key set
@@ -119,12 +145,9 @@ export function parseJsonWithFallback<T>(
   synonymMap?: Record<string, string[]> | undefined,
 ): T {
   let trimmed = raw.trim()
-  // Match a markdown code fence: opening ``` optionally followed by `json`,
-  // then optional whitespace (\s*), then a lazy capture of any content
-  // including newlines ([\s\S]*?), then the closing ```.
-  const fenceMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/)
-  if (fenceMatch && fenceMatch[1] !== undefined) {
-    trimmed = fenceMatch[1].trim()
+  const fenced = extractJsonFence(trimmed)
+  if (fenced !== undefined) {
+    trimmed = fenced
   }
 
   let parsed: unknown

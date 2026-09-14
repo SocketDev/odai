@@ -37,6 +37,14 @@ describe('extractToolCall', () => {
     expect(call).toEqual({ input: { command: 'ls' }, name: 'Bash' })
   })
 
+  it('rejects a fence marker that is not a complete line', () => {
+    const call = extractToolCall(
+      '```json\n{"tool_call":{"name":"Bash","input":{}}}\n```suffix',
+      TOOL_NAMES,
+    )
+    expect(call).toBeUndefined()
+  })
+
   it('repairs fullwidth punctuation and trailing prose', () => {
     const call = extractToolCall(
       '{"tool_call"：{"name"："Bash"，"input"：{}}} extra words',
