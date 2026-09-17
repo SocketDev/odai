@@ -115,9 +115,9 @@
     "setup:offload-providers": "node scripts/fleet/setup/offload-providers.mts",
     "sync-global-hooks": "node scripts/fleet/sync-global-hooks.mts",
     "backup": "node scripts/fleet/backup-work.mts",
-    "ai:odai:cache": "node scripts/repo/cache/run.mts",
-    "ai:odai:diagnose": "node scripts/repo/cache/diagnostic/run.mts",
-    "update:chrome": "node scripts/repo/update/chrome.mts",
+    "ai:odai:cache": "node scripts/fleet/ai/odai/run.mts cache",
+    "ai:odai:diagnose": "node scripts/fleet/ai/odai/run.mts diagnose",
+    "update:chrome": "node scripts/fleet/update/chrome.mts",
     "audit:consumer-source": "node scripts/fleet/audit/consumer-source.mts",
     "ai-balancer": "node scripts/fleet/ai/balancer/launch.mts",
     "ai-balancer:auth": "node scripts/fleet/ai/balancer/login.mts",
@@ -207,12 +207,13 @@
     "types:fix": "node scripts/fleet/types/fix.mts",
     "browser:bridge": "node scripts/fleet/browser/bridge/cli.mts",
     "browser:doctor": "node scripts/fleet/browser/bridge/doctor.mts",
-    "browser:setup": "node scripts/fleet/setup/browser-bridge.mts",
+    "browser:setup": "node scripts/fleet/setup/browser/bridge.mts",
     "browser:verify-installed": "node scripts/fleet/browser/bridge/verify-installed.mts",
     "check:deps": "node scripts/fleet/check.mts --category=deps",
     "check:hooks": "node scripts/fleet/check.mts --category=hooks",
     "check:types": "node scripts/fleet/check.mts --category=types",
-    "npm:trust:browser": "node scripts/fleet/registry-infra/npm/settings/trusted-publisher/browser.mts"
+    "npm:trust:browser": "node scripts/fleet/registry-infra/npm/settings/trusted-publisher/browser.mts",
+    "npm:scan": "node scripts/fleet/npm/scan.mts"
   },
   "dependencies": {
     "@sinclair/typebox": "catalog:",
