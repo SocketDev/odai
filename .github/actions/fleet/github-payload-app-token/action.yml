@@ -1,4 +1,4 @@
-name: Fleet payload read token
+name: Fleet payload app token
 description: >-
   Mint a short-lived, read-only installation token from the Release App.
   Thin member CI uses it to download the fleet release bundle from the private wheelhouse. Scoped
