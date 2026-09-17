@@ -45,6 +45,7 @@ jobs:
   # fetches under it. Defaults to enabled, so a member that says nothing keeps
   # what it has.
   gate:
+    name: Check release eligibility
     runs-on: ubuntu-latest
     outputs:
       asset_workflow: ${{ steps.flag.outputs.asset_workflow }}
@@ -82,7 +83,7 @@ jobs:
           payload-token-private-key: ${{ secrets.SOCKET_RELEASE_APP_PRIVATE_KEY }}
       - name: Read release.github
         id: flag
-        run: node scripts/fleet/release/github-release-enabled.mts
+        run: node scripts/fleet/release/github/enabled.mts
       - name: Say so when the repo opts out
         if: steps.flag.outputs.enabled != 'true'
         run: |
@@ -90,6 +91,7 @@ jobs:
           echo 'release.github is false in .config/repo/socket-wheelhouse.json — this repo does not cut GitHub Releases. Skipping.'
 
   github-release:
+    name: Publish GitHub release
     needs: gate
     if: needs.gate.outputs.enabled == 'true'
     runs-on: ubuntu-latest
@@ -242,6 +244,7 @@ jobs:
         with:
           client-id: ${{ secrets.SOCKET_RELEASE_CLIENT_ID || vars.SOCKET_RELEASE_CLIENT_ID }}
           private-key: ${{ secrets.SOCKET_RELEASE_APP_PRIVATE_KEY }}
+          repositories: ${{ github.event.repository.name }}
           owner: ${{ github.repository_owner }}
       # Build this repo's release assets here, then list them under the cut
       # step's `assets:` (newline-separated paths; each must exist).

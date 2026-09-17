@@ -11,7 +11,7 @@
  *   Dep-0: node: builtins only, so it runs before node_modules exists. Plain
  *   `.mts`, type-stripped by Node, which every fleet repo already requires via
  *   `engines.node >=24` —
- *   copied verbatim into the cascaded bootstrap payload by
+ *   included in the cascaded bootstrap payload by
  *   `scripts/repo/gen/bootstrap.mts`, beside `fleet.mjs`. Idempotent + fast:
  *   when the payload is already present it does a single existsSync check and
  *   exits — the common case. Fail-open: a missing fetcher or a failed fetch
@@ -305,7 +305,7 @@ type ScriptMeta = Parameters<typeof runMainMinimal>[1]
  * declaration and the code cannot drift apart.
  */
 export type FetchPlan =
-  | { action: 'fetch'; fleet: string }
+  | { action: 'ensure'; fleet: string }
   | { action: 'no-fetcher' }
   | { action: 'present' }
 
@@ -386,14 +386,13 @@ export function payloadPresent(repoRoot: string): boolean {
  *   with no node_modules: a bare clone self-fetches.
  */
 export function planFetch(repoRoot: string): FetchPlan {
-  if (payloadPresent(repoRoot)) {
-    return { action: 'present' }
-  }
   const fleet = path.join(repoRoot, 'scripts', 'repo', 'bootstrap', 'fleet.mjs')
   if (!existsSync(fleet)) {
-    return { action: 'no-fetcher' }
+    return payloadPresent(repoRoot)
+      ? { action: 'present' }
+      : { action: 'no-fetcher' }
   }
-  return { action: 'fetch', fleet }
+  return { action: 'ensure', fleet }
 }
 
 /**
@@ -426,14 +425,6 @@ export function warn(message: string): void {
   process.stderr.write(`fleet-fetch-session: ${message}\n`)
 }
 
-/**
- * The one-line summary `--describe` prints.
- *
- * Spelled inline rather than through the shared `runMain` runner. That runner
- * imports `@socketsecurity/lib-stable` at top level, and this kernel runs on a
- * bare clone where no `node_modules` exists yet. Dep-0 is the whole point of
- * the file, so self-describing has to cost zero dependencies.
- */
 export const DESCRIBE =
   're-materializes the fleet hook payload at SessionStart when a thin member was cloned without an install'
 
@@ -451,25 +442,18 @@ Fail-open: a missing fetcher or a failed fetch warns on stderr and exits 0, so
 a session never blocks. Idempotent: with the payload already present it does
 one existsSync and exits.`
 
-/**
- * Answer `--describe` / `--help`, reporting whether the run should stop here.
- */
-export function answeredSelfDescribe(argv: readonly string[]): boolean {
-  if (argv.includes('--describe')) {
-    process.stdout.write(`${DESCRIBE}\n`)
-    return true
-  }
-  if (argv.includes('--help') || argv.includes('-h')) {
-    process.stdout.write(`${DESCRIBE}\n\n${HELP}\n`)
-    return true
-  }
-  return false
+const SCRIPT_META: ScriptMeta = {
+  describe: DESCRIBE,
+  help: HELP,
+  json: 'result',
+}
+
+export function main(): number {
+  return ensurePayload(
+    resolveRepoRoot(path.dirname(fileURLToPath(import.meta.url))),
+  )
 }
 
 if (isMainModule()) {
-  process.exitCode = answeredSelfDescribe(process.argv.slice(2))
-    ? 0
-    : ensurePayload(
-        resolveRepoRoot(path.dirname(fileURLToPath(import.meta.url))),
-      )
+  runMainMinimal(main, SCRIPT_META)
 }

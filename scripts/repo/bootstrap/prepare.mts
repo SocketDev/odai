@@ -1,36 +1,15 @@
 #!/usr/bin/env node
-/*
- * @file Dep-0 fleet "prepare doctor". The consumer's `prepare` lifecycle runs
- *   this AFTER pnpm installs root deps (npm runs `prepare` post-install) — the
- *   only point where the fetched fleet payload exists AND the package manager
- *   is available, so it is where a thin member self-heals its wiring:
- *
- *   1. Fetch + apply the pinned fleet bundle when the consumer isn't current
- *      (delegates to `scripts/repo/bootstrap/fleet.mjs --if-current`). On a fresh clone this
- *      materializes the untracked fleet payload — the per-hook and oxlint-rule
- *      workspace packages the first install couldn't see.
- *   2. Repair `pnpm-workspace.yaml`: ensure every fleet workspace dir is listed
- *      under `packages:` so pnpm resolves those now-present packages.
- *      Idempotent — a no-op once the consumer already carries them.
- *   3. `pnpm install --ignore-scripts` — a reconcile pass that links the
- *      freshly-materialized workspace packages into node_modules. The FIRST
- *      install ran before the payload existed; this pass is what wires it.
- *      `--ignore-scripts` stops the pass from re-entering `prepare` (which
- *      would loop) and is safe because fleet packages have no build step. Bare
- *      node only — the dep-0 bootstrap never imports socket-lib (documented +
- *      enforced; everything else in the fleet uses socket-lib). Each repair is
- *      a pure, unit-tested function; this file orchestrates them and shells
- *      out. Extend it with further check-and-repair steps as the wired-settings
- *      surface grows. USAGE: node scripts/repo/bootstrap/prepare.mts
- */
-
-// Dep-0 bare-node fetcher (documented invariant: never imports in-repo
-// socket-lib): shells out to pnpm via node:child_process, and execFileSync's
-// throw-on-nonzero gates the reconcile step — the lib spawn wrapper (async,
-// non-throwing) would re-plumb the error handling.
+// Dep-0 hydration and workspace reconciliation use only Node built-ins.
 // oxlint-disable-next-line socket/prefer-spawn-over-execsync -- dep-0 bare-node
 import { execFileSync } from 'node:child_process'
-import { existsSync, readFileSync, realpathSync, writeFileSync } from 'node:fs'
+import { createHash } from 'node:crypto'
+import {
+  existsSync,
+  readdirSync,
+  readFileSync,
+  realpathSync,
+  writeFileSync,
+} from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath, pathToFileURL } from 'node:url'
@@ -684,29 +663,14 @@ const HERE = path.dirname(fileURLToPath(import.meta.url))
 // usable here.
 const REPO_ROOT = resolveRepoRoot(HERE)
 
-/**
- * Fleet workspace package globs every member lists under `pnpm-workspace.yaml`
- * `packages:`. They resolve the (fetched, gitignored) fleet payload packages —
- * the per-hook dirs and the oxlint-rule ("rules") sub-packages. This is the
- * dep-0 doctor's source of truth; the bundle's workspace segment seeds the same
- * set on fetch, and this re-asserts them on every prepare so a drifted or
- * freshly-cloned consumer self-heals.
- */
 export const FLEET_WORKSPACE_PACKAGES: readonly string[] = [
   '.claude/hooks/fleet/*',
   '.claude/hooks/repo/*',
+  '.config/fleet/oxlint-plugin',
   '.config/fleet/oxlint-plugin/fleet/*',
   '.config/repo/oxlint-plugin/*',
 ]
 
-/**
- * Ensure every glob in `required` appears under the `packages:` block of a
- * `pnpm-workspace.yaml`. Pure + idempotent: returns the YAML unchanged when all
- * are present, else appends the missing entries at the end of the existing
- * block (preserving order + the 2-space single-quoted bullet style). Creates a
- * `packages:` block at the top when the file has none. Repo-specific entries
- * already in the block are preserved.
- */
 export function ensureWorkspacePackages(
   yaml: string,
   required: readonly string[],
@@ -750,24 +714,11 @@ export function ensureWorkspacePackages(
   ].join('\n')
 }
 
-/**
- * Step 1: fetch + apply the pinned bundle when not current (best-effort).
- *
- * Guards against downgrading a newer applied pack: `maybeNotifyUpdate` (which
- * runs AFTER this in `runPrepare`) opportunistically applies the newest ref it
- * resolves, but does NOT update the config pin. Without this guard, the next
- * install's `fleet.mjs --if-current` sees `appliedRef !== pinnedRef` and
- * re-applies the OLD pin, reverting the auto-update — wasted work every cycle.
- * The guard skips the fetch when the applied ref is at or ahead of the pin, so
- * a newer applied pack is never downgraded to the pin outside CI. CI behavior
- * is unchanged: `maybeNotifyUpdate` is suppressed there, so the applied ref
- * always matches the pin and the guard is never consulted.
- */
-export function fetchBundle(): void {
+export function fetchBundle(): boolean {
   const fleet = path.join(HERE, 'fleet.mjs')
   if (!existsSync(fleet)) {
     log('no scripts/repo/bootstrap/fleet.mjs beside me — skipping bundle fetch')
-    return
+    return false
   }
   // The PRODUCER branch. A checkout carrying `template/base/universal` holds the canon
   // locally: there is no bundle to fetch and no pin to compare, so it
@@ -781,38 +732,15 @@ export function fetchBundle(): void {
       log(
         'materialize (fleet.mjs --from-template) reported a problem — continuing',
       )
+      return false
     }
-    return
+    return true
   }
   if (!tryRun('node', [fleet])) {
     log('bundle refresh (fleet.mjs) reported a problem — continuing')
     return false
   }
-  if (appliedRef === pinnedRef) {
-    return true
-  }
-  const pinnedSha = packTemplateShaLocal(pinnedRef)
-  const appliedSha = packTemplateShaLocal(appliedRef)
-  if (!pinnedSha || !appliedSha) {
-    return false
-  }
-  const wheelhouse = path.join(REPO_ROOT, '..', 'socket-wheelhouse')
-  if (existsSync(path.join(wheelhouse, '.git'))) {
-    try {
-      execFileSync(
-        'git',
-        ['merge-base', '--is-ancestor', pinnedSha, appliedSha],
-        {
-          cwd: wheelhouse,
-          stdio: 'ignore',
-        },
-      )
-      return true
-    } catch {
-      return false
-    }
-  }
-  return !process.env['CI']
+  return true
 }
 
 export function isMainModule(): boolean {
@@ -828,216 +756,14 @@ export function isMainModule(): boolean {
 }
 
 export function log(message: string): void {
-  // Dep-0 bootstrap prepare doctor runs on a bare clone with no node_modules:
-  // cannot import the lib logger; console.log writes to STDOUT.
+  if (process.argv.includes('--json')) {
+    process.stderr.write(`fleet-prepare: ${message}\n`)
+    return
+  }
   // oxlint-disable-next-line socket/no-console-prefer-logger -- dep-0 bootstrap
   console.log(`fleet-prepare: ${message}`)
 }
 
-/**
- * How long a release-freshness lookup stays good. Mirrors the fetcher's own
- * notice throttle (24h) and shares its store, so the network call and the
- * display are gated by ONE window instead of the call running every time and
- * the display being throttled after the fact.
- */
-const NOTICE_CHECK_TTL_MS = 864e5
-
-/**
- * How long to wait before retrying after a lookup that answered nothing.
- *
- * A registry hiccup or an offline laptop must not blind a member for a full
- * day, so the failed lookup is stamped as though it happened long enough ago
- * that the next install retries within the hour. Short enough to recover from
- * a blip, long enough that a genuinely offline machine is not retrying on
- * every install in a loop.
- */
-const OFFLINE_RETRY_TTL_MS = 36e5
-
-/**
- * Opportunistic update: when this cheaply learns a newer release exists, it
- * APPLIES that ref and then fires the throttled boxed notice on STDERR via the
- * fetcher's own notice machinery.
- *
- * Checking and then telling the operator to go re-cascade left every member
- * stale until somebody acted on a message, so the check does the update it
- * discovered. `fetchBundle` still applies the PINNED ref on every install; this
- * is what moves the pin forward.
- *
- * Best-effort throughout: offline, no gh, or a failed apply is swallowed so a
- * `pnpm install` never breaks on it, and the run continues.
- *
- * The CI-suppress, opt-out, and 24h throttle are checked BEFORE the GitHub
- * lookup, so they gate the apply as well as the display: no CI runner updates
- * itself, an opted-out operator is never touched, and no member updates more
- * than once a day.
- */
-export async function maybeNotifyUpdate(): Promise<void> {
-  const fleet = path.join(HERE, 'fleet.mjs')
-  if (!existsSync(fleet)) {
-    return
-  }
-  try {
-    const {
-      UPDATE_NOTIFIER_OPT_OUT_ENV,
-      maybeShowUpdateNotice,
-      readBundleConfig,
-      readNoticeStore,
-      resolveNewestRef,
-      writeNoticeStore,
-    } =
-      // oxlint-disable-next-line socket/no-dynamic-import-outside-bundle -- dep-0 bootstrap resolves the fetcher lazily; a static import would execute it on every prepare run
-      (await import(pathToFileURL(fleet).href)) as {
-        UPDATE_NOTIFIER_OPT_OUT_ENV: string
-        maybeShowUpdateNotice: (o: {
-          dest: string
-          updateAvailable: boolean
-          newestRef: string | undefined
-        }) => boolean
-        readBundleConfig: (dest: string) => {
-          ref: string | undefined
-          cascadeSha: string | undefined
-        }
-        readNoticeStore: (
-          dest: string,
-        ) =>
-          | { lastCheckMs: number; lastSeenRef: string | undefined }
-          | undefined
-        resolveNewestRef: (repo: string) => Promise<string | undefined>
-        writeNoticeStore: (
-          dest: string,
-          store: { lastCheckMs: number; lastSeenRef: string | undefined },
-        ) => void
-      }
-    const cfg = readBundleConfig(REPO_ROOT)
-    if (!cfg.ref) {
-      return
-    }
-    // Gate the NETWORK CALL, not just the display. `resolveNewestRef` reaches
-    // the GHCR registry (two anonymous requests: a pull token, then the
-    // `latest` manifest), and the CI-suppress / opt-out / 24h throttle inside
-    // `shouldShowNotice` ran AFTER it — so every `pnpm install`, in every CI
-    // job, paid for a lookup whose result was then discarded. At fleet scale
-    // that is the shape that earns an anonymous-pull rate limit.
-    //
-    // In CI and under the opt-out nothing may be applied or printed, so the
-    // call is pure waste and is skipped outright. Otherwise honor the same 24h
-    // window the display uses.
-    //
-    // The tradeoff is deliberate: a release cut inside the window is not picked
-    // up until the window closes. That costs freshness, never correctness — the
-    // PINNED bundle is still applied on every install by `fetchBundle`
-    // (`fleet.mjs --if-current`), in CI and locally alike, so a member is never
-    // running unverified or half-applied scaffolding while it waits.
-    if (process.env['CI'] || process.env[UPDATE_NOTIFIER_OPT_OUT_ENV]) {
-      return
-    }
-    const store = readNoticeStore(REPO_ROOT)
-    if (
-      store !== undefined &&
-      Date.now() - store.lastCheckMs < NOTICE_CHECK_TTL_MS
-    ) {
-      return
-    }
-    const repo = 'SocketDev/socket-wheelhouse'
-    const newestRef = await resolveNewestRef(repo)
-    // STAMP EVERY ANSWER, including the two that change nothing.
-    //
-    // Writing it only from `maybeShowUpdateNotice` below would reach the store
-    // only when an update was actually found. For a member that is already
-    // current - the steady state, and the overwhelmingly common one -
-    // `lastCheckMs` would never advance, the TTL gate above would never fire,
-    // and the registry lookup would run on EVERY `pnpm install`. The throttle
-    // only ever engaged for members that were behind, which are the ones least
-    // in need of throttling.
-    //
-    // A lookup that answered nothing is stamped short (see
-    // OFFLINE_RETRY_TTL_MS) so an outage costs an hour of freshness, not a day.
-    writeNoticeStore(REPO_ROOT, {
-      lastCheckMs:
-        newestRef === undefined
-          ? Date.now() - NOTICE_CHECK_TTL_MS + OFFLINE_RETRY_TTL_MS
-          : Date.now(),
-      lastSeenRef: newestRef,
-    })
-    if (newestRef === undefined || newestRef === cfg.ref) {
-      return
-    }
-    // A newer tag exists than the pinned ref, so APPLY it rather than only
-    // saying so. A notice naming a re-cascade the operator has to run by hand is
-    // a to-do item: it costs a read on every install and the member stays stale
-    // until somebody acts on it.
-    //
-    // Safe because the apply is the SAME verified path `fetchBundle` uses —
-    // every file's SHA-256 checked against the manifest, nothing written unless
-    // the whole set matches — so applying a newer ref is no riskier than
-    // applying the pinned one.
-    //
-    // Everything that gates the LOOKUP gates the apply: CI, the opt-out env, and
-    // the 24h window are all checked above. So this cannot fire on a CI runner,
-    // cannot fire for an operator who opted out, and cannot fire more than once
-    // a day. The notice still prints, now reporting what happened rather than
-    // what to go do.
-    const applied = tryRun('node', [fleet, '--ref', newestRef])
-    if (!applied) {
-      log(`bundle update to ${newestRef} reported a problem — continuing`)
-    }
-    maybeShowUpdateNotice({
-      dest: REPO_ROOT,
-      newestRef,
-      updateAvailable: true,
-    })
-  } catch {
-    // Best-effort: offline / no gh / a status hard-fail never breaks install.
-  }
-}
-
-/**
- * Extract the template SHA from a fleet-pack ref (`fleet-pack-<40-hex-sha>`).
- * Mirrors the fetcher's `packTemplateSha` so this file stays dep-0 (no
- * `fleet.mjs` import for a pure string parse). Returns undefined when the ref
- * is not a valid pack ref.
- */
-function packTemplateShaLocal(ref: string): string | undefined {
-  return /^fleet-pack-(?<sha>[0-9a-f]{40})$/.exec(ref)?.groups?.['sha']
-}
-
-/**
- * Read the applied ref from the marker file. Returns undefined when no marker
- * exists. Mirrors the fetcher's `readAppliedRef` so `fetchBundle` can compare
- * without importing the fetcher module.
- */
-function readAppliedRefLocal(dest: string): string | undefined {
-  const p = path.join(dest, APPLIED_MARKER_PATH)
-  return existsSync(p) ? readFileSync(p, 'utf8').trim() : undefined
-}
-
-/**
- * Read the pinned `bundle.ref` from the first settings file that exists.
- * Returns undefined when no settings file is found or it has no `bundle.ref`.
- * Mirrors the fetcher's `readBundleRef` so `fetchBundle` can compare without
- * importing the fetcher module.
- */
-function readPinnedRef(dest: string): string | undefined {
-  for (let i = 0, { length } = SETTINGS_CANDIDATES_LOCAL; i < length; i += 1) {
-    const p = path.join(dest, SETTINGS_CANDIDATES_LOCAL[i]!)
-    if (!existsSync(p)) {
-      continue
-    }
-    try {
-      const json = JSON.parse(readFileSync(p, 'utf8')) as {
-        bundle?: { ref?: string | undefined } | undefined
-      }
-      return json.bundle?.ref
-    } catch {
-      return undefined
-    }
-  }
-  return undefined
-}
-
-/**
- * Step 3: reconcile install so the now-present workspace packages link in.
- */
 export function reconcileInstall(): boolean {
   // --ignore-scripts keeps this pass from re-entering `prepare` (a loop); fleet
   // packages have no build step, so skipping lifecycle scripts loses nothing.
@@ -1047,9 +773,6 @@ export function reconcileInstall(): boolean {
   })
 }
 
-/**
- * Step 2: repair `pnpm-workspace.yaml` `packages:` to list the fleet dirs.
- */
 export function repairWorkspacePackages(): void {
   const wsPath = path.join(REPO_ROOT, 'pnpm-workspace.yaml')
   if (!existsSync(wsPath)) {
@@ -1085,36 +808,133 @@ export function resolveRepoRoot(startDir: string): string {
   return path.resolve(startDir, '..', '..', '..')
 }
 
-/**
- * Run the doctor end-to-end. Returns the intended exit code (0 = healthy / all
- * repairs applied; 1 = the reconcile install failed).
- */
-export async function runPrepare(): Promise<number> {
-  fetchBundle()
+export async function hydrateWorkspace(
+  options?: { strict?: boolean | undefined } | undefined,
+): Promise<boolean> {
+  if (!fetchBundle() && options?.strict !== false) return false
+  const wsPath = path.join(REPO_ROOT, 'pnpm-workspace.yaml')
+  if (existsSync(wsPath)) {
+    const before = readFileSync(wsPath, 'utf8')
+    if (
+      /^(catalogDriftIgnore|confirmModulesPurge|managePackageManagerVersions):/m.test(
+        before,
+      )
+    ) {
+      const { migrateWorkspaceSettings } = await import(
+        pathToFileURL(path.join(HERE, 'fleet.mjs')).href
+      )
+      writeFileSync(wsPath, migrateWorkspaceSettings(REPO_ROOT, before))
+    }
+  }
   repairWorkspacePackages()
-  if (!reconcileInstall()) {
+  return true
+}
+
+export function workspaceInstallFingerprint(
+  options?:
+    | { root?: string | undefined; ecosystemConfig?: unknown }
+    | undefined,
+): string {
+  const root = options?.root ?? REPO_ROOT
+  const files = ['package.json', 'pnpm-workspace.yaml']
+  for (const pattern of FLEET_WORKSPACE_PACKAGES) {
+    if (!pattern.endsWith('/*')) {
+      const relative = `${pattern}/package.json`
+      if (existsSync(path.join(root, relative))) files.push(relative)
+      continue
+    }
+    const parent = pattern.slice(0, -2)
+    const directory = path.join(root, parent)
+    if (!existsSync(directory)) continue
+    for (const child of readdirSync(directory)) {
+      const relative = `${parent}/${child}/package.json`
+      if (existsSync(path.join(root, relative))) files.push(relative)
+    }
+  }
+  const hash = createHash('sha256')
+  const ecosystemFingerprint = pnpmEcosystemFingerprint(root, {
+    config: options?.ecosystemConfig,
+  })
+  if (ecosystemFingerprint) hash.update(ecosystemFingerprint)
+  for (const relative of files.toSorted()) {
+    const bytes = readFileSync(path.join(root, relative))
+    hash.update(JSON.stringify([relative, bytes.length]))
+    hash.update(bytes)
+  }
+  return hash.digest('hex')
+}
+
+export function runWorkspacePipeline(): number {
+  const manifest = JSON.parse(
+    readFileSync(path.join(REPO_ROOT, 'package.json'), 'utf8'),
+  ) as { scripts?: Record<string, unknown> }
+  if (
+    manifest.scripts?.['build:oxlint-bundle'] !==
+    'node scripts/fleet/build-oxlint-bundle.mts'
+  ) {
+    log(
+      'Pipeline build task is unavailable. Where: package.json scripts. Wanted the canonical build:oxlint-bundle command. Fix: synchronize the fleet package scripts.',
+    )
+    return 1
+  }
+  return tryRun('pnpm', ['pipeline', 'fleet-prepare', '--full', '--no-cache'], {
+    ...process.env,
+    FLEET_PREINSTALL_STATE: workspaceInstallFingerprint(),
+  })
+    ? 0
+    : 1
+}
+
+export async function runPrepare(): Promise<number> {
+  const expected = process.env['FLEET_PREINSTALL_STATE']
+  const hydrateOnly = process.argv.includes('--hydrate-only')
+  const pipeline = process.argv.includes('--pipeline')
+  if (hydrateOnly && pipeline) return 1
+  if (
+    !(await hydrateWorkspace({
+      strict: hydrateOnly || pipeline || expected !== undefined,
+    }))
+  )
+    return 1
+  if (hydrateOnly) return 0
+  if (pipeline) return runWorkspacePipeline()
+  if (expected !== undefined) {
+    if (expected !== workspaceInstallFingerprint()) {
+      log(
+        'Workspace inputs changed during installation. Where: prepare. Saw a different preinstall fingerprint. Fix: hydrate again before starting the pipeline.',
+      )
+      return 1
+    }
+  } else if (!reconcileInstall()) {
     log('reconcile `pnpm install --ignore-scripts` failed')
     return 1
   }
-  await maybeNotifyUpdate()
   return 0
 }
 
-/**
- * Run a command (stdio inherited) from the repo root. Returns true on exit 0,
- * false on any failure — the doctor logs + continues rather than aborting the
- * whole `prepare` on a best-effort step.
- */
+export function prepareCommandInvocation(
+  command: string,
+  args: readonly string[],
+  platform: NodeJS.Platform,
+): { command: string; args: string[] } {
+  return command === 'pnpm' && platform === 'win32'
+    ? { command: 'bash', args: ['-c', 'exec pnpm "$@"', 'pnpm', ...args] }
+    : { command, args: [...args] }
+}
+
 export function tryRun(
   cmd: string,
   args: readonly string[],
   env?: NodeJS.ProcessEnv | undefined,
 ): boolean {
   try {
-    execFileSync(cmd, args as string[], {
+    const invocation = prepareCommandInvocation(cmd, args, process.platform)
+    execFileSync(invocation.command, invocation.args, {
       cwd: REPO_ROOT,
       env: env ?? process.env,
-      stdio: 'inherit',
+      stdio: process.argv.includes('--json')
+        ? ['inherit', 2, 'inherit']
+        : 'inherit',
     })
     return true
   } catch {
@@ -1126,7 +946,5 @@ export function tryRun(
 // while `process.argv[1]` keeps the path as invoked, so a bare URL equality
 // silently skips the CLI body under a symlinked invocation.
 if (isMainModule()) {
-  // Dep-0 ESM CLI run via node, never CJS-bundled.
-  // oxlint-disable-next-line socket/no-top-level-await -- dep-0 ESM CLI run
-  process.exitCode = await runPrepare()
+  runMainMinimal(runPrepare, SCRIPT_META)
 }

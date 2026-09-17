@@ -131,7 +131,7 @@ jobs:
             echo "hasGo=$([ -f go.mod ] && echo true || echo false)"
             echo "hasCpp=$([ -f .clang-tidy ] || [ -f CMakeLists.txt ] && echo true || echo false)"
           } >> "$GITHUB_OUTPUT"
-      - name: Read rust fuzz targets from fuzz/Cargo.toml
+      - name: 'Read Rust fuzz targets'
         id: rust
         if: steps.markers.outputs.hasRust == 'true'
         run: |
@@ -188,8 +188,8 @@ jobs:
             git fetch "${FETCH_ARGS[@]}"
           fi
           git checkout -q --detach FETCH_HEAD
-      - name: Hydrate fleet actions
-        uses: ./.github/actions/fleet/checkout
+      - name: Set up and install
+        uses: ./.github/actions/fleet/setup-and-install
         with:
           socket-api-token: ${{ secrets.SOCKET_API_TOKEN_FOR_CLI_AND_SFW }}
           payload-token-client-id: ${{ secrets.SOCKET_RELEASE_CLIENT_ID || vars.SOCKET_RELEASE_CLIENT_ID }}
@@ -307,9 +307,12 @@ jobs:
 
   # Weekly JS campaign: the vitiate lane, unbounded.
   fuzz-js:
+    name: Fuzz JavaScript
     if: (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && needs.discover.outputs.hasJs == 'true'
     needs: discover
     runs-on: ubuntu-latest
+    env:
+      DO_NOT_TRACK: '1'
     steps:
       - name: Bootstrap checkout
         shell: bash
@@ -335,7 +338,8 @@ jobs:
             git fetch "${FETCH_ARGS[@]}"
           fi
           git checkout -q --detach FETCH_HEAD
-      - uses: ./.github/actions/fleet/setup-and-install
+      - name: 'Set up and install'
+        uses: ./.github/actions/fleet/setup-and-install
         with:
           # Without this the install runs the firewall unauthenticated while the
           # job still reports green.
@@ -400,9 +404,24 @@ jobs:
             exit 0
           fi
           pnpm run test:fuzz
+      - name: Upload JS fuzz failure evidence
+        if: failure()
+        uses: ./.github/actions/fleet/upload-artifact
+        with:
+          if-no-files-found: ignore
+          name: fuzz-js-failure-evidence
+          path: .cache/repo/fuzz/
+      - name: Upload JS fuzz replay corpus
+        if: always()
+        uses: ./.github/actions/fleet/upload-artifact
+        with:
+          if-no-files-found: ignore
+          name: fuzz-js-replay-corpus
+          path: .vitiate/
 
   # Weekly Go campaign: 10 min per fuzz function.
   fuzz-go:
+    name: Fuzz Go
     if: (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && needs.discover.outputs.hasGo == 'true'
     needs: discover
     runs-on: ubuntu-latest
@@ -431,7 +450,7 @@ jobs:
             git fetch "${FETCH_ARGS[@]}"
           fi
           git checkout -q --detach FETCH_HEAD
-      - name: Hydrate fleet actions
+      - name: 'Hydrate fleet Actions'
         uses: ./.github/actions/fleet/checkout
         with:
           payload-token-client-id: ${{ secrets.SOCKET_RELEASE_CLIENT_ID || vars.SOCKET_RELEASE_CLIENT_ID }}
@@ -440,18 +459,33 @@ jobs:
         uses: ./.github/actions/fleet/setup-go-toolchain
         with:
           go-version-file: go.mod
-      - name: Run go fuzz functions, 10 minutes each
+      - name: Prepare Go fuzz dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          go mod download all
+          PACKAGES="$(go list ./...)"
+          PACKAGES_FILE="${RUNNER_TEMP}/fleet-go-fuzz-packages.txt"
+          printf '%s\n' "$PACKAGES" > "$PACKAGES_FILE"
+          echo "GO_FUZZ_PACKAGES=$PACKAGES_FILE" >> "$GITHUB_ENV"
+      - name: 'Run Go fuzz functions, 10 minutes each'
         uses: ./.github/actions/fleet/run-offline
         with:
           run: |
             set -euo pipefail
-            while IFS= read -r fn; do
-              echo "go test -fuzz=^${fn}\$ -fuzztime=600s"
-              go test -fuzz="^${fn}\$" -fuzztime=600s ./...
-            done < <(grep -rhoE '^func (Fuzz[A-Za-z0-9_]+)' --include='*_test.go' . | awk '{print $2}' | sort -u)
+            while IFS= read -r package; do
+              [ -n "$package" ] || continue
+              FUNCTIONS="$(go test -list '^Fuzz' "$package")"
+              while IFS= read -r fn; do
+                if [[ "$fn" =~ ^Fuzz[^[:space:]]*$ ]]; then
+                  go test -run '^$' -fuzz="^${fn}\$" -fuzztime=600s "$package"
+                fi
+              done <<< "$FUNCTIONS"
+            done < "$GO_FUZZ_PACKAGES"
 
   # Weekly C++ campaign: 10 min per libFuzzer target.
   fuzz-cpp:
+    name: Fuzz C++
     if: (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && needs.discover.outputs.hasCpp == 'true'
     needs: discover
     runs-on: ubuntu-latest
@@ -505,6 +539,7 @@ jobs:
   # install on every green run to prepare for a failure that usually is not
   # coming.
   report-crashes:
+    name: Report crashes
     # `always()` because the default `success()` gate would skip the reporter in
     # exactly the case it exists for. `contains(needs.*.result, 'failure')` so a
     # run where every leg was skipped (a repo with no markers) reports nothing.
@@ -541,7 +576,8 @@ jobs:
             git fetch "${FETCH_ARGS[@]}"
           fi
           git checkout -q --detach FETCH_HEAD
-      - uses: ./.github/actions/fleet/setup-and-install
+      - name: 'Set up and install'
+        uses: ./.github/actions/fleet/setup-and-install
         with:
           # Without this the install runs the firewall unauthenticated while the
           # job still reports green.
@@ -559,6 +595,7 @@ jobs:
         with:
           client-id: ${{ secrets.SOCKET_PR_CLIENT_ID || vars.SOCKET_PR_CLIENT_ID }}
           private-key: ${{ secrets.SOCKET_PR_APP_PRIVATE_KEY }}
+          repositories: ${{ github.event.repository.name }}
       - name: File an issue for each failed leg
         env:
           GH_TOKEN: ${{ steps.issue-app.outputs.token }}

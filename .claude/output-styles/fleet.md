@@ -1,6 +1,6 @@
 ---
 name: Fleet
-description: Socket fleet prose doctrine - lead with the point, receipts for every claim
+description: Socket fleet prose doctrine and STE reporting rules
 keep-coding-instructions: true
 ---
 
