@@ -33,46 +33,46 @@
       ],
       "description": "Fast, disk space efficient package manager",
       "repository": "github:pnpm/pnpm",
-      "version": "12.4.1",
+      "version": "12.3.4",
       "platforms": {
         "darwin-arm64": {
           "asset": "pnpm-darwin-arm64.tar.gz",
-          "integrity": "sha512-jLS7YCM5I32wC2OHQBvE9wy54NKOKkQ2Urr3uwNt0qsAMpS148N09PkwPnzvZenk/4kJuS09ANbigXVukDEmKg=="
+          "integrity": "sha512-IhEF3UhTH1ZcYujJ1zwRGglkmnZQAJuPHFKzv7qS6YvZ3lj3ZO9SFwfrS+s/gR3Gn+UxrOD0xw4Kjcgpg1eVaw=="
         },
         "darwin-x64": {
-          "asset": "pnpm-darwin-x64.tar.gz",
-          "integrity": "sha512-QHkx3MhxzKkDxnCujyPn7gaBuAtlkl6YLPq+HI7Jan+ngLYAoeFQYv0Nk37DwK9kdo0QmT3TaeH2iSTklPc4IQ=="
+          "asset": "pnpm-12.3.4.tgz",
+          "integrity": "sha512-lhqkH7B32joEpEHZ+OFevAyW2o73ELLrZ7+e58sGEOq9SPH9hfUc/+c4RnhfoPh8VqOocqHYk/hEZ0G1zORUVw=="
         },
         "linux-arm64": {
           "asset": "pnpm-linux-arm64.tar.gz",
-          "integrity": "sha512-dDo8TY09lfdCLKDtc7ujE8WsxM4OjguQZYBZBRoZVqwYVq4rx3b6ZBrE6ZVVhnO6Gcu2KAsPcB8Wq6++DmzAQw=="
+          "integrity": "sha512-vlQJTIxU5zCNEMzD55FI+zC1Z7NmR64TAhIBOk/Jdh/+FkoxFFjT4WLJW9ZyPZrAf0siinllG5ezb//qim+NVg=="
         },
         "linux-arm64-musl": {
           "asset": "pnpm-linux-arm64-musl.tar.gz",
-          "integrity": "sha512-zlaNJj5erpbQwBoCzHhWmzIl2TAlfac9WE//tK30ez1Z126hbalggljqGI5W9cAUTMrB/DtUT+rv3839RjCLYA=="
+          "integrity": "sha512-//88xzivEW6PEySjBhAM7UG2h2d7jgBR1mSD5mWLriKKofaVay+TvCUGNocEZPy03xunVyVFCUnwAFOg5K5QiA=="
         },
         "linux-x64": {
           "asset": "pnpm-linux-x64.tar.gz",
-          "integrity": "sha512-HvJiD/dQTqAX/aO4rCSKESABd59+KvRjBwyJpOejKG7e6TgxSb7UqHX7xwiJHXnMeoDgP+H8GKKrR2J5ZHRJsg=="
+          "integrity": "sha512-rNRTVZ3MCx44u0rHFAf5lTHmUoX9f2xC5Ts9yq+IBmizuJ8Zi9g4vB2LBl0D1E2lHxcBuBnaTCY+Lsce8zsHQA=="
         },
         "linux-x64-musl": {
           "asset": "pnpm-linux-x64-musl.tar.gz",
-          "integrity": "sha512-VdTUaaTQjNZgyjzzUa20IcjPe+lDir19uM/IzzVoiMzwyBkuQ2buo6rxbSKeK+l64ae64JXTSNY0iHj3lTDr5w=="
+          "integrity": "sha512-0JKf24b2k+VZ9/u9CvCtM4IGgALHBGF2BGPOcBwSA+d0v+bmU+rV8MfvRwod6qwgz8L5mYGZKhhEfWRgd0FtaA=="
         },
         "win32-arm64": {
           "asset": "pnpm-win32-arm64.zip",
-          "integrity": "sha512-EZtHSXMWgpqyx6rDCNnZtQxWFiuPIdREvDqMpY9C+mhBYW+1JOjlWxXGqvf7hrRBPxuhNbZtQSvFSZTDL3Zxsw=="
+          "integrity": "sha512-9VZap+aegJdnl0HX28ZJYoyczMvPL78vZGdE1pUw3OifBEU7A71UEJPweuc36JYjz5z0Q2O1+/thMMM9lz1SYg=="
         },
         "win32-x64": {
           "asset": "pnpm-win32-x64.zip",
-          "integrity": "sha512-5Uq2JunTNv7QSED/1EzeV0+zBDSW2wlMMe3g3wcF3PjsQjQ7gfFL8LZgXjmkqdeAURMIIrCrf3NdHx6o+DXPuA=="
+          "integrity": "sha512-AoRAZaWUM3HjMrhwjwcmQgh4mGDFd9AH1BA7u6T405mbizAFC6JencKyww0dEER4HUIXTIdSq+n6gG20ux1r1A=="
         }
       },
       "origin": "gh-asset",
       "soakBypass": {
-        "published": "2026-09-10",
-        "removable": "2026-09-17",
-        "version": "12.4.1"
+        "published": "2026-09-04",
+        "removable": "2026-09-11",
+        "version": "12.3.4"
       }
     },
     "gh": {
@@ -106,32 +106,28 @@
       ],
       "description": "uv — Astral Python package/project manager (pinned, SRI-verified)",
       "repository": "github:astral-sh/uv",
-      "version": "0.12.9",
+      "version": "0.12.7",
       "binaryName": "uv",
       "platforms": {
         "darwin-arm64": {
           "asset": "uv-aarch64-apple-darwin.tar.gz",
-          "integrity": "sha512-tl/z5hF4bIO9hR3b5NrEgjoOsdDTKYiCIdLpfAj1KvvSid7psCVvH64zingxdtFiGSmD9wHWjWyTtMp79HocnA=="
+          "integrity": "sha512-//y39pP48mmEfJ4y0arOqB/NUu7p0ByMVpUh7FdHyfUYcrKccWbNDaEZDeDfZGJo+TuO4GKrQkSoWr3m8H50wQ=="
         },
         "darwin-x64": {
           "asset": "uv-x86_64-apple-darwin.tar.gz",
-          "integrity": "sha512-BWKy9k2jR3EQcPBRbTY/0ZB4C3HUlmgr5fL4OBNl6CnjKLz2RdskHT01I19hdi5qGh4HC6IpIDsdCIBADKfymw=="
+          "integrity": "sha512-jxI/QHy4fwyNe7yvzre8xcclVAip9a1Jvk19EdhE2pEHQAIEjYtOy5Ol6nKUhc6ypRPU8/p0hMib+dM/Wvi8Ow=="
         },
         "linux-arm64": {
           "asset": "uv-aarch64-unknown-linux-gnu.tar.gz",
-          "integrity": "sha512-BrrJYbNu+N1cAmRFzXPAFjHhyOx/4poEtgEueN6mcQZHZFC4VUZzmJGxdiEVSLXRa0qYEEzTos5smUA0htmvzA=="
+          "integrity": "sha512-l15YMZfGCNMNQvK/J14Ny6lHAgv2yuOzPaw+OD8pmDE35t7jENFq0HUNW89l9HCv4q8rIiB4kG8Da5VGBCz/Mw=="
         },
         "linux-x64": {
           "asset": "uv-x86_64-unknown-linux-gnu.tar.gz",
-          "integrity": "sha512-gf6Ot90syNl1Mvvu48hS3DDdhSwCEOq6x9xLf08Ojxs1tWWQ8PBr4oDBaY1cTP4lxZX2nxD6fKsuii1p1gS6WA=="
-        },
-        "win32-arm64": {
-          "asset": "uv-aarch64-pc-windows-msvc.zip",
-          "integrity": "sha512-53kiRH2Ngxdr1v6C6ougI+9ep+qFlSEE/C94Do5BCkVONqFcpry1XlHVGNWWEPRWNaM7wyzGFyrdLyXkRUCKVw=="
+          "integrity": "sha512-iypkBjnn+GvivDSc/eXxKihJJT1Q9YJhNGchKfnSvTKnpzBEnw6SdGnfagAvOTBk1bvZHDYfWIheRV88aYKiVg=="
         },
         "win32-x64": {
           "asset": "uv-x86_64-pc-windows-msvc.zip",
-          "integrity": "sha512-ncP08GYr0ka7l0ehQB7LeN/Pg0TbM7JS+FwqSLUyVtlnwvf/rq1zbKzO24dJwrCaOXBxMQvAcY+Tt1dXDtUcSw=="
+          "integrity": "sha512-B+R5J3VoOb7hesOCJHbT2ohQbGMiPcBOCPi+FWHuAFOJVfhHLEbAXzm/uQ46jMmvAfKTcC+u4X1tws/rIreXaw=="
         }
       },
       "origin": "gh-asset"
@@ -207,7 +203,12 @@
           "integrity": "sha512-ZRuz2N0CmEXJuyhADFyqXU3bBDPp6UmDuXBSMoxcFyzUO/q3/5QRgVCimyOU09cG1XS9TRGvPSyL5y6sFN6D2A=="
         }
       },
-      "origin": "gh-asset"
+      "origin": "gh-asset",
+      "soakBypass": {
+        "published": "2026-08-26",
+        "removable": "2026-09-02",
+        "version": "1.15.1"
+      }
     },
     "sfw-enterprise": {
       "notes": [
@@ -248,7 +249,12 @@
           "integrity": "sha512-vZdptPsQPYnBvRR3S+6bikfk3WdkE+0d1a0CoPmSY8QPdfOG3jC4JxdTMN0FvHUzwR5iZQhfomJWq73F/PDWgg=="
         }
       },
-      "origin": "gh-asset"
+      "origin": "gh-asset",
+      "soakBypass": {
+        "published": "2026-08-26",
+        "removable": "2026-09-02",
+        "version": "1.15.1"
+      }
     },
     "binutils": {
       "description": "Private Gemma crash decoder binutils-x86-64-linux-gnu",
@@ -258,28 +264,6 @@
         "linux-x64": {
           "asset": "https://deb.debian.org/debian/pool/main/b/binutils/binutils-x86-64-linux-gnu_2.44-3_amd64.deb",
           "integrity": "sha256-e6741ce95ff0f7a131c8d9faa3528ccbbc453078bbc62a97da81340ed7462c53"
-        }
-      }
-    },
-    "binutils-lib": {
-      "description": "Private Gemma crash decoder libbinutils",
-      "version": "2.44-3",
-      "origin": "node-dist",
-      "platforms": {
-        "linux-x64": {
-          "asset": "https://deb.debian.org/debian/pool/main/b/binutils/libbinutils_2.44-3_amd64.deb",
-          "integrity": "sha256-4f4664c8a8f0ad0c8631c39fab02e3d8d86ccc6f4436a1d59f059dbcb0492679"
-        }
-      }
-    },
-    "binutils-sframe": {
-      "description": "Private Gemma crash decoder libsframe1",
-      "version": "2.44-3",
-      "origin": "node-dist",
-      "platforms": {
-        "linux-x64": {
-          "asset": "https://deb.debian.org/debian/pool/main/b/binutils/libsframe1_2.44-3_amd64.deb",
-          "integrity": "sha256-38f625dfdc582717029ac3a3e97c51d994ec2e7a0e9b230c6b44e40d1276311f"
         }
       }
     },
@@ -302,6 +286,28 @@
         "linux-x64": {
           "asset": "https://deb.debian.org/debian/pool/main/j/jansson/libjansson4_2.14-2+b3_amd64.deb",
           "integrity": "sha256-60707a62fe6c1228c3389b12a13ca4efd76defc5532473e547a29e99cf7d2a6e"
+        }
+      }
+    },
+    "binutils-lib": {
+      "description": "Private Gemma crash decoder libbinutils",
+      "version": "2.44-3",
+      "origin": "node-dist",
+      "platforms": {
+        "linux-x64": {
+          "asset": "https://deb.debian.org/debian/pool/main/b/binutils/libbinutils_2.44-3_amd64.deb",
+          "integrity": "sha256-4f4664c8a8f0ad0c8631c39fab02e3d8d86ccc6f4436a1d59f059dbcb0492679"
+        }
+      }
+    },
+    "binutils-sframe": {
+      "description": "Private Gemma crash decoder libsframe1",
+      "version": "2.44-3",
+      "origin": "node-dist",
+      "platforms": {
+        "linux-x64": {
+          "asset": "https://deb.debian.org/debian/pool/main/b/binutils/libsframe1_2.44-3_amd64.deb",
+          "integrity": "sha256-38f625dfdc582717029ac3a3e97c51d994ec2e7a0e9b230c6b44e40d1276311f"
         }
       }
     },

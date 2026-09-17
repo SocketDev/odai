@@ -78,6 +78,9 @@
 .github/workflows/*.lock.yml linguist-generated=true merge=ours
 .github/workflows/fleet-pack-current.yml linguist-generated=true
 .github/workflows/get-green.yml linguist-generated=true
+.github/workflows/github-release.yml linguist-generated=true
+.github/workflows/npm-publish.yml linguist-generated=true
+.github/workflows/prune-workflow-runs.yml linguist-generated=true
 .github/workflows/publish-npm.yml linguist-generated=true
 .github/workflows/sweep-jobs.yml linguist-generated=true
 .github/workflows/weekly-fuzz.yml linguist-generated=true

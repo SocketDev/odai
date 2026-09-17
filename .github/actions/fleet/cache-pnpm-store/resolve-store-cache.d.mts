@@ -34,8 +34,6 @@ export declare function runResolve(
         appendOutput?: ((line: string) => void) | undefined
         env?: Record<string, string | undefined> | undefined
         log?: ((message: string) => void) | undefined
-        ecosystemConfig?: unknown
-        root?: string | undefined
         nodeVersion?: string | undefined
       }
     | undefined,

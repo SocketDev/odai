@@ -44,12 +44,6 @@ export declare function selectSfwFlavor(
   socketApiToken: string,
 ): SfwFlavorSelection
 
-export declare function resolveSfwPlatform(options: {
-  platformKey: string
-  windowsRelease: string
-  nativeAvailable: boolean
-}): string
-
 export declare function sfwEntryPath(shape: string, flavor: string): string
 
 export declare function sfwVersionPath(shape: string, flavor: string): string

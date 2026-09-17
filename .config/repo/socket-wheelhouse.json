@@ -3,8 +3,8 @@
   "schemaVersion": 1,
   "repoName": "odai",
   "bundle": {
-    "ref": "fleet-pack-011e1c67ce8860fdf7dca52a45e1a8d6620379e6",
-    "cascadeSha": "011e1c67ce8860fdf7dca52a45e1a8d6620379e6"
+    "ref": "fleet-pack-34b047176c416cd46f1919ad0bba35a0bb7b84b3",
+    "cascadeSha": "34b047176c416cd46f1919ad0bba35a0bb7b84b3"
   },
   "repo": {
     "type": "solo"
@@ -83,7 +83,9 @@
         "test/unit/llama-cpp-server-classifier.test.mts",
         "test/weekly-update.test.mts"
       ],
-      "slow": ["test/repo/integration/check/package.test.mts"]
+      "slow": [
+        "test/repo/integration/check/package.test.mts"
+      ]
     }
   }
 }
