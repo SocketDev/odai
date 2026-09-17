@@ -7,7 +7,8 @@
  *   `uv run --with <pkg>==<exact>`: exact pins, nothing installed globally.
  */
 
-import { readFileSync } from 'node:fs'
+import { mkdirSync, readFileSync } from 'node:fs'
+import path from 'node:path'
 
 import { spawn } from '@socketsecurity/lib/process/spawn/child'
 
@@ -15,21 +16,7 @@ import { startShimServer } from '../../../src/shim/server.mts'
 import type { BackendName } from '../../../src/backends/types.mts'
 import type { StagedSuite } from './harness.mts'
 import type { TestCase } from './types.mts'
-
-/**
- * The python packages the upstream suite imports, pinned exactly. `wget` and
- * `aiohttp` are imported by `utils.py` itself, so they are needed even though
- * the copied tests never call them.
- */
-export const PYTHON_PINS: readonly string[] = [
-  'aiohttp==3.9.5',
-  'openai==2.14.0',
-  'pytest==8.3.5',
-  'requests==2.32.3',
-  'wget==3.2',
-]
-
-const PYTHON_VERSION = '3.12'
+import { pythonRunArgs, withIsolatedEnv } from './python.mts'
 
 const LOOPBACK_NO_PROXY = '127.0.0.1,::1,localhost'
 
@@ -140,10 +127,7 @@ export async function runSuite(options: RunOptions): Promise<RunResult> {
     opts.backendName === undefined ? {} : { backendName: opts.backendName },
   )
   log(`shim listening at ${handle.url} over backend "${handle.backendName}"`)
-  const args = ['run', '--python', PYTHON_VERSION]
-  for (let i = 0, { length } = PYTHON_PINS; i < length; i += 1) {
-    args.push('--with', PYTHON_PINS[i]!)
-  }
+  const args = pythonRunArgs()
   args.push(
     'pytest',
     ...staged.testFiles,
@@ -157,10 +141,13 @@ export async function runSuite(options: RunOptions): Promise<RunResult> {
   )
   let pytestExitCode = 0
   try {
+    const isolatedHome = path.join(staged.scratchDir, '.home')
+    mkdirSync(isolatedHome, { recursive: true })
     const result = await spawn('uv', args, {
       cwd: staged.scratchDir,
       env: {
         ...loopbackDirectEnv(process.env),
+        ...withIsolatedEnv(isolatedHome),
         DEBUG_EXTERNAL: '1',
         LLAMA_CACHE: staged.scratchDir,
         PORT: String(handle.port),

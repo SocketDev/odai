@@ -4,8 +4,9 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import { parseArgs } from 'node:util'
 import { isMainModule } from '../../../fleet/process/is-main-module.mts'
-import { getCacheArgs, runCacheMain } from '../cli.mts'
-import type { CacheScriptMeta } from '../cli.mts'
+import { getCacheArgs } from '../cli.mts'
+import { runMain } from '../../../fleet/process/run-main.mts'
+import type { ScriptMeta } from '../../../fleet/process/run-main.mts'
 import { collectGemmaCrashReports } from '../crash/collect.mts'
 import { parseGemmaKernelFaults } from '../kernel.mts'
 import { verifyGemmaReplay } from '../retain.mts'
@@ -128,12 +129,12 @@ export async function main(argv: string[]) {
   }
 }
 
-const SCRIPT_META: CacheScriptMeta = {
+const SCRIPT_META: ScriptMeta = {
   describe: 'inspects retained Gemma crash, kernel and replay evidence locally',
   help: 'Usage: pnpm run ai:odai:diagnose <crashes|kernel|replay> [options]\ncrashes --directory <crashpad-directory> Inspect pending and completed reports without deleting them\nkernel --file <dmesg-json> --since <uptime-seconds> Inspect bounded dmesg --json output after the probe start\nreplay --directory <artifact-directory> --browser-version <version> --image-digest <sha256:digest> --source-run <run-id> [--cpu-override] Verify retained hashes and source identity\n--json Emit sanitized evidence; no raw dumps, addresses or kernel messages\nSuccessful inspection is not an inference pass. Missing crash evidence, unavailable collection or truncation exits nonzero. An empty captured kernel event list means no matching events. Replay verification does not run inference.\nUse pnpm run ai:odai:cache verify for sandboxed inference without networking.',
   json: 'result',
 }
 
 if (isMainModule(import.meta.url)) {
-  runCacheMain(() => main(getCacheArgs()), SCRIPT_META)
+  runMain(() => main(getCacheArgs()), SCRIPT_META)
 }

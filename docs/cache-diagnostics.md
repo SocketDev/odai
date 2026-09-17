@@ -1,5 +1,13 @@
 # Gemma model cache
 
+An installed npm package can prepare its persistent Chrome profile without repository tooling:
+
+```sh
+ODAI_CHROME_MODEL=gemma4 odai setup
+```
+
+The command discovers Google Chrome, chooses the per-user Odai cache directory, seeds the model-specific profile, permits the one-time component download, waits for readiness, verifies the responding model, closes Chrome, and prints a JSON receipt. Node applications can call `setupChromeBuiltin()` from `odai/node`. They may pass `reclaimStorage` to clean application-owned caches when the profile filesystem is below Chrome's capacity floor. Odai invokes the callback only under pressure and measures the filesystem again before launch.
+
 Use `pnpm run ai:odai:cache` to prepare and verify a dedicated Gemma 4 cache.
 Every command supports `--describe`, `--help`, and `--json`.
 A successful command exits with code zero. Errors exit with a nonzero code.
@@ -44,7 +52,7 @@ pnpm run ai:odai:cache export \
 ```
 
 Provisioning permits component downloads. Chrome keeps its sandbox enabled.
-The Linux CPU path requires four cores, 15,000 MiB RAM, and 22 GiB free disk space.
+The Linux CPU path requires four cores, 15,000MiB RAM, and 22GiB free disk space. Provisioning checks disk capacity before Chrome starts. When capacity is below that floor, it runs the fleet Rust target sweep across the projects directory and measures the result before starting Chrome. Active Cargo or rustc work prevents automatic cleanup.
 The command checks capacity before starting Chrome and limits startup time.
 
 The profile must be new or carry this command's ownership marker.

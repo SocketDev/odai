@@ -6,14 +6,17 @@ import {
 } from '../src/model.mts'
 import type { SessionLike } from '../src/types.mts'
 
-function makeSession(): SessionLike {
-  return {
-    destroy: vi.fn(),
-    prompt: vi.fn().mockResolvedValue('Gemini Nano'),
+function makeSessionFixture() {
+  const destroy = vi.fn()
+  const prompt = vi.fn().mockResolvedValue('Gemini Nano')
+  const session: SessionLike = {
+    destroy,
+    prompt,
     promptStreaming: async function* () {
       yield 'fixture'
     },
   }
+  return { destroy, prompt, session }
 }
 
 afterEach(() => vi.useRealTimers())
@@ -23,14 +26,18 @@ it.each(['structured', 'streaming'])(
   async mode => {
     vi.useFakeTimers()
     const controller = new AbortController()
-    const clone = makeSession()
+    const cloneFixture = makeSessionFixture()
     let finish!: (session: SessionLike) => void
     const acquisition = new Promise<SessionLike>(resolve => {
       finish = resolve
     })
-    const base = makeSession()
+    const baseFixture = makeSessionFixture()
     const model = createModelFromState(
-      { cloneCapable: false, namespace: 'modern', session: base },
+      {
+        cloneCapable: false,
+        namespace: 'modern',
+        session: baseFixture.session,
+      },
       async () => await acquisition,
       controller.signal,
     )
@@ -43,11 +50,11 @@ it.each(['structured', 'streaming'])(
         : model.promptStreaming('fixture')
     controller.abort()
     await expect(pending).rejects.toMatchObject({ name: 'AbortError' })
-    finish(clone)
+    finish(cloneFixture.session)
     await acquisition
     await vi.runAllTimersAsync()
-    expect(clone.destroy).toHaveBeenCalledTimes(1)
-    expect(base.destroy).not.toHaveBeenCalled()
+    expect(cloneFixture.destroy).toHaveBeenCalledTimes(1)
+    expect(baseFixture.destroy).not.toHaveBeenCalled()
   },
 )
 
@@ -56,9 +63,13 @@ it.each(['structured', 'streaming'])(
   async mode => {
     const owner = new AbortController()
     const caller = new AbortController()
-    const base = makeSession()
+    const baseFixture = makeSessionFixture()
     const model = createModelFromState(
-      { cloneCapable: false, namespace: 'modern', session: base },
+      {
+        cloneCapable: false,
+        namespace: 'modern',
+        session: baseFixture.session,
+      },
       undefined,
       owner.signal,
     )
@@ -72,7 +83,7 @@ it.each(['structured', 'streaming'])(
           })
         : model.promptStreaming('fixture', { abortSignal: caller.signal })
     await expect(pending).rejects.toMatchObject({ name: 'AbortError' })
-    expect(base.prompt).not.toHaveBeenCalled()
+    expect(baseFixture.prompt).not.toHaveBeenCalled()
   },
 )
 
@@ -80,73 +91,78 @@ it.each([true, false])(
   'handles identity session arrival after timeout, owned=%s',
   async owned => {
     vi.useFakeTimers()
-    const base = makeSession()
-    const session = owned ? makeSession() : base
+    const baseFixture = makeSessionFixture()
+    const ownedFixture = makeSessionFixture()
+    const sessionFixture = owned ? ownedFixture : baseFixture
     let finish!: (session: SessionLike) => void
     const acquisition = new Promise<SessionLike>(resolve => {
       finish = resolve
     })
     const pending = detectSessionModelName(
-      { cloneCapable: false, namespace: 'modern', session: base },
+      {
+        cloneCapable: false,
+        namespace: 'modern',
+        session: baseFixture.session,
+      },
       async () => await acquisition,
       10,
     )
     await vi.advanceTimersByTimeAsync(10)
     expect(await pending).toBeUndefined()
-    finish(session)
+    finish(sessionFixture.session)
     await acquisition
     await vi.runAllTimersAsync()
-    expect(session.destroy).toHaveBeenCalledTimes(owned ? 1 : 0)
-    expect(session.prompt).not.toHaveBeenCalled()
+    expect(sessionFixture.destroy).toHaveBeenCalledTimes(owned ? 1 : 0)
+    expect(sessionFixture.prompt).not.toHaveBeenCalled()
   },
 )
 
 it('ignores identity completion after its timeout', async () => {
   vi.useFakeTimers()
-  const base = makeSession()
-  const probe = makeSession()
+  const baseFixture = makeSessionFixture()
+  const probeFixture = makeSessionFixture()
   let finish!: (text: string) => void
   const response = new Promise<string>(resolve => {
     finish = resolve
   })
-  probe.prompt = vi.fn().mockReturnValue(response)
+  probeFixture.prompt.mockReturnValue(response)
   const pending = detectSessionModelName(
-    { cloneCapable: false, namespace: 'modern', session: base },
-    async () => probe,
+    { cloneCapable: false, namespace: 'modern', session: baseFixture.session },
+    async () => probeFixture.session,
     10,
   )
   await vi.advanceTimersByTimeAsync(10)
   expect(await pending).toBeUndefined()
   finish('Gemini Nano')
   await response
-  expect(probe.destroy).toHaveBeenCalledTimes(1)
+  expect(probeFixture.destroy).toHaveBeenCalledTimes(1)
 })
 
 it('reports absent identity when session creation fails', async () => {
-  const base = makeSession()
+  const baseFixture = makeSessionFixture()
   const result = await detectSessionModelName(
-    { cloneCapable: false, namespace: 'modern', session: base },
+    { cloneCapable: false, namespace: 'modern', session: baseFixture.session },
     async () => {
       throw new Error('fixture unavailable')
     },
   )
   expect(result).toBeUndefined()
-  expect(base.destroy).not.toHaveBeenCalled()
+  expect(baseFixture.destroy).not.toHaveBeenCalled()
 })
 
 it('disposes the model base if cancellation interrupts identity detection', async () => {
   vi.useFakeTimers()
   const controller = new AbortController()
-  const base = makeSession()
-  const probe = makeSession()
-  probe.prompt = vi.fn().mockImplementation(async () => {
+  const baseFixture = makeSessionFixture()
+  const probeFixture = makeSessionFixture()
+  probeFixture.prompt.mockImplementation(async () => {
     controller.abort()
     return 'Gemini Nano'
   })
   const create = vi
     .fn()
-    .mockResolvedValueOnce(base)
-    .mockResolvedValueOnce(probe)
+    .mockResolvedValueOnce(baseFixture.session)
+    .mockResolvedValueOnce(probeFixture.session)
   await expect(
     createOdaiModel({
       abortSignal: controller.signal,
@@ -160,6 +176,6 @@ it('disposes the model base if cancellation interrupts identity detection', asyn
       },
     }),
   ).rejects.toMatchObject({ name: 'AbortError' })
-  expect(base.destroy).toHaveBeenCalledTimes(1)
+  expect(baseFixture.destroy).toHaveBeenCalledTimes(1)
   await vi.runAllTimersAsync()
 })

@@ -69,6 +69,7 @@ it('rejects empty component directories before browser startup', async () => {
   })
   expect(source.kind).toBe('download')
   expect(source.reason).toBeDefined()
+  await mkdir(path.join(root, 'OptGuideOnDeviceModel', '2026.9.1.1'))
   expect(await hasChromeModelAssets(root, 'geminiNano')).toBe(false)
 })
 

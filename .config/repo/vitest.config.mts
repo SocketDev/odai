@@ -19,6 +19,7 @@ import { isCI } from '@socketsecurity/lib-stable/env/ci'
 import { defineConfig } from 'vitest/config'
 
 import { GENERATED_GLOBS } from '../../scripts/fleet/constants/generated-globs.mts'
+import { resolveGeneratedTestExcludes } from '../../scripts/fleet/test-runner/discovery.mts'
 import { resolveCoverageConfig } from '../../.config/fleet/vitest.coverage.fleet.config.mts'
 import {
   discoverSharedTestFiles,
@@ -339,6 +340,7 @@ const conformanceTier = process.env['FLEET_TEST_CONFORMANCE'] === '1'
 export const FUZZ_GLOBS: readonly string[] = [
   '**/test/**/*.fuzz.test.{js,ts,mjs,mts,cjs}',
 ]
+export const ORDINARY_TEST_EXCLUDES: readonly string[] = ['**/test/e2e/**']
 // Whether THIS run is the explicit fuzz tier. Set by the weekly fuzz workflow,
 // never by hand.
 //
@@ -418,6 +420,7 @@ const config = defineConfig({
     // (their own `node --test` runners pick them up separately).
     exclude: [
       '**/node_modules/**',
+      ...ORDINARY_TEST_EXCLUDES,
       // The conformance tier is opt-in via `pnpm run test:conformance`. Every
       // other lane drops it: these wrappers each spawn a FULL external corpus
       // (Test262 is ~92k scenarios per implementation), which is minutes to
@@ -541,6 +544,14 @@ const config = defineConfig({
     },
   },
 })
+
+if (config.test) {
+  config.test.exclude = resolveGeneratedTestExcludes({
+    repoRoot: process.cwd(),
+    include: config.test.include ?? [],
+    exclude: config.test.exclude ?? [],
+  })
+}
 
 // Construct complete project options explicitly: Vite's extends merge concatenates
 // include arrays, which otherwise makes the shared project rerun isolated files.

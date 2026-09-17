@@ -1,8 +1,43 @@
-import type { LockstepAnalysis, LockstepInput } from './schema.mts'
+import { changePatch } from './proposal.mts'
+import type {
+  LockstepAnalysis,
+  LockstepInput,
+  LockstepProposal,
+} from './schema.mts'
 
 export interface LockstepExample {
   input: LockstepInput
   output: LockstepAnalysis
+}
+
+export function buildLockstepProposalExample(
+  example: LockstepExample,
+): LockstepProposal {
+  const local = example.input.evidence.find(item => item.id === 'local')!
+  const test = example.input.evidence.find(item => item.id === 'test')!
+  return {
+    verdict: example.output.verdict,
+    facts: example.output.facts,
+    changes: [
+      {
+        path: local.path,
+        evidenceId: local.id,
+        startLine: local.startLine,
+        endLine: local.startLine,
+        operation: 'replace',
+        text: 'export const value = 2',
+      },
+      {
+        path: test.path,
+        evidenceId: test.id,
+        startLine: test.startLine + 2,
+        endLine: test.startLine + 2,
+        operation: 'append',
+        text: '  expect(value).toBe(2)',
+      },
+    ],
+    questions: example.output.questions,
+  }
 }
 
 // These small examples teach the contract without presenting synthetic code as upstream source.
@@ -15,7 +50,7 @@ export function createLockstepExample(
       : 'tools/server/protocol.cpp'
   const local = 'src/parser/value.mts'
   const test = 'test/parser/value.test.mts'
-  return {
+  const example: LockstepExample = {
     input: {
       version: 1,
       row: {
@@ -61,7 +96,7 @@ export function createLockstepExample(
           path: test,
           sha: 'c'.repeat(40),
           startLine: 1,
-          text: "import { expect, test } from 'vitest'\nimport { value } from '../../src/parser/value.mts'",
+          text: "import { expect, test } from 'vitest'\nimport { value } from '../../src/parser/value.mts'\ntest('returns the new value', () => {\n})",
         },
       ],
       truncated: false,
@@ -76,17 +111,16 @@ export function createLockstepExample(
           endLine: 1,
         },
       ],
-      patches: [
-        {
-          path: local,
-          patch: `--- a/${local}\n+++ b/${local}\n@@ -1 +1 @@\n-export const value = 1\n+export const value = 2\n`,
-        },
-        {
-          path: test,
-          patch: `--- a/${test}\n+++ b/${test}\n@@ -2 +2,2 @@\n import { value } from '../../src/parser/value.mts'\n+test('returns the new value', () => { expect(value).toBe(2) })\n`,
-        },
-      ],
+      patches: [],
       questions: [],
     },
   }
+  example.output.patches = buildLockstepProposalExample(example).changes.map(
+    change => ({
+      __proto__: null,
+      path: change.path,
+      patch: changePatch(example.input, change)!,
+    }),
+  )
+  return example
 }

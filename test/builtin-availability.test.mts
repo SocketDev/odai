@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { LanguageModelFactory } from '@socketsecurity/lib/ai/builtin'
 
 import {
+  getLanguageModel,
   isAvailableState,
   probeBuiltinAvailability,
   readAvailability,
@@ -22,7 +23,35 @@ vi.mock(import('@socketsecurity/lib/ai/builtin'), () => ({
 describe('availability', () => {
   afterEach(() => {
     vi.restoreAllMocks()
+    vi.unstubAllGlobals()
     builtin.factory = undefined
+  })
+
+  it('leaves unknown resolver factories in replay mode', () => {
+    builtin.factory = {
+      availability: async () => 'available',
+      create: async () => ({ prompt: async () => 'reply' }),
+    }
+    expect(getLanguageModel()?.contextMode).toBeUndefined()
+  })
+
+  it('recognizes the native global factory and maps its signal', async () => {
+    const prompt = vi.fn().mockResolvedValue('reply')
+    builtin.factory = {
+      availability: async () => 'available',
+      create: async () => ({ prompt }),
+    }
+    vi.stubGlobal('LanguageModel', builtin.factory)
+    const factory = getLanguageModel()!
+    expect(factory.contextMode).toBe('native')
+    const session = await factory.create()
+    const controller = new AbortController()
+    await session.prompt([], { abortSignal: controller.signal })
+    expect(prompt).toHaveBeenCalledWith([], {
+      signal: controller.signal,
+      responseConstraint: undefined,
+    })
+    expect(await session.contextStatus!()).toMatchObject({ overflowed: false })
   })
 
   it('detects modern namespace as available', async () => {

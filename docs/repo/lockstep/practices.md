@@ -29,12 +29,21 @@ The public `parseLockstepInput` and `validateLockstepAnalysis` functions validat
 A response has a `port`, `no-change`, or `abstain` verdict.
 A `port` response needs an upstream citation, a code patch, and an additive test patch.
 A `no-change` response still needs a citation. An abstention needs an explanation.
+A `port` response must cite the target revision. A `no-change` response must cite every supplied target excerpt.
+The previous upstream revision provides historical context. Matching it does not establish that the local implementation matches the target.
 
 Validation checks citation identifiers and line ranges against the supplied evidence.
 It does not establish whether the cited text supports the model's conclusion.
 Paths must remain inside the declared local and test areas.
 The patch parser rejects malformed hunks, path traversal, renames, and file mode changes.
 Protected files, including pins and generated outputs, require a separate manual change.
+
+The task allows at most three model attempts. A rejected proposal receives its actual validation diagnostic on the next attempt.
+Each attempt uses a fresh request session. Retries inside the structured-output helper are disabled for this task.
+The public `validate` option accepts a diagnostic callback for additional checks.
+Return a string to reject the analysis, or `undefined` to accept it. The callback can be asynchronous.
+For example, a caller can apply proposed changes in memory and parse the result before accepting the response.
+The callback does not establish that a full repository test suite passed.
 
 ## Verify the proposed change
 
@@ -74,10 +83,18 @@ ODAI_CHROME_MODEL=gemma4 pnpm run bench --scenario=lockstep --backend=chrome-bui
 pnpm run bench --scenario=lockstep --routed --json
 ```
 
-The prompt supplies examples, evidence boundaries, and an abstention rule.
+<details>
+<summary>How model proposals are checked and scored</summary>
+
+The prompt supplies one shared example, evidence boundaries, and an abstention rule. Full and sparse materialization use the same response contract, so a second copy of the example is unnecessary.
+The model describes each edit with a local or test evidence identifier, an inclusive line range, an operation, and new text.
+`odai` reads the old lines from trusted evidence and generates the unified diff.
+This keeps diff headers and unchanged source text out of the model's output while preserving the public patch response used by the fleet verifier.
 This is prompt scaffolding. It does not train or modify model weights.
 The full and sparse evaluation cases use values that differ from the prompt examples.
-Their scores measure response structure, citations, and patch boundaries.
+Their scores require valid citations, applicable changes, the expected value, and a regression assertion that uses the changed export.
+The evaluator parses the changed files. Equivalent formatting and import aliases can pass.
+Separate integration tests apply the generated patches with Git, including files without a final newline.
 They do not measure upstream conformance or prove that a model can implement an unfamiliar port.
 
 The default benchmark uses deterministic simulator responses to test the harness.
@@ -85,3 +102,7 @@ Use an explicit backend for a model quality measurement and report its actual id
 An unavailable model or a setup timeout provides no model quality score.
 Benchmark success requires every selected scenario to pass.
 The package check also exercises the published Node declarations and browser benchmark bundle.
+
+</details>
+
+See [performance practices](../perf/practices.md) for repeated full and sparse measurements and the retained-context experiment.

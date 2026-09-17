@@ -1,0 +1,17 @@
+{
+  "method": "The same installed acorn.wasm bytes, compressed individually. Excludes loader code and transport headers.",
+  "rows": [
+    {
+      "format": "wasm",
+      "raw": 4716458,
+      "gzip": 777120,
+      "brotli": 400159
+    },
+    {
+      "format": "base64",
+      "raw": 6288612,
+      "gzip": 1306701,
+      "brotli": 602467
+    }
+  ]
+}

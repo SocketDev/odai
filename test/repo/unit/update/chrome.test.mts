@@ -10,7 +10,8 @@ import {
 } from '../../../../scripts/repo/update/chrome.mts'
 import type { ChromeTool } from '../../../../scripts/repo/update/chrome.mts'
 import type { GemmaImageConfig } from '../../../../scripts/repo/cache/image.mts'
-import type { CacheScriptMeta as ScriptMeta } from '../../../../scripts/repo/cache/cli.mts'
+type RunMain =
+  typeof import('../../../../scripts/fleet/process/run-main.mts').runMain
 
 const mocks = vi.hoisted(() => ({
   environment: new Map<string, string>(),
@@ -18,8 +19,7 @@ const mocks = vi.hoisted(() => ({
   failCleanup: false,
   entry: false,
   args: [] as string[],
-  runMain:
-    vi.fn<(callback: () => Promise<unknown>, meta: ScriptMeta) => void>(),
+  runMain: vi.fn<RunMain>(),
   prepare: vi.fn<
     (config: GemmaImageConfig) => Promise<{
       __proto__: null
@@ -57,8 +57,10 @@ vi.mock(import('../../../../scripts/fleet/process/is-main-module.mts'), () => ({
 }))
 vi.mock(import('../../../../scripts/repo/cache/cli.mts'), async original => ({
   ...(await original()),
-  runCacheMain: mocks.runMain,
   getCacheArgs: () => mocks.args,
+}))
+vi.mock(import('../../../../scripts/fleet/process/run-main.mts'), () => ({
+  runMain: mocks.runMain,
 }))
 vi.mock(import('@socketsecurity/lib-stable/env/rewire'), async original => ({
   ...(await original()),

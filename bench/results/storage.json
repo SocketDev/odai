@@ -1,0 +1,254 @@
+{
+  "schemaVersion": 1,
+  "method": "Full immutable temporary byte copies from read-only originals. Public createDecmpfsWriteStream API copies each temporary input into a separate APFS-compressed file, 4MiB read chunks. SHA256 verifies the entire output. No cache flushing, browser execution, or inference. Temporary payloads are removed after each case.",
+  "os": "Darwin",
+  "osRelease": "25.6.0",
+  "arch": "arm64",
+  "cpuModel": "Apple M3 Max",
+  "decmpfsSourceHead": "9915baa1e83f2a122bd4a20ad034996e0d52b89e",
+  "odaiStorageSourceHead": "89998838191786d056a81a37a11579350517026b",
+  "addonSha256": "c245801b958cc317d70ad64022dfc73d4db056457afa11719088478fd4d2cf98",
+  "addonMtime": "2026-07-21T06:03:26.154Z",
+  "limitation": "The prebuilt addon predates the inspected source. Single full-file compression trials do not measure cold reads or inference. Per-file allocation is not exclusive APFS clone ownership.",
+  "full": {
+    "node": "v24.10.0",
+    "samples": [
+      {
+        "label": "gemma4-weights",
+        "sourceUnchanged": true,
+        "sha256": "91fe062f335d47860f37bbc5d9d75ad7a1d14c2f5dd2693995eb5f0dca9e0dbb",
+        "original": {
+          "compressed": false,
+          "logical": 2475399520,
+          "physical": 2475401216
+        },
+        "plain": {
+          "compressed": false,
+          "logical": 2475399520,
+          "physical": 2483093504
+        },
+        "compressed": {
+          "compressed": true,
+          "logical": 2475399520,
+          "physical": 2214674432
+        },
+        "outcome": {
+          "compressed": true,
+          "before": 2475399520,
+          "after": 2214674432,
+          "reason": "Compressed"
+        },
+        "copyMs": 7103.367458,
+        "compressionMs": 51442.203708999994,
+        "processMaxRssKiB": 139296,
+        "physicalSavedVsOriginal": 260726784,
+        "percentSavedVsOriginal": 10.532708084441689,
+        "physicalSavedVsTemporaryPlain": 268419072
+      },
+      {
+        "label": "nano-classifier-weights",
+        "sourceUnchanged": true,
+        "sha256": "296e3479506b23cb6462cdb77aa3eb6a09cee1c2d8e8b3bb76c755a147d585d1",
+        "original": {
+          "compressed": false,
+          "logical": 126025728,
+          "physical": 126025728
+        },
+        "plain": {
+          "compressed": false,
+          "logical": 126025728,
+          "physical": 134283264
+        },
+        "compressed": {
+          "compressed": true,
+          "logical": 126025728,
+          "physical": 103374848
+        },
+        "outcome": {
+          "compressed": true,
+          "before": 126025728,
+          "after": 103374848,
+          "reason": "Compressed"
+        },
+        "copyMs": 240.43895899999188,
+        "compressionMs": 1136.9282079999975,
+        "processMaxRssKiB": 139616,
+        "physicalSavedVsOriginal": 22650880,
+        "percentSavedVsOriginal": 17.973218928757152,
+        "physicalSavedVsTemporaryPlain": 30908416
+      },
+      {
+        "label": "chrome-framework",
+        "sourceUnchanged": true,
+        "sha256": "bcd3902300da469f384d8c50b55a12f2d59d3bc68a5e241e0fdd993b75cb9bc9",
+        "original": {
+          "compressed": false,
+          "logical": 515120496,
+          "physical": 523763712
+        },
+        "plain": {
+          "compressed": false,
+          "logical": 515120496,
+          "physical": 520159232
+        },
+        "compressed": {
+          "compressed": true,
+          "logical": 515120496,
+          "physical": 244801536
+        },
+        "outcome": {
+          "compressed": true,
+          "before": 515120496,
+          "after": 244801536,
+          "reason": "Compressed"
+        },
+        "copyMs": 673.0608329999959,
+        "compressionMs": 7357.074458999996,
+        "processMaxRssKiB": 145712,
+        "physicalSavedVsOriginal": 278962176,
+        "percentSavedVsOriginal": 53.26107357357357,
+        "physicalSavedVsTemporaryPlain": 275357696
+      }
+    ]
+  },
+  "javascript": {
+    "node": "v26.8.1",
+    "libuv": "1.52.1",
+    "method": "Three unchanged dist files copied by writeDecmpfsFileSync to APFS temporary paths. SHA256 verifies all bytes. Single compression timing for each file. Original files remain untouched.",
+    "samples": [
+      {
+        "name": "index.js",
+        "logicalBytes": 306509,
+        "before": {
+          "compressed": false,
+          "logical": 306509,
+          "physical": 307200
+        },
+        "after": {
+          "compressed": true,
+          "logical": 306509,
+          "physical": 86016
+        },
+        "compressionMs": 6.788458000000006,
+        "result": {
+          "compressed": true,
+          "before": 306509,
+          "after": 86016,
+          "reason": "Compressed"
+        },
+        "sha256": "b70d8899350d75f58d58205474872dc3786b0bd2172747fe342391b51fa60bf9"
+      },
+      {
+        "name": "node.js",
+        "logicalBytes": 1001514,
+        "before": {
+          "compressed": false,
+          "logical": 1001514,
+          "physical": 1003520
+        },
+        "after": {
+          "compressed": true,
+          "logical": 1001514,
+          "physical": 311296
+        },
+        "compressionMs": 7.692207999999994,
+        "result": {
+          "compressed": true,
+          "before": 1001514,
+          "after": 311296,
+          "reason": "Compressed"
+        },
+        "sha256": "27b2506ec5f4241c3e0a06eb7801e13e4b9439883466a2337685f5285ff3a911"
+      },
+      {
+        "name": "cli.js",
+        "logicalBytes": 606782,
+        "before": {
+          "compressed": false,
+          "logical": 606782,
+          "physical": 610304
+        },
+        "after": {
+          "compressed": true,
+          "logical": 606782,
+          "physical": 184320
+        },
+        "compressionMs": 6.029749999999993,
+        "result": {
+          "compressed": true,
+          "before": 606782,
+          "after": 184320,
+          "reason": "Compressed"
+        },
+        "sha256": "ba98fcac04ee19971dcd615eeb2f72c75a06ebbd20c7653a46845b28165ef334"
+      }
+    ]
+  },
+  "copy": {
+    "node": "v26.8.1",
+    "libuv": "1.52.1",
+    "cases": [
+      {
+        "name": "node-default",
+        "stat": {
+          "compressed": false,
+          "logical": 1001514,
+          "physical": 1003520
+        },
+        "bytesEqual": true
+      },
+      {
+        "name": "node-ficlone",
+        "stat": {
+          "compressed": false,
+          "logical": 1001514,
+          "physical": 1003520
+        },
+        "bytesEqual": true
+      },
+      {
+        "name": "node-ficlone-force",
+        "code": "ENOSYS"
+      },
+      {
+        "name": "decmpfs-default",
+        "result": {
+          "compressed": true,
+          "before": 1001514,
+          "after": 311296,
+          "reason": "Cloned"
+        },
+        "stat": {
+          "compressed": true,
+          "logical": 1001514,
+          "physical": 311296
+        },
+        "bytesEqual": true
+      },
+      {
+        "name": "decmpfs-force-clone",
+        "result": {
+          "compressed": false,
+          "before": 1001514,
+          "after": 311296,
+          "reason": "Cloned"
+        },
+        "stat": {
+          "compressed": true,
+          "logical": 1001514,
+          "physical": 311296
+        },
+        "bytesEqual": true
+      },
+      {
+        "name": "cp-c",
+        "stat": {
+          "compressed": true,
+          "logical": 1001514,
+          "physical": 311296
+        },
+        "bytesEqual": true
+      }
+    ]
+  }
+}

@@ -2,7 +2,7 @@ import { mkdtemp, writeFile } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { createSimulatorBackend } from '../../src/backends/simulator.mts'
 import {
@@ -45,7 +45,10 @@ function createUnavailableBackend(reason: string): OdaiBackend {
 
 function createHangingBackend(): OdaiBackend {
   const session: SessionLike = {
-    prompt: () => new Promise<string>(() => {}),
+    prompt: messages =>
+      messages[0]?.content.startsWith('What model are you?')
+        ? Promise.resolve('simulator')
+        : new Promise<string>(() => {}),
     promptStreaming: () =>
       (async function* generate(): AsyncGenerator<string> {})(),
   }
@@ -298,6 +301,53 @@ describe('runCli', () => {
       stdout: stdout.write,
     })
     expect(code).toBe(69)
+  })
+
+  it('sets up Chrome through the public CLI and prints its receipt', async () => {
+    const stdout = createCapture()
+    const setupChrome = vi.fn().mockResolvedValue({
+      backend: 'chrome-builtin',
+      chromePath: '/example/chrome',
+      identity: { name: 'Gemma 4', raw: 'Gemma 4' },
+      model: 'gemma4',
+      profile: '/example/profile',
+    })
+    const code = await runCli(['setup'], {
+      env: { ODAI_CHROME_MODEL: 'gemma4' },
+      setupChrome,
+      stderr: createCapture().write,
+      stdout: stdout.write,
+    })
+    expect(code).toBe(0)
+    expect(setupChrome).toHaveBeenCalledWith({
+      env: { ODAI_CHROME_MODEL: 'gemma4' },
+    })
+    expect(JSON.parse(stdout.text())).toMatchObject({
+      model: 'gemma4',
+      profile: '/example/profile',
+    })
+  })
+
+  it('reports setup failures and rejects other setup backends', async () => {
+    const stderr = createCapture()
+    expect(
+      await runCli(['setup'], {
+        env: {},
+        setupChrome: async () => {
+          throw new Error('component unavailable')
+        },
+        stderr: stderr.write,
+        stdout: createCapture().write,
+      }),
+    ).toBe(1)
+    expect(stderr.text()).toContain('component unavailable')
+    expect(
+      await runCli(['setup', '--backend', 'simulator'], {
+        env: {},
+        stderr: stderr.write,
+        stdout: createCapture().write,
+      }),
+    ).toBe(2)
   })
 
   it('honors ODAI_BACKEND from the injected env', async () => {

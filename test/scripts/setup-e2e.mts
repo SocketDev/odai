@@ -9,7 +9,7 @@
  *   Run: `pnpm run setup:e2e` / `pnpm run setup:e2e --check`.
  */
 
-import { existsSync } from 'node:fs'
+import { existsSync, mkdirSync } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import process from 'node:process'
@@ -17,31 +17,35 @@ import process from 'node:process'
 import { getDefaultLogger } from '@socketsecurity/lib/logger/default'
 import { spawn } from '@socketsecurity/lib/process/spawn/child'
 
-import { createChromeBuiltinBackend } from '../../src/backends/chrome-builtin.mts'
-import { ODAI_CHROME_ALLOW_DOWNLOAD_ENV_VAR } from '../../src/backends/chrome-models.mts'
+import { setupChromeBuiltin } from '../../src/backends/chrome/setup.mts'
+import { ensureGemmaProvisionSpace } from '../../scripts/repo/cache/space.mts'
 import {
   chromePathCandidates,
   findModelSource,
   resolveBridgeConfig,
 } from '../../src/backends/chrome-profile.mts'
-import { createOdaiModel } from '../../src/model.mts'
-import { PYTHON_PINS } from './llama-cpp-server/executor.mts'
 import { isMainModule } from '../../scripts/fleet/process/is-main-module.mts'
 import { runMain } from '../../scripts/fleet/process/run-main.mts'
 import { REPO_ROOT } from '../../scripts/fleet/paths.mts'
 import type { ScriptMeta } from '../../scripts/fleet/process/run-main.mts'
+import {
+  pythonRunArgs,
+  withIsolatedEnv as pythonEnvironment,
+} from './llama-cpp-server/python.mts'
 
 const logger = getDefaultLogger()
 
-/**
- * The prompt that makes Chrome activate the model. One short turn is enough:
- * activation is what triggers the component download, not the token count.
- */
-const WARM_PROMPT = 'Reply with exactly: odai setup ready'
+const ISOLATED_TOOL_HOME = path.join(
+  os.tmpdir(),
+  `odai-setup-e2e-${process.getuid?.() ?? 'user'}`,
+)
+
+function withIsolatedEnv(): NodeJS.ProcessEnv {
+  mkdirSync(ISOLATED_TOOL_HOME, { recursive: true })
+  return { ...process.env, ...pythonEnvironment(ISOLATED_TOOL_HOME) }
+}
 
 const PLAYWRIGHT_CLI = 'node_modules/playwright-core/cli.js'
-
-const PYTHON_VERSION = '3.12'
 
 const SUBMODULE_MARKER = path.join(
   'upstream',
@@ -155,52 +159,48 @@ export async function chromeLane(options: LaneOptions): Promise<LaneStatus> {
   }
 }
 
-export async function modelLane(options: LaneOptions): Promise<LaneStatus> {
-  const opts = { __proto__: null, ...options } as typeof options
-  const config = await resolveBridgeConfig({ env: process.env })
-  const source = await findModelSource(config)
-  if (source.kind !== 'download') {
-    return {
-      detail:
-        'model component present in the ' +
-        `${source.kind === 'system' ? 'system Chrome' : 'bridge'} profile`,
-      lane: 'model',
-      ready: true,
-    }
+export interface ModelLaneDependencies {
+  resolveConfig: typeof resolveBridgeConfig
+  findSource: typeof findModelSource
+  setup: typeof setupChromeBuiltin
+}
+
+export async function modelLane(
+  options: LaneOptions,
+  dependencies: Partial<ModelLaneDependencies> = {},
+): Promise<LaneStatus> {
+  const opts = { __proto__: null, ...options }
+  const deps = {
+    resolveConfig: resolveBridgeConfig,
+    findSource: findModelSource,
+    setup: setupChromeBuiltin,
+    ...dependencies,
   }
+  const config = await deps.resolveConfig({ env: process.env })
   if (opts.check) {
+    const source = await deps.findSource(config)
     return {
       detail:
-        'no model component yet; `pnpm run setup:e2e --model` lets Chrome ' +
-        'download it (~4 GB, one time)',
+        source.kind === 'download'
+          ? 'no model component yet; run pnpm run setup:e2e --model'
+          : `model component present in the ${source.kind} Chrome profile`,
       lane: 'model',
-      ready: false,
+      ready: source.kind !== 'download',
     }
   }
-  logger.info(
-    'asking Chrome to download the on-device model component; this takes a ' +
-      'while and needs ~22 GB free disk',
-  )
-  process.env[ODAI_CHROME_ALLOW_DOWNLOAD_ENV_VAR] = '1'
-  const backend = createChromeBuiltinBackend()
-  try {
-    const availability = await backend.availability()
-    if (!availability.available) {
-      return {
-        detail: availability.reason ?? 'the backend reported unavailable',
-        lane: 'model',
-        ready: false,
-      }
-    }
-    const model = await createOdaiModel({ backend })
-    const result = await model.promptStreaming(WARM_PROMPT)
-    return {
-      detail: `model answered (${result.raw.trim().slice(0, 40)})`,
-      lane: 'model',
-      ready: true,
-    }
-  } finally {
-    await backend.close()
+  const receipt = await deps.setup({
+    env: process.env,
+    model: config.model,
+    chromePath: config.chromePath,
+    userDataDir: config.userDataDir,
+    reclaimStorage: async ({ profile }) => {
+      await ensureGemmaProvisionSpace(profile)
+    },
+  })
+  return {
+    detail: `verified ${receipt.identity.name} in ${receipt.profile}`,
+    lane: 'model',
+    ready: true,
   }
 }
 
@@ -212,10 +212,21 @@ export async function conformanceLane(
   const haveUv = await hasUv()
   if (existsSync(marker) && haveUv) {
     if (opts.check) {
-      return {
-        detail: 'submodule checked out, uv present',
-        lane: 'conformance',
-        ready: true,
+      try {
+        await warmPythonEnv(true)
+        return {
+          detail:
+            'submodule checked out, Python dependencies available offline',
+          lane: 'conformance',
+          ready: true,
+        }
+      } catch {
+        return {
+          detail:
+            'Python cache is incomplete; run pnpm run setup:e2e --conformance',
+          lane: 'conformance',
+          ready: false,
+        }
       }
     }
     await warmPythonEnv()
@@ -274,7 +285,8 @@ export async function conformanceLane(
 
 export async function hasUv(): Promise<boolean> {
   try {
-    await spawn('uv', ['--version'], { stdio: 'ignore' })
+    const env = withIsolatedEnv()
+    await spawn('uv', ['--version'], { env, stdio: 'ignore' })
     return true
   } catch {
     return false
@@ -285,14 +297,21 @@ export async function hasUv(): Promise<boolean> {
  * Resolve the pinned python packages once, so the first conformance run does
  * not pay for the download inside a test timeout.
  */
-export async function warmPythonEnv(): Promise<void> {
-  logger.info('warming the pinned python packages…')
-  const args = ['run', '--python', PYTHON_VERSION]
-  for (let i = 0, { length } = PYTHON_PINS; i < length; i += 1) {
-    args.push('--with', PYTHON_PINS[i]!)
+export async function warmPythonEnv(offline = false): Promise<void> {
+  if (!offline) {
+    logger.info('warming the pinned python packages…')
+  }
+  const env = withIsolatedEnv()
+  const args = pythonRunArgs()
+  if (offline) {
+    args.push('--offline')
   }
   args.push('python', '-c', 'import pytest, requests, openai, wget, aiohttp')
-  await spawn('uv', args, { cwd: REPO_ROOT, stdio: 'inherit' })
+  await spawn('uv', args, {
+    cwd: REPO_ROOT,
+    env,
+    stdio: offline ? 'ignore' : 'inherit',
+  })
 }
 
 export async function runLane(
@@ -309,15 +328,9 @@ export async function runLane(
 }
 
 /**
- * Report the lanes and name the command each gated test needs. In `--check`
- * mode a missing lane is information, not a failure: a fresh clone should not
- * fail its install over an optional 4 GB download.
+ * Report readiness and return failure when any requested lane is unavailable.
  */
-export function reportLanes(
-  statuses: readonly LaneStatus[],
-  options: LaneOptions,
-): number {
-  const opts = { __proto__: null, ...options } as typeof options
+export function reportLanes(statuses: readonly LaneStatus[]): number {
   for (let i = 0, { length } = statuses; i < length; i += 1) {
     const status = statuses[i]!
     logger.log(
@@ -333,7 +346,7 @@ export function reportLanes(
         '  pnpm run test:conformance',
     )
   }
-  return opts.check || ready ? 0 : 1
+  return ready ? 0 : 1
 }
 
 async function main(): Promise<number> {
@@ -343,13 +356,14 @@ async function main(): Promise<number> {
   for (let i = 0, { length } = lanes; i < length; i += 1) {
     statuses.push(await runLane(lanes[i]!, { check }))
   }
-  return reportLanes(statuses, { check })
+  return reportLanes(statuses)
 }
 
 const SCRIPT_META: ScriptMeta = {
   describe:
     'provisions the opt-in e2e lanes: real Chrome, the on-device model component, and the llama.cpp conformance prerequisites',
   help: 'Usage: node test/scripts/setup-e2e.mts [--check] [--chrome] [--model] [--conformance]',
+  json: 'result',
 }
 
 if (isMainModule(import.meta.url)) {

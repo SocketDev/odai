@@ -1,0 +1,1821 @@
+{
+  "schemaVersion": 1,
+  "units": "bytes",
+  "measurement": {
+    "gzipLevel": 9,
+    "brotliQuality": 11,
+    "compressedTotals": "Sum of individually compressed emitted files.",
+    "dynamicClosure": "Additional emitted files reachable through dynamic imports, excluding the static closure.",
+    "packageScope": "All generated JavaScript chunks, deduplicated by emitted path. Assets are separate.",
+    "runtimeExternals": "Import specifiers only. Installed dependency bytes are excluded.",
+    "moduleContributors": "Rolldown renderedLength, summed across distinct emitted chunks. Wrapper and compression overhead are not attributed.",
+    "topModuleLimit": 20
+  },
+  "package": {
+    "files": [
+      "dist/bench/index.js",
+      "dist/chunk/apple-fm-shim-By1fqew4.js",
+      "dist/chunk/date-BD0lHTcl.js",
+      "dist/chunk/fs-Bz4u9IaR.js",
+      "dist/chunk/run-B5ixOAb8.js",
+      "dist/chunk/string-D5jLtXtt.js",
+      "dist/chunk/write-json-C44MPNVd.js",
+      "dist/cli.js",
+      "dist/index.js",
+      "dist/node.js"
+    ],
+    "bytes": {
+      "raw": 8933586,
+      "gzip": 1851628,
+      "brotli": 1054682
+    },
+    "topModules": [
+      {
+        "id": "@ultrathink/acorn.rs.wasm/index.cjs",
+        "renderedBytes": 6313110
+      },
+      {
+        "id": "@socketsecurity/lib/dist/external/@sinclair/typebox/value.js",
+        "renderedBytes": 335200
+      },
+      {
+        "id": "@socketsecurity/lib/dist/external/@socketregistry/packageurl-js.js",
+        "renderedBytes": 328643
+      },
+      {
+        "id": "@socketsecurity/lib/dist/external/pico-pack.js",
+        "renderedBytes": 284137
+      },
+      {
+        "id": "@socketsecurity/lib/dist/external/external-pack.js",
+        "renderedBytes": 101817
+      },
+      {
+        "id": "@sinclair/typebox/build/esm/errors/errors.mjs",
+        "renderedBytes": 73602
+      },
+      {
+        "id": "@sinclair/typebox/build/esm/value/check/check.mjs",
+        "renderedBytes": 40877
+      },
+      {
+        "id": "@sinclair/typebox/build/esm/value/create/create.mjs",
+        "renderedBytes": 33576
+      },
+      {
+        "id": "@sinclair/typebox/build/esm/value/convert/convert.mjs",
+        "renderedBytes": 26805
+      },
+      {
+        "id": "@sinclair/typebox/build/esm/value/cast/cast.mjs",
+        "renderedBytes": 23097
+      },
+      {
+        "id": "@sinclair/typebox/build/esm/errors/function.mjs",
+        "renderedBytes": 20172
+      },
+      {
+        "id": "@sinclair/typebox/build/esm/type/guard/kind.mjs",
+        "renderedBytes": 19912
+      },
+      {
+        "id": "@sinclair/typebox/build/esm/value/transform/encode.mjs",
+        "renderedBytes": 19825
+      },
+      {
+        "id": "@sinclair/typebox/build/esm/value/transform/decode.mjs",
+        "renderedBytes": 19576
+      },
+      {
+        "id": "@sinclair/typebox/build/esm/type/extends/extends-check.mjs",
+        "renderedBytes": 18360
+      },
+      {
+        "id": "@socketsecurity/lib/dist/primordials/string.js",
+        "renderedBytes": 17074
+      },
+      {
+        "id": "@socketsecurity/lib/dist/primordials/map-set.js",
+        "renderedBytes": 16876
+      },
+      {
+        "id": "src/backends/llama-server.mts",
+        "renderedBytes": 16705
+      },
+      {
+        "id": "@sinclair/typebox/build/esm/value/default/default.mjs",
+        "renderedBytes": 16370
+      },
+      {
+        "id": "@socketsecurity/lib/dist/paths/socket.js",
+        "renderedBytes": 16096
+      }
+    ],
+    "runtimeExternals": [
+      "@sinclair/typebox",
+      "node:child_process",
+      "node:crypto",
+      "node:fs",
+      "node:fs/promises",
+      "node:http",
+      "node:os",
+      "node:path",
+      "node:string_decoder",
+      "node:url",
+      "node:util",
+      "playwright-core"
+    ]
+  },
+  "entries": [
+    {
+      "file": "dist/bench/index.js",
+      "static": {
+        "files": ["dist/bench/index.js"],
+        "bytes": {
+          "raw": 6664236,
+          "gzip": 1374715,
+          "brotli": 658609
+        },
+        "topModules": [
+          {
+            "id": "@ultrathink/acorn.rs.wasm/index.cjs",
+            "renderedBytes": 6313110
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/errors/errors.mjs",
+            "renderedBytes": 24534
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/type/extends/extends-check.mjs",
+            "renderedBytes": 18360
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/value/check/check.mjs",
+            "renderedBytes": 13627
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/type/guard/type.mjs",
+            "renderedBytes": 13270
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/value/create/create.mjs",
+            "renderedBytes": 11192
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/value/convert/convert.mjs",
+            "renderedBytes": 8935
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/value/cast/cast.mjs",
+            "renderedBytes": 7699
+          },
+          {
+            "id": "src/bench/scenarios.mts",
+            "renderedBytes": 7669
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/type/guard/kind.mjs",
+            "renderedBytes": 7018
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/errors/function.mjs",
+            "renderedBytes": 6724
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/value/transform/encode.mjs",
+            "renderedBytes": 6615
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/value/transform/decode.mjs",
+            "renderedBytes": 6532
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/value/default/default.mjs",
+            "renderedBytes": 5458
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/type/module/compute.mjs",
+            "renderedBytes": 5147
+          },
+          {
+            "id": "src/bench/lockstep/verify.mts",
+            "renderedBytes": 4820
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/value/clean/clean.mjs",
+            "renderedBytes": 4690
+          },
+          {
+            "id": "src/bench/intent/fixtures.mts",
+            "renderedBytes": 4378
+          },
+          {
+            "id": "src/lockstep/proposal.mts",
+            "renderedBytes": 4302
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/type/template-literal/parse.mjs",
+            "renderedBytes": 4250
+          }
+        ]
+      },
+      "dynamic": {
+        "files": [],
+        "bytes": {
+          "raw": 0,
+          "gzip": 0,
+          "brotli": 0
+        },
+        "topModules": []
+      },
+      "reachable": {
+        "files": ["dist/bench/index.js"],
+        "bytes": {
+          "raw": 6664236,
+          "gzip": 1374715,
+          "brotli": 658609
+        },
+        "topModules": [
+          {
+            "id": "@ultrathink/acorn.rs.wasm/index.cjs",
+            "renderedBytes": 6313110
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/errors/errors.mjs",
+            "renderedBytes": 24534
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/type/extends/extends-check.mjs",
+            "renderedBytes": 18360
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/value/check/check.mjs",
+            "renderedBytes": 13627
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/type/guard/type.mjs",
+            "renderedBytes": 13270
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/value/create/create.mjs",
+            "renderedBytes": 11192
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/value/convert/convert.mjs",
+            "renderedBytes": 8935
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/value/cast/cast.mjs",
+            "renderedBytes": 7699
+          },
+          {
+            "id": "src/bench/scenarios.mts",
+            "renderedBytes": 7669
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/type/guard/kind.mjs",
+            "renderedBytes": 7018
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/errors/function.mjs",
+            "renderedBytes": 6724
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/value/transform/encode.mjs",
+            "renderedBytes": 6615
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/value/transform/decode.mjs",
+            "renderedBytes": 6532
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/value/default/default.mjs",
+            "renderedBytes": 5458
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/type/module/compute.mjs",
+            "renderedBytes": 5147
+          },
+          {
+            "id": "src/bench/lockstep/verify.mts",
+            "renderedBytes": 4820
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/value/clean/clean.mjs",
+            "renderedBytes": 4690
+          },
+          {
+            "id": "src/bench/intent/fixtures.mts",
+            "renderedBytes": 4378
+          },
+          {
+            "id": "src/lockstep/proposal.mts",
+            "renderedBytes": 4302
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/type/template-literal/parse.mjs",
+            "renderedBytes": 4250
+          }
+        ]
+      },
+      "runtimeExternals": {
+        "static": [],
+        "dynamic": []
+      }
+    },
+    {
+      "file": "dist/cli.js",
+      "static": {
+        "files": [
+          "dist/chunk/run-B5ixOAb8.js",
+          "dist/chunk/string-D5jLtXtt.js",
+          "dist/cli.js"
+        ],
+        "bytes": {
+          "raw": 626917,
+          "gzip": 139737,
+          "brotli": 116143
+        },
+        "topModules": [
+          {
+            "id": "@socketsecurity/lib/dist/external/external-pack.js",
+            "renderedBytes": 101817
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/errors/errors.mjs",
+            "renderedBytes": 24534
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/value/check/check.mjs",
+            "renderedBytes": 13625
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/value/create/create.mjs",
+            "renderedBytes": 11192
+          },
+          {
+            "id": "src/shim/server.mts",
+            "renderedBytes": 10298
+          },
+          {
+            "id": "src/backends/chrome-profile.mts",
+            "renderedBytes": 10014
+          },
+          {
+            "id": "@socketsecurity/lib/dist/logger/node.js",
+            "renderedBytes": 9395
+          },
+          {
+            "id": "@socketsecurity/lib/dist/primordials/array.js",
+            "renderedBytes": 8962
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/value/convert/convert.mjs",
+            "renderedBytes": 8935
+          },
+          {
+            "id": "src/backends/llama-server.mts",
+            "renderedBytes": 8650
+          },
+          {
+            "id": "@socketsecurity/lib/dist/primordials/string.js",
+            "renderedBytes": 8537
+          },
+          {
+            "id": "src/shim/openai.mts",
+            "renderedBytes": 8463
+          },
+          {
+            "id": "@socketsecurity/lib/dist/primordials/map-set.js",
+            "renderedBytes": 8455
+          },
+          {
+            "id": "src/backends/chrome-page.mts",
+            "renderedBytes": 7807
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/value/cast/cast.mjs",
+            "renderedBytes": 7699
+          },
+          {
+            "id": "src/cli/run.mts",
+            "renderedBytes": 7551
+          },
+          {
+            "id": "@socketsecurity/lib/dist/logger/console-methods.js",
+            "renderedBytes": 6896
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/errors/function.mjs",
+            "renderedBytes": 6724
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/value/transform/encode.mjs",
+            "renderedBytes": 6605
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/value/transform/decode.mjs",
+            "renderedBytes": 6522
+          }
+        ]
+      },
+      "dynamic": {
+        "files": [
+          "dist/chunk/apple-fm-shim-By1fqew4.js",
+          "dist/chunk/date-BD0lHTcl.js",
+          "dist/chunk/fs-Bz4u9IaR.js",
+          "dist/chunk/write-json-C44MPNVd.js"
+        ],
+        "bytes": {
+          "raw": 847037,
+          "gzip": 160628,
+          "brotli": 132042
+        },
+        "topModules": [
+          {
+            "id": "@socketsecurity/lib/dist/external/@sinclair/typebox/value.js",
+            "renderedBytes": 335200
+          },
+          {
+            "id": "@socketsecurity/lib/dist/external/pico-pack.js",
+            "renderedBytes": 284137
+          },
+          {
+            "id": "@socketsecurity/lib/dist/external/@npmcli/promise-spawn.js",
+            "renderedBytes": 14376
+          },
+          {
+            "id": "@socketsecurity/lib/dist/paths/shared.js",
+            "renderedBytes": 13436
+          },
+          {
+            "id": "@socketsecurity/lib/dist/exe/path/which.js",
+            "renderedBytes": 11349
+          },
+          {
+            "id": "src/backends/apple-fm-shim.mts",
+            "renderedBytes": 10634
+          },
+          {
+            "id": "@socketsecurity/lib/dist/exe/path/resolve.js",
+            "renderedBytes": 9845
+          },
+          {
+            "id": "@socketsecurity/lib/dist/paths/predicates.js",
+            "renderedBytes": 9654
+          },
+          {
+            "id": "@socketsecurity/lib/dist/exe/path/sanitize.js",
+            "renderedBytes": 8866
+          },
+          {
+            "id": "@socketsecurity/lib/dist/env/rewire.js",
+            "renderedBytes": 8644
+          },
+          {
+            "id": "@socketsecurity/lib/dist/json/parse.js",
+            "renderedBytes": 8425
+          },
+          {
+            "id": "@socketsecurity/lib/dist/fs/read-json.js",
+            "renderedBytes": 8237
+          },
+          {
+            "id": "@socketsecurity/lib/dist/external/which.js",
+            "renderedBytes": 8195
+          },
+          {
+            "id": "@socketsecurity/lib/dist/process/spawn/child.js",
+            "renderedBytes": 8183
+          },
+          {
+            "id": "@socketsecurity/lib/dist/process/spawn/shared.js",
+            "renderedBytes": 7619
+          },
+          {
+            "id": "@socketsecurity/lib/dist/fs/read-json-cache.js",
+            "renderedBytes": 7410
+          },
+          {
+            "id": "@socketsecurity/lib/dist/process/spawn/errors.js",
+            "renderedBytes": 6762
+          },
+          {
+            "id": "@socketsecurity/lib/dist/fs/inspect.js",
+            "renderedBytes": 5755
+          },
+          {
+            "id": "@socketsecurity/lib/dist/git/repo.js",
+            "renderedBytes": 5029
+          },
+          {
+            "id": "@socketsecurity/lib/dist/strings/transform.js",
+            "renderedBytes": 4979
+          }
+        ]
+      },
+      "reachable": {
+        "files": [
+          "dist/chunk/apple-fm-shim-By1fqew4.js",
+          "dist/chunk/date-BD0lHTcl.js",
+          "dist/chunk/fs-Bz4u9IaR.js",
+          "dist/chunk/run-B5ixOAb8.js",
+          "dist/chunk/string-D5jLtXtt.js",
+          "dist/chunk/write-json-C44MPNVd.js",
+          "dist/cli.js"
+        ],
+        "bytes": {
+          "raw": 1473954,
+          "gzip": 300365,
+          "brotli": 248185
+        },
+        "topModules": [
+          {
+            "id": "@socketsecurity/lib/dist/external/@sinclair/typebox/value.js",
+            "renderedBytes": 335200
+          },
+          {
+            "id": "@socketsecurity/lib/dist/external/pico-pack.js",
+            "renderedBytes": 284137
+          },
+          {
+            "id": "@socketsecurity/lib/dist/external/external-pack.js",
+            "renderedBytes": 101817
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/errors/errors.mjs",
+            "renderedBytes": 24534
+          },
+          {
+            "id": "@socketsecurity/lib/dist/external/@npmcli/promise-spawn.js",
+            "renderedBytes": 14376
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/value/check/check.mjs",
+            "renderedBytes": 13625
+          },
+          {
+            "id": "@socketsecurity/lib/dist/paths/shared.js",
+            "renderedBytes": 13436
+          },
+          {
+            "id": "@socketsecurity/lib/dist/exe/path/which.js",
+            "renderedBytes": 11349
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/value/create/create.mjs",
+            "renderedBytes": 11192
+          },
+          {
+            "id": "src/backends/apple-fm-shim.mts",
+            "renderedBytes": 10634
+          },
+          {
+            "id": "src/shim/server.mts",
+            "renderedBytes": 10298
+          },
+          {
+            "id": "src/backends/chrome-profile.mts",
+            "renderedBytes": 10014
+          },
+          {
+            "id": "@socketsecurity/lib/dist/exe/path/resolve.js",
+            "renderedBytes": 9845
+          },
+          {
+            "id": "@socketsecurity/lib/dist/paths/predicates.js",
+            "renderedBytes": 9654
+          },
+          {
+            "id": "@socketsecurity/lib/dist/logger/node.js",
+            "renderedBytes": 9395
+          },
+          {
+            "id": "@socketsecurity/lib/dist/primordials/array.js",
+            "renderedBytes": 8962
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/value/convert/convert.mjs",
+            "renderedBytes": 8935
+          },
+          {
+            "id": "@socketsecurity/lib/dist/exe/path/sanitize.js",
+            "renderedBytes": 8866
+          },
+          {
+            "id": "src/backends/llama-server.mts",
+            "renderedBytes": 8650
+          },
+          {
+            "id": "@socketsecurity/lib/dist/env/rewire.js",
+            "renderedBytes": 8644
+          }
+        ]
+      },
+      "runtimeExternals": {
+        "static": ["@sinclair/typebox", "node:fs", "node:http", "node:url"],
+        "dynamic": [
+          "node:child_process",
+          "node:crypto",
+          "node:fs/promises",
+          "node:os",
+          "node:path",
+          "node:string_decoder",
+          "node:util",
+          "playwright-core"
+        ]
+      }
+    },
+    {
+      "file": "dist/index.js",
+      "static": {
+        "files": ["dist/index.js"],
+        "bytes": {
+          "raw": 315339,
+          "gzip": 63387,
+          "brotli": 53676
+        },
+        "topModules": [
+          {
+            "id": "@sinclair/typebox/build/esm/errors/errors.mjs",
+            "renderedBytes": 24534
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/value/check/check.mjs",
+            "renderedBytes": 13625
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/value/create/create.mjs",
+            "renderedBytes": 11192
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/value/convert/convert.mjs",
+            "renderedBytes": 8935
+          },
+          {
+            "id": "@socketsecurity/lib/dist/primordials/string.js",
+            "renderedBytes": 8537
+          },
+          {
+            "id": "@socketsecurity/lib/dist/primordials/map-set.js",
+            "renderedBytes": 8421
+          },
+          {
+            "id": "src/backends/llama-server.mts",
+            "renderedBytes": 8055
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/value/cast/cast.mjs",
+            "renderedBytes": 7699
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/errors/function.mjs",
+            "renderedBytes": 6724
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/value/transform/encode.mjs",
+            "renderedBytes": 6605
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/value/transform/decode.mjs",
+            "renderedBytes": 6522
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/type/guard/kind.mjs",
+            "renderedBytes": 6447
+          },
+          {
+            "id": "src/json.mts",
+            "renderedBytes": 6336
+          },
+          {
+            "id": "@socketsecurity/lib/dist/node/module.js",
+            "renderedBytes": 5527
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/value/default/default.mjs",
+            "renderedBytes": 5456
+          },
+          {
+            "id": "@socketsecurity/lib/dist/primordials/object.js",
+            "renderedBytes": 4702
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/value/clean/clean.mjs",
+            "renderedBytes": 4682
+          },
+          {
+            "id": "src/model.mts",
+            "renderedBytes": 4588
+          },
+          {
+            "id": "@socketsecurity/lib/dist/external/pony-cause.js",
+            "renderedBytes": 4477
+          },
+          {
+            "id": "@socketsecurity/lib/dist/arrays/join.js",
+            "renderedBytes": 4356
+          }
+        ]
+      },
+      "dynamic": {
+        "files": [],
+        "bytes": {
+          "raw": 0,
+          "gzip": 0,
+          "brotli": 0
+        },
+        "topModules": []
+      },
+      "reachable": {
+        "files": ["dist/index.js"],
+        "bytes": {
+          "raw": 315339,
+          "gzip": 63387,
+          "brotli": 53676
+        },
+        "topModules": [
+          {
+            "id": "@sinclair/typebox/build/esm/errors/errors.mjs",
+            "renderedBytes": 24534
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/value/check/check.mjs",
+            "renderedBytes": 13625
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/value/create/create.mjs",
+            "renderedBytes": 11192
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/value/convert/convert.mjs",
+            "renderedBytes": 8935
+          },
+          {
+            "id": "@socketsecurity/lib/dist/primordials/string.js",
+            "renderedBytes": 8537
+          },
+          {
+            "id": "@socketsecurity/lib/dist/primordials/map-set.js",
+            "renderedBytes": 8421
+          },
+          {
+            "id": "src/backends/llama-server.mts",
+            "renderedBytes": 8055
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/value/cast/cast.mjs",
+            "renderedBytes": 7699
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/errors/function.mjs",
+            "renderedBytes": 6724
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/value/transform/encode.mjs",
+            "renderedBytes": 6605
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/value/transform/decode.mjs",
+            "renderedBytes": 6522
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/type/guard/kind.mjs",
+            "renderedBytes": 6447
+          },
+          {
+            "id": "src/json.mts",
+            "renderedBytes": 6336
+          },
+          {
+            "id": "@socketsecurity/lib/dist/node/module.js",
+            "renderedBytes": 5527
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/value/default/default.mjs",
+            "renderedBytes": 5456
+          },
+          {
+            "id": "@socketsecurity/lib/dist/primordials/object.js",
+            "renderedBytes": 4702
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/value/clean/clean.mjs",
+            "renderedBytes": 4682
+          },
+          {
+            "id": "src/model.mts",
+            "renderedBytes": 4588
+          },
+          {
+            "id": "@socketsecurity/lib/dist/external/pony-cause.js",
+            "renderedBytes": 4477
+          },
+          {
+            "id": "@socketsecurity/lib/dist/arrays/join.js",
+            "renderedBytes": 4356
+          }
+        ]
+      },
+      "runtimeExternals": {
+        "static": ["@sinclair/typebox"],
+        "dynamic": []
+      }
+    },
+    {
+      "file": "dist/node.js",
+      "static": {
+        "files": [
+          "dist/chunk/date-BD0lHTcl.js",
+          "dist/chunk/fs-Bz4u9IaR.js",
+          "dist/chunk/run-B5ixOAb8.js",
+          "dist/chunk/string-D5jLtXtt.js",
+          "dist/node.js"
+        ],
+        "bytes": {
+          "raw": 1439904,
+          "gzip": 324897,
+          "brotli": 270426
+        },
+        "topModules": [
+          {
+            "id": "@socketsecurity/lib/dist/external/@socketregistry/packageurl-js.js",
+            "renderedBytes": 328643
+          },
+          {
+            "id": "@socketsecurity/lib/dist/external/pico-pack.js",
+            "renderedBytes": 284137
+          },
+          {
+            "id": "@socketsecurity/lib/dist/external/external-pack.js",
+            "renderedBytes": 101817
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/errors/errors.mjs",
+            "renderedBytes": 24534
+          },
+          {
+            "id": "@socketsecurity/lib/dist/paths/socket.js",
+            "renderedBytes": 16096
+          },
+          {
+            "id": "@socketsecurity/lib/dist/env/socket.js",
+            "renderedBytes": 15254
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/value/check/check.mjs",
+            "renderedBytes": 13625
+          },
+          {
+            "id": "@socketsecurity/lib/dist/paths/shared.js",
+            "renderedBytes": 13436
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/value/create/create.mjs",
+            "renderedBytes": 11192
+          },
+          {
+            "id": "@socketsecurity/lib/dist/fs/safe.js",
+            "renderedBytes": 11163
+          },
+          {
+            "id": "src/shim/server.mts",
+            "renderedBytes": 10298
+          },
+          {
+            "id": "src/backends/chrome-profile.mts",
+            "renderedBytes": 10014
+          },
+          {
+            "id": "@socketsecurity/lib/dist/http-request/request-attempt.js",
+            "renderedBytes": 9438
+          },
+          {
+            "id": "@socketsecurity/lib/dist/logger/node.js",
+            "renderedBytes": 9395
+          },
+          {
+            "id": "@socketsecurity/lib/dist/primordials/array.js",
+            "renderedBytes": 8962
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/value/convert/convert.mjs",
+            "renderedBytes": 8935
+          },
+          {
+            "id": "src/backends/llama-server.mts",
+            "renderedBytes": 8650
+          },
+          {
+            "id": "@socketsecurity/lib/dist/env/rewire.js",
+            "renderedBytes": 8644
+          },
+          {
+            "id": "@socketsecurity/lib/dist/primordials/string.js",
+            "renderedBytes": 8537
+          },
+          {
+            "id": "src/shim/openai.mts",
+            "renderedBytes": 8463
+          }
+        ]
+      },
+      "dynamic": {
+        "files": [
+          "dist/chunk/apple-fm-shim-By1fqew4.js",
+          "dist/chunk/write-json-C44MPNVd.js"
+        ],
+        "bytes": {
+          "raw": 512046,
+          "gzip": 87580,
+          "brotli": 71036
+        },
+        "topModules": [
+          {
+            "id": "@socketsecurity/lib/dist/external/@sinclair/typebox/value.js",
+            "renderedBytes": 335200
+          },
+          {
+            "id": "@socketsecurity/lib/dist/external/@npmcli/promise-spawn.js",
+            "renderedBytes": 14376
+          },
+          {
+            "id": "@socketsecurity/lib/dist/exe/path/which.js",
+            "renderedBytes": 11349
+          },
+          {
+            "id": "src/backends/apple-fm-shim.mts",
+            "renderedBytes": 10634
+          },
+          {
+            "id": "@socketsecurity/lib/dist/exe/path/resolve.js",
+            "renderedBytes": 9845
+          },
+          {
+            "id": "@socketsecurity/lib/dist/paths/predicates.js",
+            "renderedBytes": 9654
+          },
+          {
+            "id": "@socketsecurity/lib/dist/exe/path/sanitize.js",
+            "renderedBytes": 8866
+          },
+          {
+            "id": "@socketsecurity/lib/dist/json/parse.js",
+            "renderedBytes": 8425
+          },
+          {
+            "id": "@socketsecurity/lib/dist/fs/read-json.js",
+            "renderedBytes": 8237
+          },
+          {
+            "id": "@socketsecurity/lib/dist/external/which.js",
+            "renderedBytes": 8195
+          },
+          {
+            "id": "@socketsecurity/lib/dist/process/spawn/child.js",
+            "renderedBytes": 8183
+          },
+          {
+            "id": "@socketsecurity/lib/dist/process/spawn/shared.js",
+            "renderedBytes": 7619
+          },
+          {
+            "id": "@socketsecurity/lib/dist/fs/read-json-cache.js",
+            "renderedBytes": 7410
+          },
+          {
+            "id": "@socketsecurity/lib/dist/process/spawn/errors.js",
+            "renderedBytes": 6762
+          },
+          {
+            "id": "@socketsecurity/lib/dist/fs/inspect.js",
+            "renderedBytes": 5755
+          },
+          {
+            "id": "@socketsecurity/lib/dist/git/repo.js",
+            "renderedBytes": 5029
+          },
+          {
+            "id": "@socketsecurity/lib/dist/strings/transform.js",
+            "renderedBytes": 4979
+          },
+          {
+            "id": "@socketsecurity/lib/dist/globs/matcher.js",
+            "renderedBytes": 4894
+          },
+          {
+            "id": "@socketsecurity/lib/dist/fs/write-json.js",
+            "renderedBytes": 4774
+          },
+          {
+            "id": "@socketsecurity/lib/dist/schema/validate.js",
+            "renderedBytes": 4396
+          }
+        ]
+      },
+      "reachable": {
+        "files": [
+          "dist/chunk/apple-fm-shim-By1fqew4.js",
+          "dist/chunk/date-BD0lHTcl.js",
+          "dist/chunk/fs-Bz4u9IaR.js",
+          "dist/chunk/run-B5ixOAb8.js",
+          "dist/chunk/string-D5jLtXtt.js",
+          "dist/chunk/write-json-C44MPNVd.js",
+          "dist/node.js"
+        ],
+        "bytes": {
+          "raw": 1951950,
+          "gzip": 412477,
+          "brotli": 341462
+        },
+        "topModules": [
+          {
+            "id": "@socketsecurity/lib/dist/external/@sinclair/typebox/value.js",
+            "renderedBytes": 335200
+          },
+          {
+            "id": "@socketsecurity/lib/dist/external/@socketregistry/packageurl-js.js",
+            "renderedBytes": 328643
+          },
+          {
+            "id": "@socketsecurity/lib/dist/external/pico-pack.js",
+            "renderedBytes": 284137
+          },
+          {
+            "id": "@socketsecurity/lib/dist/external/external-pack.js",
+            "renderedBytes": 101817
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/errors/errors.mjs",
+            "renderedBytes": 24534
+          },
+          {
+            "id": "@socketsecurity/lib/dist/paths/socket.js",
+            "renderedBytes": 16096
+          },
+          {
+            "id": "@socketsecurity/lib/dist/env/socket.js",
+            "renderedBytes": 15254
+          },
+          {
+            "id": "@socketsecurity/lib/dist/external/@npmcli/promise-spawn.js",
+            "renderedBytes": 14376
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/value/check/check.mjs",
+            "renderedBytes": 13625
+          },
+          {
+            "id": "@socketsecurity/lib/dist/paths/shared.js",
+            "renderedBytes": 13436
+          },
+          {
+            "id": "@socketsecurity/lib/dist/exe/path/which.js",
+            "renderedBytes": 11349
+          },
+          {
+            "id": "@sinclair/typebox/build/esm/value/create/create.mjs",
+            "renderedBytes": 11192
+          },
+          {
+            "id": "@socketsecurity/lib/dist/fs/safe.js",
+            "renderedBytes": 11163
+          },
+          {
+            "id": "src/backends/apple-fm-shim.mts",
+            "renderedBytes": 10634
+          },
+          {
+            "id": "src/shim/server.mts",
+            "renderedBytes": 10298
+          },
+          {
+            "id": "src/backends/chrome-profile.mts",
+            "renderedBytes": 10014
+          },
+          {
+            "id": "@socketsecurity/lib/dist/exe/path/resolve.js",
+            "renderedBytes": 9845
+          },
+          {
+            "id": "@socketsecurity/lib/dist/paths/predicates.js",
+            "renderedBytes": 9654
+          },
+          {
+            "id": "@socketsecurity/lib/dist/http-request/request-attempt.js",
+            "renderedBytes": 9438
+          },
+          {
+            "id": "@socketsecurity/lib/dist/logger/node.js",
+            "renderedBytes": 9395
+          }
+        ]
+      },
+      "runtimeExternals": {
+        "static": ["@sinclair/typebox", "node:fs", "node:http", "node:path"],
+        "dynamic": [
+          "node:child_process",
+          "node:crypto",
+          "node:fs/promises",
+          "node:os",
+          "node:string_decoder",
+          "node:util",
+          "playwright-core"
+        ]
+      }
+    }
+  ],
+  "files": [
+    {
+      "file": "dist/bench/index.js",
+      "entry": true,
+      "bytes": {
+        "raw": 6664236,
+        "gzip": 1374715,
+        "brotli": 658609
+      },
+      "imports": [],
+      "dynamicImports": [],
+      "externalImports": [],
+      "externalDynamicImports": [],
+      "topModules": [
+        {
+          "id": "@ultrathink/acorn.rs.wasm/index.cjs",
+          "renderedBytes": 6313110
+        },
+        {
+          "id": "@sinclair/typebox/build/esm/errors/errors.mjs",
+          "renderedBytes": 24534
+        },
+        {
+          "id": "@sinclair/typebox/build/esm/type/extends/extends-check.mjs",
+          "renderedBytes": 18360
+        },
+        {
+          "id": "@sinclair/typebox/build/esm/value/check/check.mjs",
+          "renderedBytes": 13627
+        },
+        {
+          "id": "@sinclair/typebox/build/esm/type/guard/type.mjs",
+          "renderedBytes": 13270
+        },
+        {
+          "id": "@sinclair/typebox/build/esm/value/create/create.mjs",
+          "renderedBytes": 11192
+        },
+        {
+          "id": "@sinclair/typebox/build/esm/value/convert/convert.mjs",
+          "renderedBytes": 8935
+        },
+        {
+          "id": "@sinclair/typebox/build/esm/value/cast/cast.mjs",
+          "renderedBytes": 7699
+        },
+        {
+          "id": "src/bench/scenarios.mts",
+          "renderedBytes": 7669
+        },
+        {
+          "id": "@sinclair/typebox/build/esm/type/guard/kind.mjs",
+          "renderedBytes": 7018
+        },
+        {
+          "id": "@sinclair/typebox/build/esm/errors/function.mjs",
+          "renderedBytes": 6724
+        },
+        {
+          "id": "@sinclair/typebox/build/esm/value/transform/encode.mjs",
+          "renderedBytes": 6615
+        },
+        {
+          "id": "@sinclair/typebox/build/esm/value/transform/decode.mjs",
+          "renderedBytes": 6532
+        },
+        {
+          "id": "@sinclair/typebox/build/esm/value/default/default.mjs",
+          "renderedBytes": 5458
+        },
+        {
+          "id": "@sinclair/typebox/build/esm/type/module/compute.mjs",
+          "renderedBytes": 5147
+        },
+        {
+          "id": "src/bench/lockstep/verify.mts",
+          "renderedBytes": 4820
+        },
+        {
+          "id": "@sinclair/typebox/build/esm/value/clean/clean.mjs",
+          "renderedBytes": 4690
+        },
+        {
+          "id": "src/bench/intent/fixtures.mts",
+          "renderedBytes": 4378
+        },
+        {
+          "id": "src/lockstep/proposal.mts",
+          "renderedBytes": 4302
+        },
+        {
+          "id": "@sinclair/typebox/build/esm/type/template-literal/parse.mjs",
+          "renderedBytes": 4250
+        }
+      ]
+    },
+    {
+      "file": "dist/chunk/apple-fm-shim-By1fqew4.js",
+      "entry": false,
+      "bytes": {
+        "raw": 507037,
+        "gzip": 85959,
+        "brotli": 69636
+      },
+      "imports": [
+        "dist/chunk/date-BD0lHTcl.js",
+        "dist/chunk/fs-Bz4u9IaR.js",
+        "dist/chunk/run-B5ixOAb8.js",
+        "dist/chunk/string-D5jLtXtt.js"
+      ],
+      "dynamicImports": [],
+      "externalImports": [
+        "node:child_process",
+        "node:crypto",
+        "node:fs",
+        "node:fs/promises",
+        "node:os",
+        "node:path",
+        "node:string_decoder",
+        "node:util"
+      ],
+      "externalDynamicImports": [],
+      "topModules": [
+        {
+          "id": "@socketsecurity/lib/dist/external/@sinclair/typebox/value.js",
+          "renderedBytes": 335200
+        },
+        {
+          "id": "@socketsecurity/lib/dist/external/@npmcli/promise-spawn.js",
+          "renderedBytes": 14376
+        },
+        {
+          "id": "@socketsecurity/lib/dist/exe/path/which.js",
+          "renderedBytes": 11349
+        },
+        {
+          "id": "src/backends/apple-fm-shim.mts",
+          "renderedBytes": 10634
+        },
+        {
+          "id": "@socketsecurity/lib/dist/exe/path/resolve.js",
+          "renderedBytes": 9845
+        },
+        {
+          "id": "@socketsecurity/lib/dist/paths/predicates.js",
+          "renderedBytes": 9654
+        },
+        {
+          "id": "@socketsecurity/lib/dist/exe/path/sanitize.js",
+          "renderedBytes": 8866
+        },
+        {
+          "id": "@socketsecurity/lib/dist/json/parse.js",
+          "renderedBytes": 8425
+        },
+        {
+          "id": "@socketsecurity/lib/dist/fs/read-json.js",
+          "renderedBytes": 8237
+        },
+        {
+          "id": "@socketsecurity/lib/dist/external/which.js",
+          "renderedBytes": 8195
+        },
+        {
+          "id": "@socketsecurity/lib/dist/process/spawn/child.js",
+          "renderedBytes": 8183
+        },
+        {
+          "id": "@socketsecurity/lib/dist/process/spawn/shared.js",
+          "renderedBytes": 7619
+        },
+        {
+          "id": "@socketsecurity/lib/dist/fs/read-json-cache.js",
+          "renderedBytes": 7410
+        },
+        {
+          "id": "@socketsecurity/lib/dist/process/spawn/errors.js",
+          "renderedBytes": 6762
+        },
+        {
+          "id": "@socketsecurity/lib/dist/fs/inspect.js",
+          "renderedBytes": 5755
+        },
+        {
+          "id": "@socketsecurity/lib/dist/git/repo.js",
+          "renderedBytes": 5029
+        },
+        {
+          "id": "@socketsecurity/lib/dist/strings/transform.js",
+          "renderedBytes": 4979
+        },
+        {
+          "id": "@socketsecurity/lib/dist/globs/matcher.js",
+          "renderedBytes": 4894
+        },
+        {
+          "id": "@socketsecurity/lib/dist/schema/validate.js",
+          "renderedBytes": 4396
+        },
+        {
+          "id": "@socketsecurity/lib/dist/globs/shared.js",
+          "renderedBytes": 3911
+        }
+      ]
+    },
+    {
+      "file": "dist/chunk/date-BD0lHTcl.js",
+      "entry": false,
+      "bytes": {
+        "raw": 332752,
+        "gzip": 72234,
+        "brotli": 60309
+      },
+      "imports": [
+        "dist/chunk/run-B5ixOAb8.js",
+        "dist/chunk/string-D5jLtXtt.js"
+      ],
+      "dynamicImports": [],
+      "externalImports": [],
+      "externalDynamicImports": [],
+      "topModules": [
+        {
+          "id": "@socketsecurity/lib/dist/external/pico-pack.js",
+          "renderedBytes": 284137
+        },
+        {
+          "id": "@socketsecurity/lib/dist/paths/shared.js",
+          "renderedBytes": 13436
+        },
+        {
+          "id": "@socketsecurity/lib/dist/env/rewire.js",
+          "renderedBytes": 8644
+        },
+        {
+          "id": "@socketsecurity/lib/dist/constants/platform.js",
+          "renderedBytes": 4423
+        },
+        {
+          "id": "@socketsecurity/lib/dist/objects/mutate.js",
+          "renderedBytes": 4182
+        },
+        {
+          "id": "@socketsecurity/lib/dist/objects/predicates.js",
+          "renderedBytes": 3949
+        },
+        {
+          "id": "@socketsecurity/lib/dist/primordials/buffer.js",
+          "renderedBytes": 1936
+        },
+        {
+          "id": "@socketsecurity/lib/dist/primordials/date.js",
+          "renderedBytes": 1659
+        },
+        {
+          "id": "@socketsecurity/lib/dist/arrays/predicates.js",
+          "renderedBytes": 1592
+        },
+        {
+          "id": "@socketsecurity/lib/dist/env/boolean.js",
+          "renderedBytes": 1578
+        },
+        {
+          "id": "@socketsecurity/lib/dist/process/abort.js",
+          "renderedBytes": 1403
+        },
+        {
+          "id": "@socketsecurity/lib/dist/constants/encoding.js",
+          "renderedBytes": 1184
+        },
+        {
+          "id": "@socketsecurity/lib/dist/node/path.js",
+          "renderedBytes": 1122
+        },
+        {
+          "id": "@socketsecurity/lib/dist/node/os.js",
+          "renderedBytes": 824
+        },
+        {
+          "id": "@socketsecurity/lib/dist/node/url.js",
+          "renderedBytes": 730
+        }
+      ]
+    },
+    {
+      "file": "dist/chunk/fs-Bz4u9IaR.js",
+      "entry": false,
+      "bytes": {
+        "raw": 2239,
+        "gzip": 814,
+        "brotli": 697
+      },
+      "imports": ["dist/chunk/string-D5jLtXtt.js"],
+      "dynamicImports": [],
+      "externalImports": [],
+      "externalDynamicImports": [],
+      "topModules": [
+        {
+          "id": "@socketsecurity/lib/dist/node/fs.js",
+          "renderedBytes": 1136
+        },
+        {
+          "id": "@socketsecurity/lib/dist/primordials/json.js",
+          "renderedBytes": 803
+        }
+      ]
+    },
+    {
+      "file": "dist/chunk/run-B5ixOAb8.js",
+      "entry": false,
+      "bytes": {
+        "raw": 600146,
+        "gzip": 132099,
+        "brotli": 109429
+      },
+      "imports": ["dist/chunk/string-D5jLtXtt.js"],
+      "dynamicImports": [
+        "dist/chunk/apple-fm-shim-By1fqew4.js",
+        "dist/chunk/write-json-C44MPNVd.js"
+      ],
+      "externalImports": ["@sinclair/typebox", "node:http"],
+      "externalDynamicImports": [
+        "node:child_process",
+        "node:fs",
+        "node:fs/promises",
+        "node:os",
+        "node:path",
+        "playwright-core"
+      ],
+      "topModules": [
+        {
+          "id": "@socketsecurity/lib/dist/external/external-pack.js",
+          "renderedBytes": 101817
+        },
+        {
+          "id": "@sinclair/typebox/build/esm/errors/errors.mjs",
+          "renderedBytes": 24534
+        },
+        {
+          "id": "@sinclair/typebox/build/esm/value/check/check.mjs",
+          "renderedBytes": 13625
+        },
+        {
+          "id": "@sinclair/typebox/build/esm/value/create/create.mjs",
+          "renderedBytes": 11192
+        },
+        {
+          "id": "src/shim/server.mts",
+          "renderedBytes": 10298
+        },
+        {
+          "id": "src/backends/chrome-profile.mts",
+          "renderedBytes": 10014
+        },
+        {
+          "id": "@socketsecurity/lib/dist/logger/node.js",
+          "renderedBytes": 9395
+        },
+        {
+          "id": "@socketsecurity/lib/dist/primordials/array.js",
+          "renderedBytes": 8962
+        },
+        {
+          "id": "@sinclair/typebox/build/esm/value/convert/convert.mjs",
+          "renderedBytes": 8935
+        },
+        {
+          "id": "src/backends/llama-server.mts",
+          "renderedBytes": 8650
+        },
+        {
+          "id": "src/shim/openai.mts",
+          "renderedBytes": 8463
+        },
+        {
+          "id": "@socketsecurity/lib/dist/primordials/map-set.js",
+          "renderedBytes": 8455
+        },
+        {
+          "id": "src/backends/chrome-page.mts",
+          "renderedBytes": 7807
+        },
+        {
+          "id": "@sinclair/typebox/build/esm/value/cast/cast.mjs",
+          "renderedBytes": 7699
+        },
+        {
+          "id": "src/cli/run.mts",
+          "renderedBytes": 7551
+        },
+        {
+          "id": "@socketsecurity/lib/dist/logger/console-methods.js",
+          "renderedBytes": 6896
+        },
+        {
+          "id": "@sinclair/typebox/build/esm/errors/function.mjs",
+          "renderedBytes": 6724
+        },
+        {
+          "id": "@sinclair/typebox/build/esm/value/transform/encode.mjs",
+          "renderedBytes": 6605
+        },
+        {
+          "id": "@sinclair/typebox/build/esm/value/transform/decode.mjs",
+          "renderedBytes": 6522
+        },
+        {
+          "id": "@sinclair/typebox/build/esm/type/guard/kind.mjs",
+          "renderedBytes": 6447
+        }
+      ]
+    },
+    {
+      "file": "dist/chunk/string-D5jLtXtt.js",
+      "entry": false,
+      "bytes": {
+        "raw": 24710,
+        "gzip": 6589,
+        "brotli": 5779
+      },
+      "imports": [],
+      "dynamicImports": [],
+      "externalImports": [],
+      "externalDynamicImports": [],
+      "topModules": [
+        {
+          "id": "@socketsecurity/lib/dist/primordials/string.js",
+          "renderedBytes": 8537
+        },
+        {
+          "id": "@socketsecurity/lib/dist/node/module.js",
+          "renderedBytes": 5530
+        },
+        {
+          "id": "@socketsecurity/lib/dist/exe/smol/detect.js",
+          "renderedBytes": 2959
+        },
+        {
+          "id": "@socketsecurity/lib/dist/primordials/uncurry.js",
+          "renderedBytes": 2019
+        },
+        {
+          "id": "@socketsecurity/lib/dist/exe/smol/primordial.js",
+          "renderedBytes": 1826
+        },
+        {
+          "id": "@socketsecurity/lib/dist/constants/runtime.js",
+          "renderedBytes": 1750
+        },
+        {
+          "id": "rolldown/runtime.js",
+          "renderedBytes": 1162
+        }
+      ]
+    },
+    {
+      "file": "dist/chunk/write-json-C44MPNVd.js",
+      "entry": false,
+      "bytes": {
+        "raw": 5009,
+        "gzip": 1621,
+        "brotli": 1400
+      },
+      "imports": ["dist/chunk/fs-Bz4u9IaR.js", "dist/chunk/string-D5jLtXtt.js"],
+      "dynamicImports": [],
+      "externalImports": [],
+      "externalDynamicImports": [],
+      "topModules": [
+        {
+          "id": "@socketsecurity/lib/dist/fs/write-json.js",
+          "renderedBytes": 4774
+        }
+      ]
+    },
+    {
+      "file": "dist/cli.js",
+      "entry": true,
+      "bytes": {
+        "raw": 2061,
+        "gzip": 1049,
+        "brotli": 935
+      },
+      "imports": ["dist/chunk/run-B5ixOAb8.js"],
+      "dynamicImports": [],
+      "externalImports": ["node:fs", "node:url"],
+      "externalDynamicImports": [],
+      "topModules": [
+        {
+          "id": "src/is-main-module.mts",
+          "renderedBytes": 1239
+        },
+        {
+          "id": "src/cli.mts",
+          "renderedBytes": 670
+        }
+      ]
+    },
+    {
+      "file": "dist/index.js",
+      "entry": true,
+      "bytes": {
+        "raw": 315339,
+        "gzip": 63387,
+        "brotli": 53676
+      },
+      "imports": [],
+      "dynamicImports": [],
+      "externalImports": ["@sinclair/typebox"],
+      "externalDynamicImports": [],
+      "topModules": [
+        {
+          "id": "@sinclair/typebox/build/esm/errors/errors.mjs",
+          "renderedBytes": 24534
+        },
+        {
+          "id": "@sinclair/typebox/build/esm/value/check/check.mjs",
+          "renderedBytes": 13625
+        },
+        {
+          "id": "@sinclair/typebox/build/esm/value/create/create.mjs",
+          "renderedBytes": 11192
+        },
+        {
+          "id": "@sinclair/typebox/build/esm/value/convert/convert.mjs",
+          "renderedBytes": 8935
+        },
+        {
+          "id": "@socketsecurity/lib/dist/primordials/string.js",
+          "renderedBytes": 8537
+        },
+        {
+          "id": "@socketsecurity/lib/dist/primordials/map-set.js",
+          "renderedBytes": 8421
+        },
+        {
+          "id": "src/backends/llama-server.mts",
+          "renderedBytes": 8055
+        },
+        {
+          "id": "@sinclair/typebox/build/esm/value/cast/cast.mjs",
+          "renderedBytes": 7699
+        },
+        {
+          "id": "@sinclair/typebox/build/esm/errors/function.mjs",
+          "renderedBytes": 6724
+        },
+        {
+          "id": "@sinclair/typebox/build/esm/value/transform/encode.mjs",
+          "renderedBytes": 6605
+        },
+        {
+          "id": "@sinclair/typebox/build/esm/value/transform/decode.mjs",
+          "renderedBytes": 6522
+        },
+        {
+          "id": "@sinclair/typebox/build/esm/type/guard/kind.mjs",
+          "renderedBytes": 6447
+        },
+        {
+          "id": "src/json.mts",
+          "renderedBytes": 6336
+        },
+        {
+          "id": "@socketsecurity/lib/dist/node/module.js",
+          "renderedBytes": 5527
+        },
+        {
+          "id": "@sinclair/typebox/build/esm/value/default/default.mjs",
+          "renderedBytes": 5456
+        },
+        {
+          "id": "@socketsecurity/lib/dist/primordials/object.js",
+          "renderedBytes": 4702
+        },
+        {
+          "id": "@sinclair/typebox/build/esm/value/clean/clean.mjs",
+          "renderedBytes": 4682
+        },
+        {
+          "id": "src/model.mts",
+          "renderedBytes": 4588
+        },
+        {
+          "id": "@socketsecurity/lib/dist/external/pony-cause.js",
+          "renderedBytes": 4477
+        },
+        {
+          "id": "@socketsecurity/lib/dist/arrays/join.js",
+          "renderedBytes": 4356
+        }
+      ]
+    },
+    {
+      "file": "dist/node.js",
+      "entry": true,
+      "bytes": {
+        "raw": 480057,
+        "gzip": 113161,
+        "brotli": 94212
+      },
+      "imports": [
+        "dist/chunk/date-BD0lHTcl.js",
+        "dist/chunk/fs-Bz4u9IaR.js",
+        "dist/chunk/run-B5ixOAb8.js",
+        "dist/chunk/string-D5jLtXtt.js"
+      ],
+      "dynamicImports": [],
+      "externalImports": ["@sinclair/typebox", "node:fs", "node:path"],
+      "externalDynamicImports": [],
+      "topModules": [
+        {
+          "id": "@socketsecurity/lib/dist/external/@socketregistry/packageurl-js.js",
+          "renderedBytes": 328643
+        },
+        {
+          "id": "@socketsecurity/lib/dist/paths/socket.js",
+          "renderedBytes": 16096
+        },
+        {
+          "id": "@socketsecurity/lib/dist/env/socket.js",
+          "renderedBytes": 15254
+        },
+        {
+          "id": "@socketsecurity/lib/dist/fs/safe.js",
+          "renderedBytes": 11163
+        },
+        {
+          "id": "@socketsecurity/lib/dist/http-request/request-attempt.js",
+          "renderedBytes": 9438
+        },
+        {
+          "id": "@socketsecurity/lib/dist/packages/specs.js",
+          "renderedBytes": 6930
+        },
+        {
+          "id": "@socketsecurity/lib/dist/http-request/user-agent.js",
+          "renderedBytes": 5916
+        },
+        {
+          "id": "@socketsecurity/lib/dist/compression/brotli.js",
+          "renderedBytes": 5784
+        },
+        {
+          "id": "@socketsecurity/lib/dist/promises/retry.js",
+          "renderedBytes": 5515
+        },
+        {
+          "id": "@socketsecurity/lib/dist/env/socket-mcp.js",
+          "renderedBytes": 5491
+        },
+        {
+          "id": "@socketsecurity/lib/dist/http-request/request.js",
+          "renderedBytes": 5471
+        },
+        {
+          "id": "@socketsecurity/lib/dist/compression/gzip.js",
+          "renderedBytes": 5169
+        },
+        {
+          "id": "@socketsecurity/lib/dist/paths/rewire.js",
+          "renderedBytes": 4645
+        },
+        {
+          "id": "@socketsecurity/lib/dist/promises/options.js",
+          "renderedBytes": 4379
+        },
+        {
+          "id": "@socketsecurity/lib/dist/http-request/node.js",
+          "renderedBytes": 4148
+        },
+        {
+          "id": "@socketsecurity/lib/dist/http-request/response-reader.js",
+          "renderedBytes": 3377
+        },
+        {
+          "id": "@socketsecurity/lib/dist/constants/socket.js",
+          "renderedBytes": 3198
+        },
+        {
+          "id": "@socketsecurity/lib/dist/compression/shared.js",
+          "renderedBytes": 3051
+        },
+        {
+          "id": "@socketsecurity/lib/dist/env/xdg.js",
+          "renderedBytes": 2843
+        },
+        {
+          "id": "@socketsecurity/lib/dist/env/windows.js",
+          "renderedBytes": 2620
+        }
+      ]
+    }
+  ],
+  "assets": []
+}

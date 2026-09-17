@@ -44,6 +44,7 @@ const SCRIPT_META: ScriptMeta = {
   describe:
     "runs llama.cpp's server test suite against odai's shim and classifies every result against the allowlist",
   help: 'Usage: node test/scripts/llama-cpp-server-conformance-runner.mts',
+  json: 'result',
 }
 
 async function main(): Promise<number> {

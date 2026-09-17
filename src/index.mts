@@ -122,7 +122,7 @@ export type {
 export type { CreateOdaiModelOptions, OdaiModel } from './model.mts'
 export type { ModelIdentity } from './model-identity.mts'
 export type { CreateSessionOptions } from './session.mts'
-export type { StreamOptions } from './stream.mts'
+export type { StreamOptions, StreamResult } from './stream.mts'
 export type { DepClassification } from './prompts/classify-deps.mts'
 export type { CommitMessage } from './prompts/commit.mts'
 export type { CodePatch } from './prompts/patch.mts'
@@ -175,6 +175,23 @@ export type {
   IntentInput,
   IntentResult,
 } from './prompts/classify-intent.mts'
+
+export { createConversation } from './conversation/create.mts'
+export { createBuiltinConversation } from './conversation/builtin.mts'
+export { createOdaiConversation } from './conversation/odai.mts'
+export { ConversationError } from './conversation/transcript.mts'
+export type {
+  Conversation,
+  ConversationChunk,
+  ConversationOptions,
+  ConversationPromptOptions,
+  ConversationStatus,
+  ConversationStreamOptions,
+  ConversationStructuredOptions,
+  OdaiConversationOptions,
+} from './conversation/types.mts'
+export type { LanguageModelLike, SessionContextStatus } from './types.mts'
+export type { LockstepOptions } from './tasks/lockstep.mts'
 
 export { withOdaiModel } from './lifecycle.mts'
 export type {

@@ -13,11 +13,9 @@ import { verifyCacheManifest } from '../cache/util.mts'
 import { integrityValue } from '../../fleet/external-tools/integrity.mts'
 import { FLEET_CACHE_DIR } from '../../fleet/paths.mts'
 import { isMainModule } from '../../fleet/process/is-main-module.mts'
-import {
-  getCacheArgs as getScriptArgs,
-  runCacheMain as runMain,
-} from '../cache/cli.mts'
-import type { CacheScriptMeta as ScriptMeta } from '../cache/cli.mts'
+import { runMain } from '../../fleet/process/run-main.mts'
+import { getCacheArgs as getScriptArgs } from '../cache/cli.mts'
+import type { ScriptMeta } from '../../fleet/process/run-main.mts'
 
 export interface ChromeTool {
   origin: 'node-dist'

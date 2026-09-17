@@ -5,8 +5,10 @@ import {
   validateLockstepAnalysis,
   createAppleFmBackend,
   createBuiltinModel,
+  createConversation,
   createOdaiModel,
   installLanguageModelSimulator,
+  LanguageModelSimulator,
   summarizeText,
 } from '@socketsecurity/odai'
 import { allScenarios, runEval } from '@socketsecurity/odai/bench'
@@ -89,6 +91,35 @@ export async function runBrowserSmoke(): Promise<boolean> {
     } finally {
       model.rawSession().destroy?.()
     }
+  }
+  const conversation = await createConversation(
+    new LanguageModelSimulator({
+      fallback: 'READY',
+      rules: [
+        {
+          when: text =>
+            text.includes('PACKED_CONTEXT') &&
+            text.includes('Recall the saved code'),
+          response: 'PACKED_CONTEXT',
+        },
+      ],
+    }),
+  )
+  try {
+    await conversation.prompt('Remember PACKED_CONTEXT')
+    const recall = await conversation.promptStreaming('Recall the saved code')
+    if (
+      recall.raw !== 'PACKED_CONTEXT' ||
+      conversation.messages().length !== 4
+    ) {
+      return false
+    }
+    conversation.reset([])
+    if ((await conversation.prompt('Recall the saved code')) !== 'READY') {
+      return false
+    }
+  } finally {
+    conversation.destroy()
   }
   return !(await createAppleFmBackend().availability()).available
 }

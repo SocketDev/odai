@@ -2,7 +2,6 @@ import {
   getLanguageModel,
   probeBuiltinAvailability,
 } from '../builtin-availability.mts'
-import { wrapFactoryWithConstraintFallback } from './chrome-constraint.mts'
 import type {
   ChromeBuiltinBackend,
   ChromeBuiltinOptions,
@@ -30,7 +29,7 @@ export function createChromeBuiltinBackend(
           'The browser LanguageModel is unavailable on this device.',
         )
       }
-      return wrapFactoryWithConstraintFallback(factory)
+      return factory
     },
     name: 'chrome-builtin',
   }

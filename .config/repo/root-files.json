@@ -1,0 +1,5 @@
+{
+  "allow": {
+    "bench": "Tracked benchmark measurements and comparison reports use this repository-owned directory."
+  }
+}

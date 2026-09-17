@@ -127,6 +127,7 @@ describe('usageText', () => {
       'classify-deps',
       'commit-msg',
       'patch',
+      'setup',
       'serve',
       'summarize',
       'triage',

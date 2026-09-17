@@ -260,3 +260,38 @@ describe('ordinary single-file patches', () => {
     ).toBe(true)
   })
 })
+
+describe('target evidence completeness', () => {
+  it.each(['port', 'no-change'] as const)(
+    'rejects %s justified only by the base revision',
+    verdict => {
+      const { input, output } = createLockstepExample('full')
+      output.verdict = verdict
+      if (verdict === 'no-change') {
+        output.patches = []
+      }
+      output.facts[0]!.evidenceId = 'base'
+      expect(validateLockstepAnalysis(input, output).questions).toEqual([
+        'lockstep:missing-target-citation',
+      ])
+    },
+  )
+
+  it('requires every supplied target excerpt before accepting no-change', () => {
+    const { input, output } = createLockstepExample('sparse')
+    const target = input.evidence.find(item => item.id === 'target')!
+    input.evidence.push({ ...target, id: 'target-other', startLine: 3 })
+    output.verdict = 'no-change'
+    output.patches = []
+    expect(validateLockstepAnalysis(input, output).questions).toEqual([
+      'lockstep:missing-target-citation',
+    ])
+    output.facts.push({
+      description: 'The second target excerpt is also covered.',
+      evidenceId: 'target-other',
+      startLine: 3,
+      endLine: 3,
+    })
+    expect(validateLockstepAnalysis(input, output).verdict).toBe('no-change')
+  })
+})

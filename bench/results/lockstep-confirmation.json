@@ -1,0 +1,152 @@
+{
+  "schemaVersion": 1,
+  "evidence": "real",
+  "backend": "chrome-builtin",
+  "selectedModel": "gemma4",
+  "identityEvidence": "self-reported",
+  "identity": {
+    "name": "Gemma 4",
+    "raw": "Gemma 4"
+  },
+  "identityDurationMs": 112.70958299999984,
+  "bridgeSetupMs": 3060.265375,
+  "node": "v24.10.0",
+  "pairs": 3,
+  "mode": "per-request",
+  "timeoutMs": 30000,
+  "attemptBoundary": "SessionLike.prompt",
+  "rows": [
+    {
+      "pair": 0,
+      "mode": "per-request",
+      "materialization": "full",
+      "contextSetupMs": 1.3011659999992844,
+      "durationMs": 2246.8623749999997,
+      "attemptCount": 1,
+      "attempts": [
+        {
+          "durationMs": 2221.3950839999998,
+          "inputCharacters": 5840,
+          "outputCharacters": 426,
+          "completed": true,
+          "raw": "{\"verdict\":\"port\",\"facts\":[{\"description\":\"The new implementation returns 8.\",\"evidenceId\":\"target\",\"startLine\":1,\"endLine\":1}],\"changes\":[{\"path\":\"src/parser/value.mts\",\"evidenceId\":\"local\",\"startLine\":1,\"endLine\":1,\"operation\":\"replace\",\"text\":\"export const value = 8\"},{\"path\":\"test/parser/value.test.mts\",\"evidenceId\":\"test\",\"startLine\":3,\"endLine\":3,\"operation\":\"append\",\"text\":\"  expect(value).toBe(8)\"}],\"questions\":[]}"
+        }
+      ],
+      "name": "lockstep-full-contract",
+      "ok": true,
+      "score": 1,
+      "raw": "{\"verdict\":\"port\",\"facts\":[{\"description\":\"The new implementation returns 8.\",\"evidenceId\":\"target\",\"startLine\":1,\"endLine\":1}],\"changes\":[{\"path\":\"src/parser/value.mts\",\"evidenceId\":\"local\",\"startLine\":1,\"endLine\":1,\"operation\":\"replace\",\"text\":\"export const value = 8\"},{\"path\":\"test/parser/value.test.mts\",\"evidenceId\":\"test\",\"startLine\":3,\"endLine\":3,\"operation\":\"append\",\"text\":\"  expect(value).toBe(8)\"}],\"questions\":[]}",
+      "assertion": "Citations, patch scope, and the expected fixture changes passed validation."
+    },
+    {
+      "pair": 0,
+      "mode": "per-request",
+      "materialization": "sparse",
+      "contextSetupMs": 1.3011659999992844,
+      "durationMs": 2303.6257499999992,
+      "attemptCount": 1,
+      "attempts": [
+        {
+          "durationMs": 2297.041958999999,
+          "inputCharacters": 5856,
+          "outputCharacters": 425,
+          "completed": true,
+          "raw": "{\"verdict\":\"port\",\"facts\":[{\"description\":\"Target implementation returns 8.\",\"evidenceId\":\"target\",\"startLine\":1,\"endLine\":1}],\"changes\":[{\"path\":\"src/parser/value.mts\",\"evidenceId\":\"local\",\"startLine\":1,\"endLine\":1,\"operation\":\"replace\",\"text\":\"export const value = 8\"},{\"path\":\"test/parser/value.test.mts\",\"evidenceId\":\"test\",\"startLine\":3,\"endLine\":3,\"operation\":\"append\",\"text\":\"  expect(value).toBe(8)\"}],\"questions\":[]}"
+        }
+      ],
+      "name": "lockstep-sparse-contract",
+      "ok": true,
+      "score": 1,
+      "raw": "{\"verdict\":\"port\",\"facts\":[{\"description\":\"Target implementation returns 8.\",\"evidenceId\":\"target\",\"startLine\":1,\"endLine\":1}],\"changes\":[{\"path\":\"src/parser/value.mts\",\"evidenceId\":\"local\",\"startLine\":1,\"endLine\":1,\"operation\":\"replace\",\"text\":\"export const value = 8\"},{\"path\":\"test/parser/value.test.mts\",\"evidenceId\":\"test\",\"startLine\":3,\"endLine\":3,\"operation\":\"append\",\"text\":\"  expect(value).toBe(8)\"}],\"questions\":[]}",
+      "assertion": "Citations, patch scope, and the expected fixture changes passed validation."
+    },
+    {
+      "pair": 1,
+      "mode": "per-request",
+      "materialization": "sparse",
+      "contextSetupMs": 3.351749999999811,
+      "durationMs": 2031.4167089999992,
+      "attemptCount": 1,
+      "attempts": [
+        {
+          "durationMs": 2029.5523750000011,
+          "inputCharacters": 5856,
+          "outputCharacters": 426,
+          "completed": true,
+          "raw": "{\"verdict\":\"port\",\"facts\":[{\"description\":\"The new implementation returns 8.\",\"evidenceId\":\"target\",\"startLine\":1,\"endLine\":1}],\"changes\":[{\"path\":\"src/parser/value.mts\",\"evidenceId\":\"local\",\"startLine\":1,\"endLine\":1,\"operation\":\"replace\",\"text\":\"export const value = 8\"},{\"path\":\"test/parser/value.test.mts\",\"evidenceId\":\"test\",\"startLine\":3,\"endLine\":3,\"operation\":\"append\",\"text\":\"  expect(value).toBe(8)\"}],\"questions\":[]}"
+        }
+      ],
+      "name": "lockstep-sparse-contract",
+      "ok": true,
+      "score": 1,
+      "raw": "{\"verdict\":\"port\",\"facts\":[{\"description\":\"The new implementation returns 8.\",\"evidenceId\":\"target\",\"startLine\":1,\"endLine\":1}],\"changes\":[{\"path\":\"src/parser/value.mts\",\"evidenceId\":\"local\",\"startLine\":1,\"endLine\":1,\"operation\":\"replace\",\"text\":\"export const value = 8\"},{\"path\":\"test/parser/value.test.mts\",\"evidenceId\":\"test\",\"startLine\":3,\"endLine\":3,\"operation\":\"append\",\"text\":\"  expect(value).toBe(8)\"}],\"questions\":[]}",
+      "assertion": "Citations, patch scope, and the expected fixture changes passed validation."
+    },
+    {
+      "pair": 1,
+      "mode": "per-request",
+      "materialization": "full",
+      "contextSetupMs": 3.351749999999811,
+      "durationMs": 2355.129500000001,
+      "attemptCount": 1,
+      "attempts": [
+        {
+          "durationMs": 2353.289332999999,
+          "inputCharacters": 5840,
+          "outputCharacters": 421,
+          "completed": true,
+          "raw": "{\"verdict\":\"port\",\"facts\":[{\"description\":\"The new implementation is 8.\",\"evidenceId\":\"target\",\"startLine\":1,\"endLine\":1}],\"changes\":[{\"path\":\"src/parser/value.mts\",\"evidenceId\":\"local\",\"startLine\":1,\"endLine\":1,\"operation\":\"replace\",\"text\":\"export const value = 8\"},{\"path\":\"test/parser/value.test.mts\",\"evidenceId\":\"test\",\"startLine\":3,\"endLine\":3,\"operation\":\"append\",\"text\":\"  expect(value).toBe(8)\"}],\"questions\":[]}"
+        }
+      ],
+      "name": "lockstep-full-contract",
+      "ok": true,
+      "score": 1,
+      "raw": "{\"verdict\":\"port\",\"facts\":[{\"description\":\"The new implementation is 8.\",\"evidenceId\":\"target\",\"startLine\":1,\"endLine\":1}],\"changes\":[{\"path\":\"src/parser/value.mts\",\"evidenceId\":\"local\",\"startLine\":1,\"endLine\":1,\"operation\":\"replace\",\"text\":\"export const value = 8\"},{\"path\":\"test/parser/value.test.mts\",\"evidenceId\":\"test\",\"startLine\":3,\"endLine\":3,\"operation\":\"append\",\"text\":\"  expect(value).toBe(8)\"}],\"questions\":[]}",
+      "assertion": "Citations, patch scope, and the expected fixture changes passed validation."
+    },
+    {
+      "pair": 2,
+      "mode": "per-request",
+      "materialization": "full",
+      "contextSetupMs": 7.434708999999202,
+      "durationMs": 2126.4614999999994,
+      "attemptCount": 1,
+      "attempts": [
+        {
+          "durationMs": 2116.8170420000006,
+          "inputCharacters": 5840,
+          "outputCharacters": 426,
+          "completed": true,
+          "raw": "{\"verdict\":\"port\",\"facts\":[{\"description\":\"The new implementation returns 8.\",\"evidenceId\":\"target\",\"startLine\":1,\"endLine\":1}],\"changes\":[{\"path\":\"src/parser/value.mts\",\"evidenceId\":\"local\",\"startLine\":1,\"endLine\":1,\"operation\":\"replace\",\"text\":\"export const value = 8\"},{\"path\":\"test/parser/value.test.mts\",\"evidenceId\":\"test\",\"startLine\":3,\"endLine\":3,\"operation\":\"append\",\"text\":\"  expect(value).toBe(8)\"}],\"questions\":[]}"
+        }
+      ],
+      "name": "lockstep-full-contract",
+      "ok": true,
+      "score": 1,
+      "raw": "{\"verdict\":\"port\",\"facts\":[{\"description\":\"The new implementation returns 8.\",\"evidenceId\":\"target\",\"startLine\":1,\"endLine\":1}],\"changes\":[{\"path\":\"src/parser/value.mts\",\"evidenceId\":\"local\",\"startLine\":1,\"endLine\":1,\"operation\":\"replace\",\"text\":\"export const value = 8\"},{\"path\":\"test/parser/value.test.mts\",\"evidenceId\":\"test\",\"startLine\":3,\"endLine\":3,\"operation\":\"append\",\"text\":\"  expect(value).toBe(8)\"}],\"questions\":[]}",
+      "assertion": "Citations, patch scope, and the expected fixture changes passed validation."
+    },
+    {
+      "pair": 2,
+      "mode": "per-request",
+      "materialization": "sparse",
+      "contextSetupMs": 7.434708999999202,
+      "durationMs": 2386.2017079999987,
+      "attemptCount": 1,
+      "attempts": [
+        {
+          "durationMs": 2384.1514590000006,
+          "inputCharacters": 5856,
+          "outputCharacters": 429,
+          "completed": true,
+          "raw": "{\"verdict\":\"port\",\"facts\":[{\"description\":\"The target implementation returns 8.\",\"evidenceId\":\"target\",\"startLine\":1,\"endLine\":1}],\"changes\":[{\"path\":\"src/parser/value.mts\",\"evidenceId\":\"local\",\"startLine\":1,\"endLine\":1,\"operation\":\"replace\",\"text\":\"export const value = 8\"},{\"path\":\"test/parser/value.test.mts\",\"evidenceId\":\"test\",\"startLine\":3,\"endLine\":3,\"operation\":\"append\",\"text\":\"  expect(value).toBe(8)\"}],\"questions\":[]}"
+        }
+      ],
+      "name": "lockstep-sparse-contract",
+      "ok": true,
+      "score": 1,
+      "raw": "{\"verdict\":\"port\",\"facts\":[{\"description\":\"The target implementation returns 8.\",\"evidenceId\":\"target\",\"startLine\":1,\"endLine\":1}],\"changes\":[{\"path\":\"src/parser/value.mts\",\"evidenceId\":\"local\",\"startLine\":1,\"endLine\":1,\"operation\":\"replace\",\"text\":\"export const value = 8\"},{\"path\":\"test/parser/value.test.mts\",\"evidenceId\":\"test\",\"startLine\":3,\"endLine\":3,\"operation\":\"append\",\"text\":\"  expect(value).toBe(8)\"}],\"questions\":[]}",
+      "assertion": "Citations, patch scope, and the expected fixture changes passed validation."
+    }
+  ]
+}

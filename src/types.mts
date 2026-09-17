@@ -10,7 +10,17 @@
  */
 export interface Message {
   content: string
+  prefix?: boolean | undefined
   role: 'assistant' | 'system' | 'user'
+}
+
+export interface SessionContextStatus {
+  contextUsage?: number | undefined
+  contextWindow?: number | undefined
+  /**
+   * Stays true after any retained messages were dropped by the provider.
+   */
+  overflowed: boolean
 }
 
 /**
@@ -20,6 +30,7 @@ export interface Message {
  */
 export interface SessionLike {
   clone?(): SessionLike | Promise<SessionLike>
+  contextStatus?(): SessionContextStatus | Promise<SessionContextStatus>
   destroy?(): void
   prompt(
     messages: Message[],
@@ -42,6 +53,10 @@ export interface SessionLike {
  */
 export interface LanguageModelLike {
   availability(): Promise<string> | { availability: string }
+  /**
+   * Native factories retain turns and expose contextStatus to detect loss.
+   */
+  readonly contextMode?: 'native' | 'replay' | undefined
   create(options?: object | undefined): Promise<SessionLike>
 }
 
@@ -58,8 +73,8 @@ export interface PromptOptions {
   /**
    * A JSON Schema passed to a backend that supports constrained decoding
    * (Chrome's Prompt API `responseConstraint`). Backends that cannot honor it
-   * ignore the option; the Chrome backends feature-detect it and fall back to
-   * an unconstrained prompt. A TypeBox schema is valid JSON Schema, so a task
+   * ignore the option. Chrome reports unsupported options without resending
+   * a stateful turn. A TypeBox schema is valid JSON Schema, so a task
    * can pass its own `Type.Object(...)` here.
    */
   responseConstraint?: object | undefined

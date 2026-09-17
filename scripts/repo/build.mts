@@ -61,9 +61,12 @@ async function main(): Promise<void> {
   await chmod(path.join(distPath, 'cli.js'), 0o755)
 }
 
+const SCRIPT_META = {
+  describe: 'Build the runtime bundles and their declaration dependencies.',
+  help: 'Usage: pnpm run build',
+  json: 'result',
+} as const
+
 if (isMainModule(import.meta.url)) {
-  runMain(main, {
-    describe: 'Build the runtime bundles and their declaration dependencies.',
-    help: 'Usage: pnpm run build',
-  })
+  runMain(main, SCRIPT_META)
 }
