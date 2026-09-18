@@ -46,6 +46,11 @@ describe('json', () => {
     expect(mergePrefill('{"a":', '{"a":1}')).toBe('{"a":1}')
   })
 
+  it('does not prepend a prefill to a complete fenced response', () => {
+    const raw = '```json\n{"a":1}\n```'
+    expect(mergePrefill('{"a":', raw)).toBe(raw)
+  })
+
   it('wraps an array-element continuation of a nested-array prefill', () => {
     // The model continued from `{"updates":[` without echoing it, so raw alone
     // is unbalanced (`{…}]}`) but prefill+raw parses.

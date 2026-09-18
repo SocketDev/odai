@@ -84,6 +84,9 @@ export function isParseableJson(text: string): boolean {
 export function mergePrefill(prefill: string, raw: string): string {
   const trimmed = raw.trimStart()
   const trimmedPrefill = prefill.trimEnd()
+  if (extractJsonFence(trimmed) !== undefined) {
+    return raw
+  }
   if (trimmed.startsWith(trimmedPrefill)) {
     return raw
   }
