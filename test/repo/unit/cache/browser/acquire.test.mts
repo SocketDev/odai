@@ -4,7 +4,6 @@ import { afterEach, expect, test, vi } from 'vitest'
 import { acquireCacheBrowserSession } from '../../../../../scripts/repo/cache/browser/acquire.mts'
 
 const mocks = vi.hoisted(() => ({
-  graft: vi.fn(),
   launch: vi.fn(),
   mkdir: vi.fn(),
   profile: vi.fn(),
@@ -13,10 +12,6 @@ vi.mock(import('node:fs/promises'), async original => {
   const actual = await original()
   return { ...actual, default: { ...actual.default, mkdir: mocks.mkdir } }
 })
-vi.mock(
-  import('../../../../../scripts/fleet/browser/control/one-password.mts'),
-  () => ({ ensureOnePasswordGraft: mocks.graft }),
-)
 vi.mock(import('playwright-core'), async original => {
   const actual = await original()
   return {
@@ -42,7 +37,6 @@ afterEach(() => {
   vi.restoreAllMocks()
   mocks.launch.mockReset()
   mocks.profile.mockReset()
-  mocks.graft.mockReset()
   mocks.mkdir.mockReset()
 })
 
@@ -123,7 +117,6 @@ test.each([false, true])(
         timeout: 40_000,
       },
     ])
-    assert.equal(mocks.graft.mock.calls.length, 0)
     assert.equal(mocks.mkdir.mock.calls.length, 0)
   },
 )
