@@ -100,6 +100,7 @@ async function imageBrowser(manifest: unknown, pinFile?: string | undefined) {
 export async function buildGemmaBrowserBundle(): Promise<string> {
   const { rolldown } = await import('rolldown')
   const bundle = await rolldown({
+    experimental: { attachDebugInfo: 'none' },
     input: fileURLToPath(new URL('./browser.mts', import.meta.url)),
     platform: 'node',
     external: specifier =>

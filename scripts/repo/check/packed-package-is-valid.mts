@@ -129,6 +129,7 @@ export async function checkPackageTypes(consumerRoot: string): Promise<void> {
 
 export async function checkBrowserPackage(consumerRoot: string): Promise<void> {
   const bundle = await rolldown({
+    experimental: { attachDebugInfo: 'none' },
     input: path.join(consumerRoot, 'browser.mts'),
     platform: 'browser',
     onwarn(warning) {
