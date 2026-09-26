@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`package`** — include source exports in published artifact
 - **`cache`** — isolate Gemma scratch browser
 - **`test`** — use current partial submodule entrypoint
 - **`apple-fm`** — cache shim in macOS user directory
