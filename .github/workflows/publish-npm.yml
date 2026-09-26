@@ -105,7 +105,7 @@ jobs:
     outputs:
       shard-count: ${{ strategy.job-total }}
     name: Coverage collection
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     strategy:
       fail-fast: false
@@ -174,7 +174,7 @@ jobs:
     needs: [coverage-shards]
     if: ${{ !cancelled() && inputs.scan-stage-id == '' && inputs.backfill-version == '' }}
     name: Coverage gate
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     steps:
       - name: Require successful coverage collection
@@ -253,7 +253,7 @@ jobs:
     if: ${{ always() && inputs.scan-stage-id == '' && (inputs.backfill-version != '' || needs.coverage.result == 'success') }}
     cache-mode: read
     name: Publish npm
-    runs-on: ${{ vars.NPM_PUBLISH_RUNNER || vars.ODAI_RUNNER || 'ubuntu-latest' }}
+    runs-on: ${{ vars.NPM_PUBLISH_RUNNER || vars.ODAI_RUNNER || 'ubuntu-26.04' }}
     # npm's trusted-publisher config pins this GitHub environment name; the
     # OIDC token exchange 404s if the job runs outside it.
     environment: publish-npm
@@ -381,6 +381,7 @@ jobs:
         env:
           SOCKET_API_KEY: ${{ steps.content-trust.outputs.trusted == 'true' && secrets.SOCKET_API_TOKEN_FOR_CLI_AND_SFW || '' }}
         with:
+          cache: 'false'
           socket-api-token: ${{ steps.content-trust.outputs.trusted == 'true' && secrets.SOCKET_API_TOKEN_FOR_CLI_AND_SFW || '' }}
           # Forward the backfill content ref — setup-and-install re-checks-out
           # internally (fleet checkout falls back to the TRIGGERING ref when
@@ -449,7 +450,7 @@ jobs:
   scan-staged-package:
     if: ${{ inputs.scan-stage-id != '' }}
     name: Scan staged npm package
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     permissions:
       actions: read
@@ -548,7 +549,6 @@ jobs:
         run: pnpm run build
       - name: Scan exact staged bytes
         id: scan
-        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ github.token }}
           SCAN_PACKAGE: ${{ inputs.scan-package }}
