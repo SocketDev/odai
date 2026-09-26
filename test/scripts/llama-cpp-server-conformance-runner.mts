@@ -52,8 +52,8 @@ async function main(): Promise<number> {
   if (suiteDir === undefined) {
     logger.warn(
       'upstream/llama.cpp is not checked out, so the conformance suite has ' +
-        'nothing to run. Fetch the submodule: `node ' +
-        'scripts/fleet/git-partial-submodule.mts clone upstream/llama.cpp`.',
+        'nothing to run. Fetch the submodule: ' +
+        '`pnpm run setup:e2e --conformance`.',
     )
     return EXIT_NO_SUITE
   }

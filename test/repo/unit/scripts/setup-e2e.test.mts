@@ -1,6 +1,15 @@
+import { existsSync } from 'node:fs'
 import { expect, it, vi } from 'vitest'
 
-import { modelLane, reportLanes } from '../../../scripts/setup-e2e.mts'
+import {
+  modelLane,
+  PARTIAL_SUBMODULE_SCRIPT,
+  reportLanes,
+} from '../../../scripts/setup-e2e.mts'
+
+it('uses the fleet partial-submodule entrypoint installed for conformance', () => {
+  expect(existsSync(PARTIAL_SUBMODULE_SCRIPT)).toBe(true)
+})
 
 const config = {
   allowDownload: false,

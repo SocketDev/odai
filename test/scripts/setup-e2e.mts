@@ -56,6 +56,15 @@ const SUBMODULE_MARKER = path.join(
   'utils.py',
 )
 
+export const PARTIAL_SUBMODULE_SCRIPT = path.join(
+  REPO_ROOT,
+  'scripts',
+  'fleet',
+  'git',
+  'submodule',
+  'partial.mts',
+)
+
 export type LaneName = 'chrome' | 'conformance' | 'model'
 
 export const LANES: readonly LaneName[] = ['chrome', 'model', 'conformance']
@@ -261,11 +270,7 @@ export async function conformanceLane(
   logger.info('checking out upstream/llama.cpp…')
   await spawn(
     process.execPath,
-    [
-      path.join(REPO_ROOT, 'scripts', 'fleet', 'git-partial-submodule.mts'),
-      'clone',
-      'upstream/llama.cpp',
-    ],
+    [PARTIAL_SUBMODULE_SCRIPT, 'clone', 'upstream/llama.cpp'],
     { cwd: REPO_ROOT, stdio: 'inherit' },
   )
   if (!existsSync(marker)) {
