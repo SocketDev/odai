@@ -1,16 +1,18 @@
 /**
- * @file Apple Foundation Models backend. Bridges the macOS 26+
- *   FoundationModels framework through a tiny Swift stdio shim: the shim is
- *   compiled from embedded source on first use with `xcrun swiftc`, cached
- *   under node_modules/.cache/odai/, and spoken to over line-delimited JSON.
+ * @file Apple Foundation Models backend. Bridges the macOS 26+ FoundationModels
+ *   framework through a tiny Swift stdio shim: the shim is compiled from
+ *   embedded source on first use with `xcrun swiftc`, cached under
+ *   ~/Library/Caches/odai/apple-fm/, and spoken to over line-delimited JSON.
  *   Availability is probed honestly — macOS 26 or newer, Apple silicon, and
  *   Apple Intelligence enabled are all required, and the precise
- *   FoundationModels reason surfaces otherwise. Hosted macOS CI runners are
- *   VMs and report deviceNotEligible; self-hosted Apple silicon is the only
- *   CI home. Prompting is single-shot; streaming yields one chunk in v1.
+ *   FoundationModels reason surfaces otherwise. Hosted macOS CI runners are VMs
+ *   and report deviceNotEligible; self-hosted Apple silicon is the only CI
+ *   home. Prompting is single-shot; streaming yields one chunk in v1.
  */
 
 import { errorMessage } from '@socketsecurity/lib/errors/message'
+import os from 'node:os'
+import path from 'node:path'
 
 import type { CreateOptions } from '../session.mts'
 import type { LanguageModelLike, SessionLike } from '../types.mts'
@@ -32,7 +34,7 @@ const DARWIN_MACOS_26_MAJOR = 25
 export interface AppleFmBackendOptions {
   /**
    * Directory for the compiled shim binary. Defaults to
-   * node_modules/.cache/odai under the current working directory.
+   * ~/Library/Caches/odai/apple-fm.
    */
   cacheDir?: string | undefined
   /**
@@ -135,7 +137,7 @@ export function createAppleFmBackend(
 }
 
 export function defaultCacheDir(): string {
-  return `${process.cwd()}/.cache/odai`
+  return path.join(os.homedir(), 'Library', 'Caches', 'odai', 'apple-fm')
 }
 
 /**

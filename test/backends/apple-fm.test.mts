@@ -312,9 +312,10 @@ describe('describeUnavailableReason', () => {
 })
 
 describe('defaultCacheDir', () => {
-  it('resolves the shim binary cache under the repo-root cache dir', () => {
-    expect(defaultCacheDir()).toContain(['.cache', 'odai'].join('/'))
-    expect(defaultCacheDir()).not.toContain('node_modules')
+  it('resolves the shim binary cache under the macOS user cache', () => {
+    expect(defaultCacheDir()).toBe(
+      path.join(os.homedir(), 'Library', 'Caches', 'odai', 'apple-fm'),
+    )
   })
 })
 
