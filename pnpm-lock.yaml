@@ -180,14 +180,14 @@ catalogs:
       specifier: 0.17.0
       version: 0.17.0
     '@socketregistry/packageurl-js-stable':
-      specifier: npm:@socketregistry/packageurl-js@1.5.2
-      version: 1.5.2
+      specifier: npm:@socketregistry/packageurl-js@1.5.3
+      version: 1.5.3
     '@socketsecurity/lib-stable':
       specifier: npm:@socketsecurity/lib@7.0.3
       version: 7.0.3
     '@socketsecurity/sdk-stable':
-      specifier: npm:@socketsecurity/sdk@4.1.4
-      version: 4.1.4
+      specifier: npm:@socketsecurity/sdk@4.1.5
+      version: 4.1.5
     '@types/mdast':
       specifier: 4.0.4
       version: 4.0.4
@@ -412,7 +412,7 @@ importers:
         version: 1.5.3
       '@socketregistry/packageurl-js-stable':
         specifier: 'catalog:'
-        version: '@socketregistry/packageurl-js@1.5.2'
+        version: '@socketregistry/packageurl-js@1.5.3'
       '@socketsecurity/lib':
         specifier: 7.0.3
         version: 7.0.3(typescript@7.1.0-dev.20260918.1)
@@ -424,7 +424,7 @@ importers:
         version: 4.1.5
       '@socketsecurity/sdk-stable':
         specifier: 'catalog:'
-        version: '@socketsecurity/sdk@4.1.4'
+        version: '@socketsecurity/sdk@4.1.5'
       '@types/mdast':
         specifier: 'catalog:'
         version: 4.0.4
@@ -917,13 +917,13 @@ importers:
     dependencies:
       '@socketregistry/packageurl-js-stable':
         specifier: 'catalog:'
-        version: '@socketregistry/packageurl-js@1.5.2'
+        version: '@socketregistry/packageurl-js@1.5.3'
       '@socketsecurity/lib-stable':
         specifier: 'catalog:'
         version: '@socketsecurity/lib@7.0.3(typescript@7.1.0-dev.20260918.1)'
       '@socketsecurity/sdk-stable':
         specifier: 'catalog:'
-        version: '@socketsecurity/sdk@4.1.4'
+        version: '@socketsecurity/sdk@4.1.5'
     devDependencies:
       '@types/node':
         specifier: 'catalog:'
@@ -3190,7 +3190,7 @@ importers:
     dependencies:
       '@socketregistry/packageurl-js-stable':
         specifier: 'catalog:'
-        version: '@socketregistry/packageurl-js@1.5.2'
+        version: '@socketregistry/packageurl-js@1.5.3'
       '@socketsecurity/lib-stable':
         specifier: 'catalog:'
         version: '@socketsecurity/lib@7.0.3(typescript@7.1.0-dev.20260918.1)'
@@ -4658,10 +4658,6 @@ packages:
     resolution: {integrity: sha512-pCJr9kYvUKzIZQUbkSzHW/PlZ5cvm4DXmxFMBmGydScVKxri4/BBdh9ASW+38/82pdaE5lTK92AN+MYydJIQCw==}
     engines: {node: '>=18'}
 
-  '@socketregistry/packageurl-js@1.5.2':
-    resolution: {integrity: sha512-j8plTfIjXEU8u2q4clv9njGqHFXQz0Ad4lscj2em3QcQlaWD/UHaQeYgyKlAiM6PowkEWMXFhVD7cgm1BzX6Sg==}
-    engines: {node: '>=24', npm: '>=12.0.1', pnpm: '>=11.0.5'}
-
   '@socketregistry/packageurl-js@1.5.3':
     resolution: {integrity: sha512-L3EIqOlRbUgZK6lHhaiWE6QO6U94SM13GywFRxsjN062ZcxzP/B2Qv3TyKN002WOXrW1iZoPRfYnIK5glOrQFQ==}
     engines: {node: '>=24', npm: ^11.19.0 || >=12.0.2, pnpm: ^11.25.0 || >=12.3.4}
@@ -4687,10 +4683,6 @@ packages:
     peerDependenciesMeta:
       typescript:
         optional: true
-
-  '@socketsecurity/sdk@4.1.4':
-    resolution: {integrity: sha512-1VU+nhQXhK5ttH5N7ehVHfk+eSyHXX/BaqDV6RVwAtyWarcYlcSdJq+SMV5ykBo08DRdF6W1ZoG0DesgjovmPQ==}
-    engines: {node: '>=24', npm: '>=12.0.1', pnpm: '>=11.0.5'}
 
   '@socketsecurity/sdk@4.1.5':
     resolution: {integrity: sha512-1LMoCQEn80BDR/h0vXFeAi89/idvu8VFNumx2k9tZ+CskHTn/Q6necaQSe2Gc1IPTCOfRZF+4aOLMrXhmH9x/Q==}
@@ -7046,8 +7038,6 @@ snapshots:
 
   '@socketregistry/es-define-property@1.0.7': {}
 
-  '@socketregistry/packageurl-js@1.5.2': {}
-
   '@socketregistry/packageurl-js@1.5.3': {}
 
   '@socketregistry/safe-buffer@1.0.9': {}
@@ -7059,8 +7049,6 @@ snapshots:
   '@socketsecurity/lib@7.0.3(typescript@7.1.0-dev.20260918.1)':
     optionalDependencies:
       typescript: 7.1.0-dev.20260918.1
-
-  '@socketsecurity/sdk@4.1.4': {}
 
   '@socketsecurity/sdk@4.1.5': {}
 
