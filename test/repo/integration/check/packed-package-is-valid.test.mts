@@ -6,6 +6,7 @@ it('runs the packed exports with complete declarations and browser globals', asy
   expect(await checkPackedPackage()).toEqual({
     browser: true,
     runtime: true,
+    source: true,
     types: true,
   })
 }, 60_000)

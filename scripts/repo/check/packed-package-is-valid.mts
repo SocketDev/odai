@@ -3,6 +3,7 @@
  */
 
 import {
+  access,
   copyFile,
   mkdir,
   mkdtemp,
@@ -27,7 +28,40 @@ import { runMain } from '../../fleet/process/main/run.mts'
 export interface PackageCheckResult {
   browser: boolean
   runtime: boolean
+  source: boolean
   types: boolean
+}
+
+export async function checkPackedSourceExports(
+  consumerRoot: string,
+): Promise<void> {
+  const packageRoot = path.join(
+    consumerRoot,
+    'node_modules',
+    '@socketsecurity',
+    'odai',
+  )
+  const manifest = JSON.parse(
+    await readFile(path.join(packageRoot, 'package.json'), 'utf8'),
+  ) as { exports?: Record<string, unknown> | undefined }
+  for (const [name, target] of Object.entries(manifest.exports ?? {})) {
+    if (target === null || typeof target !== 'object') {
+      continue
+    }
+    const source = (target as { source?: unknown | undefined }).source
+    if (typeof source !== 'string') {
+      continue
+    }
+    const sourcePath = path.resolve(packageRoot, source)
+    if (!sourcePath.startsWith(`${packageRoot}${path.sep}`)) {
+      throw new Error(`Packed source export ${name} escapes the package root.`)
+    }
+    try {
+      await access(sourcePath)
+    } catch {
+      throw new Error(`Packed source export ${name} is missing: ${source}.`)
+    }
+  }
 }
 
 export async function preparePackageConsumer(
@@ -188,6 +222,7 @@ export async function checkPackedPackage(): Promise<PackageCheckResult> {
   const temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'odai-package-'))
   try {
     const consumerRoot = await preparePackageConsumer(temporaryRoot)
+    await checkPackedSourceExports(consumerRoot)
     await checkPackageTypes(consumerRoot)
     await spawn(
       process.execPath,
@@ -198,7 +233,7 @@ export async function checkPackedPackage(): Promise<PackageCheckResult> {
       },
     )
     await checkBrowserPackage(consumerRoot)
-    return { browser: true, runtime: true, types: true }
+    return { browser: true, runtime: true, source: true, types: true }
   } finally {
     await safeDelete(temporaryRoot)
   }

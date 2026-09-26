@@ -3,6 +3,8 @@ import path from 'node:path'
 import { spawn } from '@socketsecurity/lib-stable/process/spawn/child'
 import { expect, test } from 'vitest'
 
+import packageJson from '../../../package.json' with { type: 'json' }
+
 test('describes the fuzz runner without starting Vitest', async () => {
   const result = await spawn(
     process.execPath,
@@ -12,6 +14,6 @@ test('describes the fuzz runner without starting Vitest', async () => {
   expect(result.code).toBe(0)
   expect(JSON.parse(result.stdout)).toMatchObject({
     name: 'fuzz.mts',
-    version: '0.2.2-prerelease',
+    version: packageJson.version,
   })
 })

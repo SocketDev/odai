@@ -17,6 +17,7 @@
   },
   "files": [
     "dist/**/*",
+    "src/**/*",
     "CHANGELOG.md"
   ],
   "sideEffects": false,
