@@ -5,6 +5,74 @@ All notable changes to `@socketsecurity/odai` will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.2](https://github.com/SocketDev/odai/releases/tag/v0.2.2) - 2026-09-26
+
+### Added
+
+- **`setup`** — provision Chrome model profiles
+- **`conversation`** — add persistent sessions and lockstep recovery
+- **`lockstep`** — generate patches from anchored changes
+- **`bench`** — evaluate caller-defined command intents
+- **`ai`** — add bounded local intent classification
+- **`bench`** — evaluate caller-defined command intents
+- **`ai`** — add bounded local intent classification
+- **`lockstep`** — add guarded full and sparse model assistance
+- **`cache`** — own Gemma provisioning and Chrome verification
+- **`chrome`** — select the on-device model, adding gemma 4
+- **`shim`** — serve the OpenAI chat-completions routes beside the Anthropic ones
+- **`odai`** — query and cache the model identity, stamping the model name into TaskResult
+- **`odai`** — changelog provenance helper + model identity stamped into TaskResult
+- **`cli`** — add the pricing extraction task
+- **`cli`** — add \`odai serve\` subcommand for the Anthropic Messages shim (#9)
+
+### Changed
+
+- share package chunks and measure persistent context
+- **`test`** — separate fast checks and resolve build tools directly
+- **`test`** — avoid loading unused model backends
+
+### Fixed
+
+- **`cache`** — isolate Gemma scratch browser
+- **`test`** — use current partial submodule entrypoint
+- **`apple-fm`** — cache shim in macOS user directory
+- **`build`** — follow fleet entrypoint module move
+- **`release`** — accept odai publish task name
+- **`build`** — disable rolldown debug regions
+- **`json`** — preserve fenced structured replies
+- **`parser`** — harden fenced json extraction
+- **`parser`** — harden fenced json extraction
+- share prepared Python cache with conformance
+- **`repo`** — align conversation checks and coverage reporting
+- match Socket coverage badge styling
+- **`opencode`** — bring the guard plugin under the lint gate
+- **`fuzz`** — match .mts targets and stay quiet on an empty run
+- **`workspace`** — drop pnpm settings current pnpm rejects
+- **`odai`** — name the page bridge's unknown-session error NotFoundError
+- **`odai`** — declare the fleet AST parser devDep so cascaded checks can parse
+- **`shim`** — match llama-server route aliases and the completion fingerprint
+- **`shim`** — drop an unknown-typed template literal from the chunk test
+- **`odai`** — bound the identity probe so a hanging backend degrades instead of stalling
+- **`prompts`** — teach pricing extraction the multi-column table shape
+- **`cli`** — make serve error messages actionable
+
+### Internal
+
+- **`deps`** — use fleet tool registry and align stable aliases
+- **`ci`** — align release workflows with fleet gates
+- **`ci`** — reconcile fleet integration
+- **`deps`** — reconcile fleet hook lockfile importer
+- **`deps`** — reconcile fleet catalog lockfile
+- **`ci`** — complete workflow token routing
+- **`ci`** — sync hydrated hook lockfile
+- **`ci`** — sync hydrated hook lockfile
+- **`ci`** — declare benchmark artifacts and verify offline setup
+- **`ci`** — use public PR App client ID
+- **`ci`** — satisfy release gates
+- **`fleet`** — align source type checks and hook boundaries
+- **`fleet`** — align source type checks and hook boundaries
+- **`deps`** — restore the yaml catalog entry and drop the orphaned pnpm pin
+
 ## [0.2.1](https://github.com/SocketDev/odai/releases/tag/v0.2.1) - 2026-08-03
 
 ### Added
