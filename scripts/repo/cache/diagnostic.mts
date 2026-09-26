@@ -2,7 +2,7 @@ import fs from 'node:fs/promises'
 import { pathToFileURL } from 'node:url'
 import { isPlainObject } from '@socketsecurity/lib-stable/objects/predicates'
 import { normalizePath } from '@socketsecurity/lib-stable/paths/normalize'
-import type { BrowserContext, Page } from 'playwright-core'
+import type { BrowserContext, Page } from './browser/scratch-renderer.mts'
 
 const CHILD_PROCESS_HISTOGRAMS = new Set([
   'ChildProcess.Crashed2',

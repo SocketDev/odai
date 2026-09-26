@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import os from 'node:os'
 import { afterEach, expect, test, vi } from 'vitest'
-import { acquireCacheBrowserSession } from '../../../../../scripts/repo/cache/browser/acquire.mts'
+import { acquireCacheBrowserSession } from '../../../../../scripts/repo/cache/browser/scratch-renderer.mts'
 
 const mocks = vi.hoisted(() => ({
   launch: vi.fn(),

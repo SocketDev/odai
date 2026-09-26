@@ -2,6 +2,8 @@ import { cacheBrowserLaunchOptions } from './policy.mts'
 import type { CacheSessionConfig } from './policy.mts'
 import { assertCacheProfile } from '../util.mts'
 
+export type { BrowserContext, Page } from 'playwright-core'
+
 export async function acquireCacheBrowserSession(config: CacheSessionConfig) {
   const options = { __proto__: null, ...config } as CacheSessionConfig
   const shape = cacheBrowserLaunchOptions(options)

@@ -86,7 +86,7 @@ vi.mock(import('node:timers/promises'), async importOriginal => ({
     new Promise<T>(resolve => setTimeout(() => resolve(value!), ms)),
 }))
 vi.mock(
-  import('../../../../../scripts/repo/cache/browser/acquire.mts'),
+  import('../../../../../scripts/repo/cache/browser/scratch-renderer.mts'),
   () => ({
     acquireCacheBrowserSession: mocks.launch,
   }),
