@@ -11,7 +11,7 @@ import {
 import type { ChromeTool } from '../../../../scripts/repo/update/chrome.mts'
 import type { GemmaImageConfig } from '../../../../scripts/repo/cache/image.mts'
 type RunMain =
-  typeof import('../../../../scripts/fleet/process/run-main.mts').runMain
+  typeof import('../../../../scripts/fleet/process/main/run.mts').runMain
 
 const mocks = vi.hoisted(() => ({
   environment: new Map<string, string>(),
@@ -59,7 +59,7 @@ vi.mock(import('../../../../scripts/repo/cache/cli.mts'), async original => ({
   ...(await original()),
   getCacheArgs: () => mocks.args,
 }))
-vi.mock(import('../../../../scripts/fleet/process/run-main.mts'), () => ({
+vi.mock(import('../../../../scripts/fleet/process/main/run.mts'), () => ({
   runMain: mocks.runMain,
 }))
 vi.mock(import('@socketsecurity/lib-stable/env/rewire'), async original => ({

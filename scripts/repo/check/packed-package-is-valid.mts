@@ -22,7 +22,7 @@ import { rolldown } from 'rolldown'
 
 import { REPO_ROOT } from '../../fleet/paths.mts'
 import { isMainModule } from '../../fleet/process/is-main-module.mts'
-import { runMain } from '../../fleet/process/run-main.mts'
+import { runMain } from '../../fleet/process/main/run.mts'
 
 export interface PackageCheckResult {
   browser: boolean

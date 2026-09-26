@@ -25,9 +25,9 @@ import {
   resolveBridgeConfig,
 } from '../../src/backends/chrome-profile.mts'
 import { isMainModule } from '../../scripts/fleet/process/is-main-module.mts'
-import { runMain } from '../../scripts/fleet/process/run-main.mts'
+import { runMain } from '../../scripts/fleet/process/main/run.mts'
 import { REPO_ROOT } from '../../scripts/fleet/paths.mts'
-import type { ScriptMeta } from '../../scripts/fleet/process/run-main.mts'
+import type { ScriptMeta } from '../../scripts/fleet/process/main/run.mts'
 import {
   pythonRunArgs,
   withIsolatedEnv as pythonEnvironment,

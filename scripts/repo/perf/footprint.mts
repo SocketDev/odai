@@ -12,7 +12,7 @@ import configs from '../../../.config/repo/rolldown.config.mts'
 import { REPO_ROOT } from '../../fleet/paths.mts'
 import { sharedScriptsFleetFormatMtsPath } from '../../fleet/paths/util.mts'
 import { isMainModule } from '../../fleet/process/is-main-module.mts'
-import { runMain } from '../../fleet/process/run-main.mts'
+import { runMain } from '../../fleet/process/main/run.mts'
 import { createFootprintReport, emittedPath } from './footprint/report.mts'
 import type { GeneratedAsset, GeneratedChunk } from './footprint/report.mts'
 

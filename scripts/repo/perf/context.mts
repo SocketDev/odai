@@ -16,7 +16,7 @@ import type {
   ContextReport,
 } from '../../../src/bench/context.mts'
 import { isMainModule } from '../../fleet/process/is-main-module.mts'
-import { runMain } from '../../fleet/process/run-main.mts'
+import { runMain } from '../../fleet/process/main/run.mts'
 
 export const CONTEXT_HELP = `Usage: pnpm run perf:context [options]
 
