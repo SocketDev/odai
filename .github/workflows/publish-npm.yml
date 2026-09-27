@@ -748,12 +748,20 @@ jobs:
           NIGHTLY_VERSION: ${{ inputs.nightly-version }}
           RELEASE_AS: ${{ inputs.release-as }}
           RESUME_RESERVED: ${{ inputs.resume-reserved }}
+          RESERVED_SOURCE_REF: ${{ inputs.checkout-ref }}
           RELEASE_APP_TOKEN: ${{ steps.release-app.outputs.token }}
           GH_TOKEN: ${{ steps.release-app.outputs.token }}
         # CHECKOUT_REF forwards on its own so a checkout-ref dispatch WITHOUT
         # backfill-version is refused by the script instead of silently
         # bump-publishing historical content.
         run: |
+          if [ "$RESUME_RESERVED" = true ]; then
+            SOURCE_SHA="$(git rev-parse "$RESERVED_SOURCE_REF^{commit}")"
+            if [ "$(git rev-parse HEAD)" != "$SOURCE_SHA" ]; then
+              git checkout -q --detach "$SOURCE_SHA"
+            fi
+            git log -1 --format='[reserved-publish-source] %H %s'
+          fi
           args=(--tag "$DIST_TAG")
           if [ -n "$BACKFILL_VERSION" ]; then args+=(--backfill "$BACKFILL_VERSION"); fi
           if [ -n "$CHECKOUT_REF" ]; then args+=(--checkout-ref "$CHECKOUT_REF"); fi
