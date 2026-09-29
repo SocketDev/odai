@@ -30,6 +30,11 @@ export const TASK_COMMANDS = {
       'extract per-token model prices from a pricing page (JSON stdin)',
     heavy: false,
   },
+  'release-bump': {
+    description:
+      'classify a release from commits; first release is minor (JSON stdin)',
+    heavy: false,
+  },
   'security-fix': {
     description: 'pick the minimal safe upgrade for an advisory (JSON stdin)',
     heavy: false,

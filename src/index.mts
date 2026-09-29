@@ -38,6 +38,7 @@ import {
   isLanguageModelFactory,
 } from './provider.mts'
 import { classifyDependencyChange } from './tasks/classify-deps.mts'
+import { classifyReleaseBump } from './tasks/release-bump.mts'
 import {
   installLanguageModelSimulator,
   LanguageModelSessionSimulator,
@@ -61,6 +62,7 @@ export {
   matchModelName,
   parseControlTokens,
   classifyDependencyChange,
+  classifyReleaseBump,
   assessHoistSafety,
   assessSecurityFix,
   createAppleFmBackend,
@@ -124,6 +126,10 @@ export type { ModelIdentity } from './model-identity.mts'
 export type { CreateSessionOptions } from './session.mts'
 export type { StreamOptions, StreamResult } from './stream.mts'
 export type { DepClassification } from './prompts/classify-deps.mts'
+export type {
+  ReleaseBumpAdvice,
+  ReleaseBumpInput,
+} from './prompts/release-bump.mts'
 export type { CommitMessage } from './prompts/commit.mts'
 export type { CodePatch } from './prompts/patch.mts'
 export type { DedupeResult } from './prompts/dedupe.mts'

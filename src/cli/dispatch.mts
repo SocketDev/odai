@@ -13,6 +13,7 @@ import { analyzeLockstep } from '../tasks/lockstep.mts'
 import { parseLockstepInput } from '../lockstep/validate.mts'
 import { TASK_NAMES } from './commands.mts'
 import { classifyDependencyChange } from '../tasks/classify-deps.mts'
+import { classifyReleaseBump } from '../tasks/release-bump.mts'
 import { suggestCommitMessage } from '../tasks/commit.mts'
 import { dedupeDependencies } from '../tasks/dedupe.mts'
 import { assessHoistSafety } from '../tasks/hoist.mts'
@@ -29,6 +30,7 @@ import type { HoistInput } from '../prompts/hoist.mts'
 import type { PricingInput } from '../prompts/pricing.mts'
 import type { SecurityFixInput } from '../prompts/security-fix.mts'
 import type { WeeklyUpdateInput } from '../prompts/weekly-update.mts'
+import type { ReleaseBumpInput } from '../prompts/release-bump.mts'
 import type { OdaiModel } from '../model.mts'
 import type { TaskResult } from '../types.mts'
 
@@ -118,6 +120,15 @@ export async function runTask(
           'pricing',
           '{ "models": ["<model id>"], "sourceText": "<pricing page text>" }',
         ) as PricingInput,
+      )
+    case 'release-bump':
+      return await classifyReleaseBump(
+        model,
+        parseJsonInput(
+          input,
+          'release-bump',
+          '{ "firstRelease": boolean, "commits": ["<commit summary>"] }',
+        ) as ReleaseBumpInput,
       )
     case 'summarize':
       return await summarizeText(model, input)
