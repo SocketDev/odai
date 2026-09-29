@@ -17704,7 +17704,15 @@ function localTemplateManifests(filesDir, manifest, dest) {
       })
   }
   const conditionalRoot = path.join(path.dirname(filesDir), 'conditional')
-  const roots = [filesDir]
+  const generatedRoot = path.join(
+    path.dirname(filesDir),
+    '..',
+    'generated',
+    'universal',
+  )
+  const roots = existsSync(generatedRoot)
+    ? [generatedRoot, filesDir]
+    : [filesDir]
   if (existsSync(conditionalRoot))
     for (const name of readdirSync(conditionalRoot).toSorted().reverse()) {
       const root = path.join(conditionalRoot, name)

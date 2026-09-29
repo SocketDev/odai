@@ -1,6 +1,6 @@
 {
   "name": "@socketsecurity/odai",
-  "version": "0.2.2",
+  "version": "0.3.0-prerelease",
   "private": false,
   "description": "Local on-device AI library for browser and Node, with the bench evaluation harness",
   "homepage": "https://github.com/SocketDev/odai",
@@ -234,7 +234,7 @@
     "cover:shard": "node scripts/fleet/cover-shard.mts",
     "credentials:migrate": "node scripts/fleet/credentials/migrate.mts",
     "credentials:run": "node scripts/fleet/credentials/run.mts",
-    "crates:auth": "node scripts/fleet/registry-infra/crates-io-browser-auth.mts",
+    "crates:auth": "node scripts/fleet/registry-infra/cargo/auth.mts",
     "doctor:credentials": "node scripts/fleet/credentials/doctor.mts",
     "gen:mcp:config": "node scripts/fleet/mcp/config.mts",
     "sweep": "node scripts/fleet/sweep.mts",
