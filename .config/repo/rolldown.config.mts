@@ -16,7 +16,7 @@ const srcPath = path.join(rootPath, 'src')
 const distPath = path.join(rootPath, 'dist')
 
 const baseConfig = {
-  experimental: { attachDebugInfo: 'none' },
+  experimental: { attachDebugInfo: 'none' as const },
   // playwright-core is an optional peer dependency loaded lazily by the
   // gemini-nano-headless bridge; bundling it drags in native fsevents.
   external: ['@sinclair/typebox', 'playwright-core'],
