@@ -201,8 +201,8 @@ catalogs:
       specifier: 1.7.5
       version: 1.7.5
     '@ultrathink/acorn.rs.wasm':
-      specifier: 0.1.1
-      version: 0.1.1
+      specifier: 0.2.0
+      version: 0.2.0
     '@vitest/coverage-v8':
       specifier: 5.0.1
       version: 5.0.1
@@ -213,8 +213,8 @@ catalogs:
       specifier: 0.3.1
       version: 0.3.1
     ast-v8-to-istanbul:
-      specifier: 1.0.6
-      version: 1.0.6
+      specifier: 1.0.7
+      version: 1.0.7
     ata-validator:
       specifier: 1.27.1
       version: 1.27.1
@@ -231,11 +231,11 @@ catalogs:
       specifier: 3.27.0
       version: 3.27.0
     fast-check:
-      specifier: 4.10.1
-      version: 4.10.1
+      specifier: 4.10.2
+      version: 4.10.2
     markdownlint-cli2:
-      specifier: 0.23.2
-      version: 0.23.2
+      specifier: 0.23.3
+      version: 0.23.3
     mcp-tada:
       specifier: 0.4.0
       version: 0.4.0
@@ -439,7 +439,7 @@ importers:
         version: 1.7.5
       '@ultrathink/acorn.rs.wasm':
         specifier: 'catalog:'
-        version: 0.1.1
+        version: 0.2.0
       '@vitest/coverage-v8':
         specifier: 'catalog:'
         version: 5.0.1(vitest@5.0.1)
@@ -451,7 +451,7 @@ importers:
         version: 0.3.1(typescript@7.0.2)(vite@8.3.0(@types/node@26.6.2)(jiti@2.7.0)(yaml@2.9.0))(vitest@5.0.1)
       ast-v8-to-istanbul:
         specifier: 'catalog:'
-        version: 1.0.6
+        version: 1.0.7
       ata-validator:
         specifier: 'catalog:'
         version: 1.27.1(yaml@2.9.0)
@@ -466,13 +466,13 @@ importers:
         version: 3.27.0
       fast-check:
         specifier: 'catalog:'
-        version: 4.10.1
+        version: 4.10.2
       magic-string:
         specifier: 1.4.1
         version: 1.4.1
       markdownlint-cli2:
         specifier: 'catalog:'
-        version: 0.23.2(supports-color@7.2.0)
+        version: 0.23.3(supports-color@7.2.0)
       mcp-tada:
         specifier: 'catalog:'
         version: 0.4.0(@modelcontextprotocol/client@2.0.0)(@modelcontextprotocol/sdk@1.30.0(supports-color@7.2.0)(zod@4.6.1))(typescript@7.0.2)
@@ -1303,7 +1303,7 @@ importers:
     dependencies:
       '@ultrathink/acorn.rs.wasm':
         specifier: 'catalog:'
-        version: 0.1.1
+        version: 0.2.0
     devDependencies:
       '@types/node':
         specifier: 'catalog:'
@@ -1588,7 +1588,7 @@ importers:
     dependencies:
       '@ultrathink/acorn.rs.wasm':
         specifier: 'catalog:'
-        version: 0.1.1
+        version: 0.2.0
     devDependencies:
       '@types/node':
         specifier: 'catalog:'
@@ -1800,7 +1800,7 @@ importers:
     dependencies:
       '@ultrathink/acorn.rs.wasm':
         specifier: 'catalog:'
-        version: 0.1.1
+        version: 0.2.0
     devDependencies:
       '@types/node':
         specifier: 'catalog:'
@@ -1975,7 +1975,7 @@ importers:
     dependencies:
       '@ultrathink/acorn.rs.wasm':
         specifier: 'catalog:'
-        version: 0.1.1
+        version: 0.2.0
     devDependencies:
       '@types/node':
         specifier: 'catalog:'
@@ -2469,7 +2469,7 @@ importers:
     dependencies:
       '@ultrathink/acorn.rs.wasm':
         specifier: 'catalog:'
-        version: 0.1.1
+        version: 0.2.0
 
   .claude/hooks/fleet/outbound-voice-nudge:
     devDependencies:
@@ -2556,13 +2556,13 @@ importers:
     dependencies:
       '@ultrathink/acorn.rs.wasm':
         specifier: 'catalog:'
-        version: 0.1.1
+        version: 0.2.0
 
   .claude/hooks/fleet/path-regex-normalize-nudge:
     dependencies:
       '@ultrathink/acorn.rs.wasm':
         specifier: 'catalog:'
-        version: 0.1.1
+        version: 0.2.0
     devDependencies:
       '@types/node':
         specifier: 'catalog:'
@@ -2641,7 +2641,7 @@ importers:
         version: '@socketsecurity/lib@7.0.3(typescript@7.0.2)'
       '@ultrathink/acorn.rs.wasm':
         specifier: 'catalog:'
-        version: 0.1.1
+        version: 0.2.0
     devDependencies:
       '@types/node':
         specifier: 'catalog:'
@@ -2759,7 +2759,7 @@ importers:
     dependencies:
       '@ultrathink/acorn.rs.wasm':
         specifier: 'catalog:'
-        version: 0.1.1
+        version: 0.2.0
 
   .claude/hooks/fleet/prefer-mcp-server-nudge:
     dependencies:
@@ -2862,7 +2862,7 @@ importers:
     dependencies:
       '@ultrathink/acorn.rs.wasm':
         specifier: 'catalog:'
-        version: 0.1.1
+        version: 0.2.0
     devDependencies:
       '@types/node':
         specifier: 'catalog:'
@@ -3734,7 +3734,7 @@ importers:
     dependencies:
       '@ultrathink/acorn.rs.wasm':
         specifier: 'catalog:'
-        version: 0.1.1
+        version: 0.2.0
       regjsparser:
         specifier: 'catalog:'
         version: 0.13.3
@@ -4940,8 +4940,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@ultrathink/acorn.rs.wasm@0.1.1':
-    resolution: {integrity: sha512-oL0uqC5cROkhhVqeGQ4h0CeGYPwkc+tu/dPyfUcmdA2tKpa0o9x5L5L+nu/FeWsqMoO/OjAqHQDCUF0bqVNVwQ==}
+  '@ultrathink/acorn.rs.wasm@0.2.0':
+    resolution: {integrity: sha512-8uiXGQnwnN631SaXOeAM+Y+WOu2ms2UQf5rQcH56/9/jD1mEoYqUcYDZjE3AqPgZCsfbNT8jRRUTn5ib/cPvAA==}
     engines: {node: '>=18'}
 
   '@vitest/coverage-v8@5.0.1':
@@ -5080,8 +5080,8 @@ packages:
     resolution: {integrity: sha512-Izi8RQcffqCeNVgFigKli1ssklIbpHnCYc6AknXGYoB6grJqyeby7jv12JUQgmTAnIDnbck1uxksT4dzN3PWBA==}
     engines: {node: '>=12'}
 
-  ast-v8-to-istanbul@1.0.6:
-    resolution: {integrity: sha512-fvpl29helSO2w/z7utIbrkNXILdrLwDwAMH2I/zPKlGf5244+gf+B4cyS1sANcrPY2h+hWCGSgC8N61s/+AF9A==}
+  ast-v8-to-istanbul@1.0.7:
+    resolution: {integrity: sha512-kFL68AG6ajd8fg248zwM9GQrUWEp79gsmjum34OEXjs4yHuUMZfYKwOLW9GMmB4oNvVrj+EAGxsP7ye2UR9UlA==}
 
   ata-validator@1.27.1:
     resolution: {integrity: sha512-FFbzRalSLW0poT+FGzgOMV755z6suwvQoFKFxlwBzxuy9E+HpOSsh+TODhiV70ym8DhQhbmTNFiNdZBdd5dTsQ==}
@@ -5384,8 +5384,8 @@ packages:
     engines: {node: '>=22'}
     hasBin: true
 
-  fast-check@4.10.1:
-    resolution: {integrity: sha512-sB5Vghiu8MyCyToHoBVGsT0baZg3sZWNIY+a6Ct2EDrQJlT4YdH6MC1BSLNe3kX1k5i5g0q1O52XFgcKK/rGHg==}
+  fast-check@4.10.2:
+    resolution: {integrity: sha512-iK2f+YrcmoeGqk6fA0ea2bptcu/itMIm4NfEozq6N25+aG6h7s5HZbB/k1aV7b5w5sFLMCbbtRUsTVR+BgC3xw==}
     engines: {node: '>=12.17.0'}
 
   fast-deep-equal@3.1.3:
@@ -5467,8 +5467,8 @@ packages:
     resolution: {integrity: sha512-Wjlyrolmm8uDpm/ogGyXZXb1Z+Ca2B8NbJwqBVg0axK9GbBeoS7yGV6vjXnYdGm6X53iehEuxxbyiKp8QmN4Vw==}
     engines: {node: 18 || 20 || >=22}
 
-  globby@16.2.2:
-    resolution: {integrity: sha512-NLvV9ubZ6NDsJaOpKPy3cQeJpKi9DcWiyCiFUpJPA0YihRqiE6RWaLUmgNNPr8MgPpLZjnBjSmou7uZBRJv9wA==}
+  globby@16.2.4:
+    resolution: {integrity: sha512-c8B/VNLmxRcmqqenRA9t+9IyOjf9+V6lTxPaUJLqOCONdQkWZ0ETYgX0qbtJqPsgCNusT9MZ5Jeidw8Eb9tn2g==}
     engines: {node: '>=20'}
 
   grad-school@0.0.5:
@@ -5576,8 +5576,8 @@ packages:
   js-tokens@10.0.0:
     resolution: {integrity: sha512-lM/UBzQmfJRo9ABXbPWemivdCW8V2G8FHaHdypQaIy523snUjog0W71ayWXTjiR+ixeMyVHN2XcpnTd/liPg/Q==}
 
-  js-yaml@5.2.2:
-    resolution: {integrity: sha512-dayzUzKkJ1MkuUtZglSebU43utNXH0OWQByK9rKOOuYIO8M5TV1y+n8ALMdG0rdzBnfNkOmZEqrURepb0ejqBw==}
+  js-yaml@5.4.1:
+    resolution: {integrity: sha512-28R/k+NAjeuf7+CKlTxWZVExJGwVVLwY06DgEnOMz2gEpfNkDcD7QvyiVPT0xy0XXhU8vHsd4Ot42OOPdJG7dQ==}
     hasBin: true
 
   jsesc@3.1.0:
@@ -5721,8 +5721,8 @@ packages:
     peerDependencies:
       markdownlint-cli2: '>=0.0.4'
 
-  markdownlint-cli2@0.23.2:
-    resolution: {integrity: sha512-eUhcnkSpzURo/o4htSqc7LPDszgOOTknhU4eY/sPHvMCLxnTCYscv1gw1/js/idmaZPisv9ECVEIORcllqjTUw==}
+  markdownlint-cli2@0.23.3:
+    resolution: {integrity: sha512-xAr5o/TGpC3v6lE6cKIW4b5eOFRrRX5u7Vtjae9ix3RALv8nNOd94XMkD/1OXXBtpMcJ4uQGbpSo3hv5UqS4uQ==}
     engines: {node: '>=22'}
     hasBin: true
 
@@ -6230,8 +6230,8 @@ packages:
     resolution: {integrity: sha512-ZA6oR3T/pEyuqwMgAKT0/hAv8oAXckzbkmR0UkUosQ+Mc4RxGoJkRmwHgHufaenlyAgE1Mxgpdcrf75y6XcnDg==}
     engines: {node: '>=14.16'}
 
-  smol-toml@1.7.0:
-    resolution: {integrity: sha512-aqVvWoyO21L23mb+drl4RmMXbf6N7FdHjAhTRA9ZBL7apWBgfWC16KjrASI+1p9GAroljyMHj6fK67i0UiTNvQ==}
+  smol-toml@1.8.0:
+    resolution: {integrity: sha512-kCZr2V3ch9i00x8zXRhjUNVcjG9ijES5dDudkXvUVCT5QlJNQWElSJdZqyPemffHoLNUYwOcou0Fy+ojN0uHSQ==}
     engines: {node: '>= 18'}
 
   source-map-js@1.2.1:
@@ -7160,14 +7160,14 @@ snapshots:
   '@typescript/typescript-win32-x64@7.0.2':
     optional: true
 
-  '@ultrathink/acorn.rs.wasm@0.1.1': {}
+  '@ultrathink/acorn.rs.wasm@0.2.0': {}
 
   '@vitest/coverage-v8@5.0.1(vitest@5.0.1)':
     dependencies:
       '@bcoe/v8-coverage': 1.0.2
       '@vitest/istanbul-lib-coverage': 1.0.1
       '@vitest/istanbul-lib-report': 1.0.1
-      ast-v8-to-istanbul: 1.0.6
+      ast-v8-to-istanbul: 1.0.7
       magicast: 0.5.4
       obug: 2.2.1
       std-env: 4.2.0
@@ -7297,7 +7297,7 @@ snapshots:
 
   assertion-error@2.0.1: {}
 
-  ast-v8-to-istanbul@1.0.6:
+  ast-v8-to-istanbul@1.0.7:
     dependencies:
       '@jridgewell/trace-mapping': 0.3.31
       estree-walker: 3.0.3
@@ -7642,7 +7642,7 @@ snapshots:
       '@fallow-cli/win32-x64-msvc': 3.27.0
       fallow-type-aware: 3.27.0
 
-  fast-check@4.10.1:
+  fast-check@4.10.2:
     dependencies:
       pure-rand: 8.4.2
 
@@ -7725,12 +7725,13 @@ snapshots:
       minipass: 7.1.3
       path-scurry: 2.0.2
 
-  globby@16.2.2:
+  globby@16.2.4:
     dependencies:
       '@sindresorhus/merge-streams': 4.0.0
       fast-glob: 3.3.3
       ignore: 7.0.9
       is-path-inside: 4.0.0
+      micromatch: 4.0.8
       slash: 5.1.0
       unicorn-magic: 0.4.0
 
@@ -7816,7 +7817,7 @@ snapshots:
 
   js-tokens@10.0.0: {}
 
-  js-yaml@5.2.2:
+  js-yaml@5.4.1:
     dependencies:
       argparse: 2.0.1
 
@@ -7928,21 +7929,21 @@ snapshots:
 
   markdown-table@3.0.4: {}
 
-  markdownlint-cli2-formatter-default@0.0.6(markdownlint-cli2@0.23.2(supports-color@7.2.0)):
+  markdownlint-cli2-formatter-default@0.0.6(markdownlint-cli2@0.23.3(supports-color@7.2.0)):
     dependencies:
-      markdownlint-cli2: 0.23.2(supports-color@7.2.0)
+      markdownlint-cli2: 0.23.3(supports-color@7.2.0)
 
-  markdownlint-cli2@0.23.2(supports-color@7.2.0):
+  markdownlint-cli2@0.23.3(supports-color@7.2.0):
     dependencies:
-      globby: 16.2.2
-      js-yaml: 5.2.2
+      globby: 16.2.4
+      js-yaml: 5.4.1
       jsonc-parser: 3.3.1
       jsonpointer: 5.0.1
       markdown-it: 14.3.0
       markdownlint: 0.41.1(supports-color@7.2.0)
-      markdownlint-cli2-formatter-default: 0.0.6(markdownlint-cli2@0.23.2(supports-color@7.2.0))
+      markdownlint-cli2-formatter-default: 0.0.6(markdownlint-cli2@0.23.3(supports-color@7.2.0))
       micromatch: 4.0.8
-      smol-toml: 1.7.0
+      smol-toml: 1.8.0
     transitivePeerDependencies:
       - supports-color
 
@@ -8673,7 +8674,7 @@ snapshots:
 
   slash@5.1.0: {}
 
-  smol-toml@1.7.0: {}
+  smol-toml@1.8.0: {}
 
   source-map-js@1.2.1: {}
 

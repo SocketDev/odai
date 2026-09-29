@@ -6,7 +6,7 @@ catalog:
   # be validated before it's pushed (see the `agent-ci` skill). dtu-github-
   # actions is its GitHub-Actions parser, pinned explicitly (not left
   # transitive) so its version is uniform fleet-wide.
-  '@ultrathink/acorn.rs.wasm': 0.1.1
+  '@ultrathink/acorn.rs.wasm': 0.2.0
   'ata-validator': 1.27.1
   'brace-expansion': 5.0.12
   'dtu-github-actions': 0.18.1
@@ -50,9 +50,9 @@ catalog:
   # fast-check — property-based testing for pure fleet-script logic (pin
   # derivation, version compare, config validation). Runs standalone in vitest.
   # published: 2026-07-08 (past 7-day soak). See .claude/skills/fleet/property-testing.
-  'fast-check': 4.10.1
+  'fast-check': 4.10.2
   'magic-string': 1.4.1
-  'markdownlint-cli2': 0.23.2
+  'markdownlint-cli2': 0.23.3
   'mdast-util-from-markdown': 2.0.3
   # GFM pair for render-faithful markdown parsing (tables, footnotes,
   # strikethrough, autolinks) — mdast-util-from-markdown must always be
@@ -116,7 +116,7 @@ catalog:
   'vitest': 5.0.1
   '@vitest/coverage-v8': 5.0.1
   '@bcoe/v8-coverage': 1.0.2
-  ast-v8-to-istanbul: 1.0.6
+  ast-v8-to-istanbul: 1.0.7
   'chrome-devtools-mcp': 1.9.0
   # Playwright MCP server — agent-driven browsing with the fleet agent-banner
   # init script (see .config/fleet/playwright/).
@@ -343,78 +343,6 @@ minimumReleaseAgeExclude:
   - '@decmpfs/*'
   - '@node-smol/*'
   - sockeye
-  # published: 2026-09-21 | removable: 2026-09-28
-  - '@oxfmt/binding-android-arm-eabi@0.70.0'
-  # published: 2026-09-21 | removable: 2026-09-28
-  - '@oxfmt/binding-android-arm64@0.70.0'
-  # published: 2026-09-21 | removable: 2026-09-28
-  - '@oxfmt/binding-darwin-arm64@0.70.0'
-  # published: 2026-09-21 | removable: 2026-09-28
-  - '@oxfmt/binding-darwin-x64@0.70.0'
-  # published: 2026-09-21 | removable: 2026-09-28
-  - '@oxfmt/binding-freebsd-x64@0.70.0'
-  # published: 2026-09-21 | removable: 2026-09-28
-  - '@oxfmt/binding-linux-arm-gnueabihf@0.70.0'
-  # published: 2026-09-21 | removable: 2026-09-28
-  - '@oxfmt/binding-linux-arm64-gnu@0.70.0'
-  # published: 2026-09-21 | removable: 2026-09-28
-  - '@oxfmt/binding-linux-arm64-musl@0.70.0'
-  # published: 2026-09-21 | removable: 2026-09-28
-  - '@oxfmt/binding-linux-ppc64-gnu@0.70.0'
-  # published: 2026-09-21 | removable: 2026-09-28
-  - '@oxfmt/binding-linux-riscv64-gnu@0.70.0'
-  # published: 2026-09-21 | removable: 2026-09-28
-  - '@oxfmt/binding-linux-riscv64-musl@0.70.0'
-  # published: 2026-09-21 | removable: 2026-09-28
-  - '@oxfmt/binding-linux-s390x-gnu@0.70.0'
-  # published: 2026-09-21 | removable: 2026-09-28
-  - '@oxfmt/binding-linux-x64-gnu@0.70.0'
-  # published: 2026-09-21 | removable: 2026-09-28
-  - '@oxfmt/binding-linux-x64-musl@0.70.0'
-  # published: 2026-09-21 | removable: 2026-09-28
-  - '@oxfmt/binding-openharmony-arm64@0.70.0'
-  # published: 2026-09-21 | removable: 2026-09-28
-  - '@oxfmt/binding-win32-arm64-msvc@0.70.0'
-  # published: 2026-09-21 | removable: 2026-09-28
-  - '@oxfmt/binding-win32-ia32-msvc@0.70.0'
-  # published: 2026-09-21 | removable: 2026-09-28
-  - '@oxfmt/binding-win32-x64-msvc@0.70.0'
-  # published: 2026-09-21 | removable: 2026-09-28
-  - '@oxlint/binding-android-arm-eabi@1.85.0'
-  # published: 2026-09-21 | removable: 2026-09-28
-  - '@oxlint/binding-android-arm64@1.85.0'
-  # published: 2026-09-21 | removable: 2026-09-28
-  - '@oxlint/binding-darwin-arm64@1.85.0'
-  # published: 2026-09-21 | removable: 2026-09-28
-  - '@oxlint/binding-darwin-x64@1.85.0'
-  # published: 2026-09-21 | removable: 2026-09-28
-  - '@oxlint/binding-freebsd-x64@1.85.0'
-  # published: 2026-09-21 | removable: 2026-09-28
-  - '@oxlint/binding-linux-arm-gnueabihf@1.85.0'
-  # published: 2026-09-21 | removable: 2026-09-28
-  - '@oxlint/binding-linux-arm64-gnu@1.85.0'
-  # published: 2026-09-21 | removable: 2026-09-28
-  - '@oxlint/binding-linux-arm64-musl@1.85.0'
-  # published: 2026-09-21 | removable: 2026-09-28
-  - '@oxlint/binding-linux-ppc64-gnu@1.85.0'
-  # published: 2026-09-21 | removable: 2026-09-28
-  - '@oxlint/binding-linux-riscv64-gnu@1.85.0'
-  # published: 2026-09-21 | removable: 2026-09-28
-  - '@oxlint/binding-linux-riscv64-musl@1.85.0'
-  # published: 2026-09-21 | removable: 2026-09-28
-  - '@oxlint/binding-linux-s390x-gnu@1.85.0'
-  # published: 2026-09-21 | removable: 2026-09-28
-  - '@oxlint/binding-linux-x64-gnu@1.85.0'
-  # published: 2026-09-21 | removable: 2026-09-28
-  - '@oxlint/binding-linux-x64-musl@1.85.0'
-  # published: 2026-09-21 | removable: 2026-09-28
-  - '@oxlint/binding-openharmony-arm64@1.85.0'
-  # published: 2026-09-21 | removable: 2026-09-28
-  - '@oxlint/binding-win32-arm64-msvc@1.85.0'
-  # published: 2026-09-21 | removable: 2026-09-28
-  - '@oxlint/binding-win32-ia32-msvc@1.85.0'
-  # published: 2026-09-21 | removable: 2026-09-28
-  - '@oxlint/binding-win32-x64-msvc@1.85.0'
   # published: 2026-09-23 | removable: 2026-09-30
   - '@rolldown/binding-android-arm-eabi@1.2.10'
   # published: 2026-09-23 | removable: 2026-09-30
@@ -445,22 +373,12 @@ minimumReleaseAgeExclude:
   - '@rolldown/binding-win32-arm64-msvc@1.2.10'
   # published: 2026-09-23 | removable: 2026-09-30
   - '@rolldown/binding-win32-x64-msvc@1.2.10'
-  # published: 2026-09-21 | removable: 2026-09-28
-  - 'oxfmt@0.70.0'
   # published: 2026-09-24 | removable: 2026-10-01
   - 'oxlint-tsgolint@7.0.2003'
-  # published: 2026-09-21 | removable: 2026-09-28
-  - 'oxlint@1.85.0'
   # published: 2026-09-23 | removable: 2026-09-30
   - 'rolldown@1.2.10'
   # published: 2026-09-22 | removable: 2026-09-29
   - 'uv@0.12.18'
-  # published: 2026-09-21 | removable: 2026-09-28
-  - '@oxc-project/types@0.151.0'
-  # published: 2026-09-21 | removable: 2026-09-28
-  - '@oxfmt/binding-linux-arm-musleabihf@0.70.0'
-  # published: 2026-09-21 | removable: 2026-09-28
-  - '@oxlint/binding-linux-arm-musleabihf@1.85.0'
   # published: 2026-09-24 | removable: 2026-10-01
   - '@oxlint-tsgolint/darwin-arm64@7.0.2003'
   # published: 2026-09-24 | removable: 2026-10-01

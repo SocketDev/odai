@@ -237,7 +237,13 @@
     "crates:auth": "node scripts/fleet/registry-infra/crates-io-browser-auth.mts",
     "doctor:credentials": "node scripts/fleet/credentials/doctor.mts",
     "gen:mcp:config": "node scripts/fleet/mcp/config.mts",
-    "sweep": "node scripts/fleet/sweep.mts"
+    "sweep": "node scripts/fleet/sweep.mts",
+    "search:code": "node scripts/fleet/ai/search/run.mts",
+    "setup:fff": "node scripts/fleet/setup/fff.mts",
+    "test:fast": "node scripts/fleet/test/fast.mts",
+    "test:mid": "node scripts/fleet/test/mid.mts",
+    "test:slow": "node scripts/fleet/test/slow.mts",
+    "npm:approve:browser": "node scripts/fleet/registry-infra/npm/approve-staged-browser.mts"
   },
   "dependencies": {
     "@sinclair/typebox": "catalog:",
