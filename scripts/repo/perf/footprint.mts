@@ -31,7 +31,10 @@ export async function generateFootprint() {
     index += 1
   ) {
     const config = configs[index]!
-    const bundle = await rolldown(config)
+    const bundle = await rolldown({
+      ...config,
+      experimental: { ...config.experimental, attachDebugInfo: 'none' },
+    })
     try {
       const outputs = Array.isArray(config.output)
         ? config.output
