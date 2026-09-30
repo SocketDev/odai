@@ -16,7 +16,7 @@ catalog:
   '@shadscan/cli': 0.17.0
   '@sinclair/typebox': 0.34.52
   'ecc-agentshield': 1.6.0
-  'fallow': 3.27.0
+  'fallow': 3.28.0
   'mcp-tada': 0.4.0
   'run-local-ci': 0.18.1
   # typebox 1.x — the unscoped rewrite of @sinclair/typebox. Both names are
@@ -377,8 +377,6 @@ minimumReleaseAgeExclude:
   - 'oxlint-tsgolint@7.0.2003'
   # published: 2026-09-23 | removable: 2026-09-30
   - 'rolldown@1.2.10'
-  # published: 2026-09-22 | removable: 2026-09-29
-  - 'uv@0.12.18'
   # published: 2026-09-24 | removable: 2026-10-01
   - '@oxlint-tsgolint/darwin-arm64@7.0.2003'
   # published: 2026-09-24 | removable: 2026-10-01
