@@ -16583,7 +16583,7 @@ const ALWAYS_TRACKED_PREFIXES = [
   'patches/fleet/minimatch@10.2.6.patch',
   'patches/fleet/run-local-ci@0.18.1.patch',
   'patches/fleet/vitest@5.0.0.patch',
-  'patches/fleet/vitest@5.0.1.patch',
+  'patches/fleet/vitest@5.0.2.patch',
   'scripts/fleet/npm/scan/receipt.mts',
   'scripts/fleet/npm/scan/staged.mts',
   'scripts/fleet/registry/npm/scan/ndjson.mts',
