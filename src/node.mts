@@ -40,6 +40,13 @@ import {
   parseControlTokens,
 } from './control-tokens.mts'
 import { detectModelName, matchModelName } from './model-identity.mts'
+import {
+  assertKevLoopbackUrl,
+  createKevClient,
+  DEFAULT_KEV_RUN,
+  DEFAULT_KEV_URL,
+  ODAI_KEV_URL_ENV_VAR,
+} from './kev.mts'
 import { createOdaiModel } from './model.mts'
 import {
   createLocalLanguageModelFactory,
@@ -76,6 +83,8 @@ export {
   createAppleFmBackend,
   createBackend,
   createChromeBuiltinBackend,
+  assertKevLoopbackUrl,
+  createKevClient,
   createLlamaServerBackend,
   createLocalLanguageModelFactory,
   createOdaiModel,
@@ -85,7 +94,9 @@ export {
   decideSecurityFix,
   decideWeeklyUpdate,
   dedupeDependencies,
+  DEFAULT_KEV_RUN,
   DEFAULT_LLAMA_URL,
+  DEFAULT_KEV_URL,
   DEFAULT_PROMPT_TIMEOUT_MS,
   defaultProbeOrder,
   EXIT_NO_BACKEND,
@@ -102,6 +113,7 @@ export {
   ODAI_BACKEND_ENV_VAR,
   ODAI_LLAMA_MODEL_ENV_VAR,
   ODAI_LLAMA_URL_ENV_VAR,
+  ODAI_KEV_URL_ENV_VAR,
   ODAI_TIMEOUT_ENV_VAR,
   parseBatchManifest,
   planWeeklyUpdate,
@@ -136,6 +148,23 @@ export type {
 } from './cli/batch.mts'
 export type { LineWriter, RunCliOptions } from './cli/run.mts'
 export type { LlamaServerBackendOptions } from './backends/llama-server.mts'
+export type {
+  KevChoiceDecision,
+  KevChoiceQuestion,
+  KevClient,
+  KevClientOptions,
+  KevDecision,
+  KevDecisionRequest,
+  KevJsonValue,
+  KevModelCard,
+  KevNoulDecision,
+  KevNoulQuestion,
+  KevQuestion,
+  KevRequestOptions,
+  KevResponse,
+  KevScoreDecision,
+  KevScoreQuestion,
+} from './kev.mts'
 export type { SelectBackendOptions } from './backends/registry.mts'
 export type {
   LanguageModelAvailability,
