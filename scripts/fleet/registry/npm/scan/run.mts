@@ -21,17 +21,17 @@ import process from 'node:process'
 
 import { SocketSdk } from '@socketsecurity/sdk-stable'
 
-import { logger, rootPath, runCapture } from '../shared.mts'
+import { logger, rootPath, runCapture } from '../../shared.mts'
 import {
   acquireSocketTokenViaOAuth,
   socketOAuthConfigured,
-} from '../socket-oauth.mts'
-import { readFullScanNdjson } from './scan-ndjson.mts'
-import type { FullScanArtifact, FullScanStreamResult } from './scan-ndjson.mts'
-export type { FullScanArtifact } from './scan-ndjson.mts'
-import { defaultPackTarball } from './staged.mts'
-import { collectThreatFailures, runLocalThreatScan } from './threat-scan.mts'
-import type { ThreatManifest } from './threat-scan.mts'
+} from '../../socket-oauth.mts'
+import { readFullScanNdjson } from './ndjson.mts'
+import type { FullScanArtifact, FullScanStreamResult } from './ndjson.mts'
+export type { FullScanArtifact } from './ndjson.mts'
+import { defaultPackTarball } from '../staged.mts'
+import { collectThreatFailures, runLocalThreatScan } from '../threat-scan.mts'
+import type { ThreatManifest } from '../threat-scan.mts'
 import { getSocketApiToken } from '@socketsecurity/lib-stable/env/socket'
 import { errorMessage } from '@socketsecurity/lib-stable/errors/message'
 import { safeDelete } from '@socketsecurity/lib-stable/fs/safe'
@@ -48,7 +48,7 @@ async function openSocketScanTokenPage<T>(
   task: (open: (url: string) => Promise<void>) => Promise<T>,
 ): Promise<T> {
   const { withBrowserAuthNavigation } =
-    await import('../../browser/auth-navigation.mts')
+    await import('../../../ai/browser/auth-navigation.mts')
   return await withBrowserAuthNavigation('socket-scan', task)
 }
 
