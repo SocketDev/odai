@@ -209,7 +209,7 @@
     "check:hooks": "node scripts/fleet/check.mts --category=hooks",
     "check:types": "node scripts/fleet/check.mts --category=types",
     "npm:trust:browser": "node scripts/fleet/registry/npm/settings/trusted-publisher/browser.mts",
-    "npm:scan": "node scripts/fleet/registry/npm/scan/run.mts",
+    "npm:scan": "node scripts/fleet/npm/scan.mts",
     "github:release": "node scripts/fleet/release/pipeline/run.mts",
     "ai:drive:check": "node scripts/fleet/check/browser-extension-build-current.mts",
     "ai:drive:doctor": "node scripts/fleet/ai/browser/bridge/doctor.mts",
@@ -252,7 +252,16 @@
     "publish:npm": "node scripts/fleet/npm/publish/run.mts",
     "coordination:claim": "node scripts/fleet/coordination/claim.mts",
     "coordination:mail": "node scripts/fleet/coordination/mail.mts",
-    "git:admin-push": "node scripts/fleet/git/admin/push.mts"
+    "git:admin-push": "node scripts/fleet/git/admin/push.mts",
+    "build:check": "node scripts/fleet/commands/run.mts build check",
+    "ci:check": "node scripts/fleet/commands/run.mts ci check",
+    "cover:check": "node scripts/fleet/commands/run.mts cover check",
+    "lint:check": "node scripts/fleet/commands/run.mts lint check",
+    "lockstep:check": "node scripts/fleet/commands/run.mts lockstep check",
+    "test:check": "node scripts/fleet/commands/run.mts test check",
+    "types:check": "node scripts/fleet/commands/run.mts types check",
+    "fix:github": "node scripts/repo/fix/github/run.mts",
+    "update:check": "node scripts/fleet/weekly-update.mts --check-updates"
   },
   "dependencies": {
     "@sinclair/typebox": "catalog:",
