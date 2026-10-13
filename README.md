@@ -221,6 +221,10 @@ See the [performance practices](docs/repo/perf/practices.md) for package measure
 The [performance journal](docs/repo/perf/journal.md) records measured results, rejected changes, and model limitations.
 The [automation practices](docs/repo/automation/practices.md) define deterministic setup, validation, and model fallback boundaries.
 
+### Documentation
+
+See the [API reference](./docs/api.md) for package exports and runtime guidance, the [command reference](./docs/commands.md) for every `odai` subcommand and task, and the [service reference](./docs/service.md) for loopback HTTP routes and protocol behavior.
+
 ## Development
 
 <details>
