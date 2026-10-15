@@ -93,8 +93,8 @@
     },
     "google-chrome-beta": {
       "description": "Google Chrome Beta for the Gemma on-device AI backend",
-      "version": "155.0.8059.5-1",
-      "versionDate": "2026-09-16T16:36:47.670007Z",
+      "version": "156.0.8078.12-1",
+      "versionDate": "2026-10-07T14:58:44.126486Z",
       "chromeVersionExclusions": [
         {
           "version": "154.0.8037.0-1",
@@ -108,8 +108,12 @@
       ],
       "platforms": {
         "linux-x64": {
-          "asset": "https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-beta/google-chrome-beta_155.0.8059.5-1_amd64.deb",
-          "integrity": "sha512-sLpL6oOWoxCKPjaCaS7aN5ON810/A7iWlr4j/Mo3m9bmrO/cxAzv8TpFra91ar/hFkgdJer1R2X4w1obv7KElw=="
+          "asset": "https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-beta/google-chrome-beta_156.0.8078.12-1_amd64.deb",
+          "integrity": {
+            "value": "sha256-edf8b363114b320e84e30ea358e1e30f7827adb621e84a50bcbfbd0231cc58f9",
+            "src": "https://dl.google.com/linux/chrome/deb/dists/stable/main/binary-amd64/Packages",
+            "date": "2026-10-15"
+          }
         }
       },
       "origin": "node-dist"
